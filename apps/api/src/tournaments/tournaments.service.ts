@@ -1,0 +1,503 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
+import { PrismaService } from '../database/prisma.service';
+import {
+  CreateTournamentDto,
+  TournamentStatus,
+} from './dto/create-tournament.dto';
+import { UpdateTournamentDto } from './dto/update-tournament.dto';
+import { ChangeStatusDto } from './dto/change-status.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
+import slugify from 'slugify';
+
+@Injectable()
+export class TournamentsService {
+  private readonly logger = new Logger(TournamentsService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Validar transiciones de estado permitidas
+   */
+  private validateStatusTransition(
+    currentStatus: string,
+    newStatus: TournamentStatus,
+  ): void {
+    const validTransitions: Record<string, TournamentStatus[]> = {
+      draft: [
+        TournamentStatus.VISIBLE,
+        TournamentStatus.INVISIBLE,
+        TournamentStatus.ARCHIVADO,
+      ],
+      visible: [
+        TournamentStatus.INVISIBLE,
+        TournamentStatus.INSCRIPCION_CERRADA,
+        TournamentStatus.ARCHIVADO,
+      ],
+      invisible: [
+        TournamentStatus.VISIBLE,
+        TournamentStatus.INSCRIPCION_CERRADA,
+        TournamentStatus.ARCHIVADO,
+      ],
+      inscripcion_cerrada: [
+        TournamentStatus.FINALIZADO,
+        TournamentStatus.ARCHIVADO,
+      ],
+      finalizado: [TournamentStatus.ARCHIVADO],
+      archivado: [], // No se puede cambiar desde archivado
+    };
+
+    const allowedStatuses = validTransitions[currentStatus] || [];
+    if (!allowedStatuses.includes(newStatus)) {
+      throw new BadRequestException(
+        `Cannot transition from ${currentStatus} to ${newStatus}. Valid transitions: ${allowedStatuses.join(', ')}`,
+      );
+    }
+  }
+
+  /**
+   * Aplicar transiciones automáticas de estado basadas en fechas
+   */
+  private async applyAutomaticStatusTransitions(): Promise<void> {
+    const now = new Date();
+
+    // Cambiar a inscripcion_cerrada si la fecha de fin de inscripción pasó
+    await this.prisma.tournament.updateMany({
+      where: {
+        status: {
+          in: [TournamentStatus.VISIBLE, TournamentStatus.INVISIBLE],
+        },
+        registrationEndDate: {
+          lte: now,
+        },
+      },
+      data: {
+        status: TournamentStatus.INSCRIPCION_CERRADA,
+      },
+    });
+
+    // Cambiar a finalizado si la fecha de fin pasó
+    await this.prisma.tournament.updateMany({
+      where: {
+        status: TournamentStatus.INSCRIPCION_CERRADA,
+        endDate: {
+          lte: now,
+        },
+      },
+      data: {
+        status: TournamentStatus.FINALIZADO,
+      },
+    });
+  }
+
+  async create(createTournamentDto: CreateTournamentDto) {
+    // Verificar que el deporte existe
+    const sport = await this.prisma.sport.findUnique({
+      where: { id: createTournamentDto.sportId },
+    });
+
+    if (!sport) {
+      throw new NotFoundException('Sport not found');
+    }
+
+    // Validar fechas
+    if (
+      createTournamentDto.startDate &&
+      createTournamentDto.endDate &&
+      new Date(createTournamentDto.startDate) >
+        new Date(createTournamentDto.endDate)
+    ) {
+      throw new BadRequestException('Start date must be before end date');
+    }
+
+    if (
+      createTournamentDto.registrationStartDate &&
+      createTournamentDto.registrationEndDate &&
+      new Date(createTournamentDto.registrationStartDate) >
+        new Date(createTournamentDto.registrationEndDate)
+    ) {
+      throw new BadRequestException(
+        'Registration start date must be before registration end date',
+      );
+    }
+
+    const tournament = await this.prisma.tournament.create({
+      data: {
+        ...createTournamentDto,
+        slug: slugify(createTournamentDto.name),
+        status: createTournamentDto.status || TournamentStatus.DRAFT,
+        startDate: createTournamentDto.startDate
+          ? new Date(createTournamentDto.startDate)
+          : null,
+        endDate: createTournamentDto.endDate
+          ? new Date(createTournamentDto.endDate)
+          : null,
+        registrationStartDate: createTournamentDto.registrationStartDate
+          ? new Date(createTournamentDto.registrationStartDate)
+          : null,
+        registrationEndDate: createTournamentDto.registrationEndDate
+          ? new Date(createTournamentDto.registrationEndDate)
+          : null,
+      },
+      include: {
+        sport: true,
+        categories: {
+          include: {
+            zones: true,
+          },
+        },
+        _count: {
+          select: {
+            categories: true,
+            registrations: true,
+          },
+        },
+      },
+    });
+
+    this.logger.log(`Tournament created: ${tournament.name}`);
+
+    return tournament;
+  }
+
+  async findAll(paginationDto: PaginationDto, status?: string) {
+    // Aplicar transiciones automáticas antes de listar
+    await this.applyAutomaticStatusTransitions();
+
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = paginationDto;
+
+    const skip = (page - 1) * limit;
+
+    const where: any = {
+      deletedAt: null,
+    };
+
+    if (status) {
+      where.status = status;
+    }
+
+    const [tournaments, total] = await Promise.all([
+      this.prisma.tournament.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+          sport: true,
+          categories: {
+            include: {
+              zones: {
+                include: {
+                  _count: {
+                    select: {
+                      teamZones: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              categories: true,
+              registrations: true,
+            },
+          },
+        },
+      }),
+      this.prisma.tournament.count({ where }),
+    ]);
+
+    return {
+      data: tournaments,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findBySlug(slug: string) {
+    // Aplicar transiciones automáticas antes de obtener
+    await this.applyAutomaticStatusTransitions();
+
+    const tournament = await this.prisma.tournament.findFirst({
+      where: { slug, deletedAt: null },
+      include: {
+        sport: true,
+        categories: {
+          include: {
+            sport: true,
+            zones: {
+              include: {
+                teamZones: {
+                  include: {
+                    team: {
+                      select: {
+                        id: true,
+                        name: true,
+                        logoUrl: true,
+                      },
+                    },
+                  },
+                },
+                _count: {
+                  select: {
+                    teamZones: true,
+                    matches: true,
+                  },
+                },
+              },
+            },
+            _count: {
+              select: {
+                zones: true,
+                registrations: true,
+                matches: true,
+              },
+            },
+          },
+        },
+        registrations: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
+            category: true,
+          },
+        },
+        _count: {
+          select: {
+            categories: true,
+            registrations: true,
+          },
+        },
+      },
+    });
+
+    if (!tournament) {
+      throw new NotFoundException(`Tournament with slug "${slug}" not found`);
+    }
+
+    return tournament;
+  }
+
+  async findOne(id: string) {
+    // Aplicar transiciones automáticas antes de obtener
+    await this.applyAutomaticStatusTransitions();
+
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id, deletedAt: null },
+      include: {
+        sport: true,
+        categories: {
+          include: {
+            sport: true,
+            zones: {
+              include: {
+                teamZones: {
+                  include: {
+                    team: {
+                      select: {
+                        id: true,
+                        name: true,
+                        logoUrl: true,
+                      },
+                    },
+                  },
+                },
+                _count: {
+                  select: {
+                    teamZones: true,
+                    matches: true,
+                  },
+                },
+              },
+            },
+            _count: {
+              select: {
+                zones: true,
+                registrations: true,
+                matches: true,
+              },
+            },
+          },
+        },
+        registrations: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
+            category: true,
+          },
+        },
+        _count: {
+          select: {
+            categories: true,
+            registrations: true,
+          },
+        },
+      },
+    });
+
+    if (!tournament) {
+      throw new NotFoundException(`Tournament with ID ${id} not found`);
+    }
+
+    return tournament;
+  }
+
+  async update(id: string, updateTournamentDto: UpdateTournamentDto) {
+    const tournament = await this.findOne(id);
+
+    // Si se está actualizando el deporte, verificar que existe
+    if (updateTournamentDto.sportId) {
+      const sport = await this.prisma.sport.findUnique({
+        where: { id: updateTournamentDto.sportId },
+      });
+
+      if (!sport) {
+        throw new NotFoundException('Sport not found');
+      }
+    }
+
+    // Validar fechas si se proporcionan
+    const startDate = updateTournamentDto.startDate
+      ? new Date(updateTournamentDto.startDate)
+      : tournament.startDate;
+    const endDate = updateTournamentDto.endDate
+      ? new Date(updateTournamentDto.endDate)
+      : tournament.endDate;
+
+    if (startDate && endDate && startDate > endDate) {
+      throw new BadRequestException('Start date must be before end date');
+    }
+
+    const registrationStartDate = updateTournamentDto.registrationStartDate
+      ? new Date(updateTournamentDto.registrationStartDate)
+      : tournament.registrationStartDate;
+    const registrationEndDate = updateTournamentDto.registrationEndDate
+      ? new Date(updateTournamentDto.registrationEndDate)
+      : tournament.registrationEndDate;
+
+    if (
+      registrationStartDate &&
+      registrationEndDate &&
+      registrationStartDate > registrationEndDate
+    ) {
+      throw new BadRequestException(
+        'Registration start date must be before registration end date',
+      );
+    }
+
+    // Si se está cambiando el estado, validar transición
+    if (updateTournamentDto.status) {
+      this.validateStatusTransition(
+        tournament.status,
+        updateTournamentDto.status,
+      );
+    }
+
+    const updatedTournament = await this.prisma.tournament.update({
+      where: { id },
+      data: {
+        ...updateTournamentDto,
+        startDate: updateTournamentDto.startDate
+          ? new Date(updateTournamentDto.startDate)
+          : undefined,
+        endDate: updateTournamentDto.endDate
+          ? new Date(updateTournamentDto.endDate)
+          : undefined,
+        registrationStartDate: updateTournamentDto.registrationStartDate
+          ? new Date(updateTournamentDto.registrationStartDate)
+          : undefined,
+        registrationEndDate: updateTournamentDto.registrationEndDate
+          ? new Date(updateTournamentDto.registrationEndDate)
+          : undefined,
+      },
+      include: {
+        sport: true,
+        categories: {
+          include: {
+            zones: true,
+          },
+        },
+        _count: {
+          select: {
+            categories: true,
+            registrations: true,
+          },
+        },
+      },
+    });
+
+    this.logger.log(`Tournament updated: ${updatedTournament.name}`);
+
+    return updatedTournament;
+  }
+
+  async changeStatus(id: string, changeStatusDto: ChangeStatusDto) {
+    const tournament = await this.findOne(id);
+
+    this.validateStatusTransition(tournament.status, changeStatusDto.status);
+
+    const updatedTournament = await this.prisma.tournament.update({
+      where: { id },
+      data: {
+        status: changeStatusDto.status,
+      },
+      include: {
+        sport: true,
+        categories: {
+          include: {
+            zones: true,
+          },
+        },
+        _count: {
+          select: {
+            categories: true,
+            registrations: true,
+          },
+        },
+      },
+    });
+
+    this.logger.log(
+      `Tournament status changed: ${tournament.name} -> ${changeStatusDto.status}`,
+    );
+
+    return updatedTournament;
+  }
+
+  async remove(id: string) {
+    await this.findOne(id);
+
+    await this.prisma.tournament.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+
+    this.logger.log(`Tournament deleted: ${id}`);
+
+    return { message: 'Tournament deleted successfully' };
+  }
+}

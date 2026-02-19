@@ -1,0 +1,67 @@
+import { client } from "../common/client/baseClient"
+import { Service } from "../common/services/Service"
+import { PaginationParams } from "../common/dto"
+
+interface CreateTeamDto {
+  name: string
+  logoUrl?: string
+  sportId: string
+  captainId?: string
+}
+
+interface UpdateTeamDto {
+  name?: string
+  logoUrl?: string
+  sportId?: string
+  captainId?: string
+}
+
+interface AddPlayerDto {
+  playerId: string
+}
+
+class TeamService extends Service {
+  async getTeams(params?: PaginationParams) {
+    const { data } = await this.client.get("/teams", { params })
+    return data
+  }
+
+  async getTeamById(id: string) {
+    const { data } = await this.client.get(`/teams/${id}`)
+    return data
+  }
+
+  async createTeam(createTeamDto: CreateTeamDto) {
+    const { data } = await this.client.post("/teams", createTeamDto)
+    return data
+  }
+
+  async updateTeam(id: string, updateTeamDto: UpdateTeamDto) {
+    const { data } = await this.client.patch(`/teams/${id}`, updateTeamDto)
+    return data
+  }
+
+  async deleteTeam(id: string) {
+    const { data } = await this.client.delete(`/teams/${id}`)
+    return data
+  }
+
+  async addPlayer(teamId: string, addPlayerDto: AddPlayerDto) {
+    const { data } = await this.client.post(`/teams/${teamId}/players`, addPlayerDto)
+    return data
+  }
+
+  async removePlayer(teamId: string, playerId: string) {
+    const { data } = await this.client.delete(`/teams/${teamId}/players/${playerId}`)
+    return data
+  }
+
+  async assignCaptain(teamId: string, playerId: string) {
+    const { data } = await this.client.patch(`/teams/${teamId}/captain/${playerId}`)
+    return data
+  }
+}
+
+const teamService = new TeamService(client)
+export default teamService
+

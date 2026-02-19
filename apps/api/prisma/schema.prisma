@@ -1,0 +1,622 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// PERFILES Y AUTENTICACIÓN
+// ============================================
+
+// Profile: Información básica de cualquier usuario autenticado con Supabase
+model Profile {
+  id                 String    @id @default(uuid())
+  supabaseUserId     String    @unique // ID de Supabase Auth
+  email              String    @unique
+  name               String
+  phone              String?   @unique
+  phoneVerified      Boolean   @default(false)
+  documentNumber     String?
+  documentVerified   Boolean   @default(false)
+  documentVerifiedBy String?   // Profile ID de quien verificó
+  documentVerifiedAt DateTime?
+  dateOfBirth        DateTime?
+  avatarUrl          String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+
+  // Relaciones
+  profileRoles          ProfileRole[]
+  teamsCreated          Team[]                @relation("TeamCreator")
+  assignedMatches       MatchStaff[]          @relation("AssignedBy")
+  registrations         Registration[]        @relation("RequestedBy")
+  approvedRegistrations Registration[]        @relation("ApprovedBy")
+  payments              Payment[]
+  sentMessages          Message[]             @relation("Sender")
+  receivedMessages      Message[]             @relation("Recipient")
+  reports               Report[]
+  tickets               SupportTicket[]       @relation("ProfileTickets")
+  assignedTickets       SupportTicket[]       @relation("AssignedTo")
+  ticketComments        SupportTicketComment[]
+  matchAnnouncements    MatchAnnouncement[]
+  notifications         Notification[]
+
+  @@map("profiles")
+}
+
+// Player: Perfil de jugador (vinculado directamente a Supabase User)
+// OPCIONAL: Cualquier usuario puede crear su perfil de jugador cuando quiera
+model Player {
+  id             String    @id @default(uuid())
+  supabaseUserId String    @unique // Vinculado directamente a Supabase Auth
+  firstName      String
+  lastName       String
+  jerseyNumber   Int?
+  position       String?   // Posición en el campo
+  height         Float?    // cm
+  weight         Float?    // kg
+  photoUrl       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  teams     PlayerTeam[]
+  captainOf Team[]       @relation("TeamCaptain")
+
+  @@map("players")
+}
+
+// ============================================
+// DEPORTES Y EQUIPOS
+// ============================================
+
+model Sport {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teams       Team[]
+  tournaments Tournament[]
+  categories  Category[]
+
+  @@map("sports")
+}
+
+model Team {
+  id        String    @id @default(uuid())
+  name      String
+  logoUrl   String?
+  sportId   String
+  sport     Sport     @relation(fields: [sportId], references: [id])
+  creatorId String
+  creator   Profile   @relation("TeamCreator", fields: [creatorId], references: [id])
+  captainId String?
+  captain   Player?   @relation("TeamCaptain", fields: [captainId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  players       PlayerTeam[]
+  teamZones     TeamZone[]
+  homeMatches   Match[]        @relation("HomeTeam")
+  awayMatches   Match[]        @relation("AwayTeam")
+  registrations Registration[]
+
+  @@map("teams")
+}
+
+model PlayerTeam {
+  id       String   @id @default(uuid())
+  playerId String
+  player   Player   @relation(fields: [playerId], references: [id])
+  teamId   String
+  team     Team     @relation(fields: [teamId], references: [id])
+  joinedAt DateTime @default(now())
+  isActive Boolean  @default(true)
+
+  @@unique([playerId, teamId])
+  @@index([playerId])
+  @@index([teamId])
+  @@map("player_teams")
+}
+
+// ============================================
+// TORNEOS, CATEGORÍAS Y ZONAS
+// ============================================
+
+model Tournament {
+  id                    String    @id @default(uuid())
+  name                  String
+  slug                  String    @unique
+  description           String?
+  sportId               String
+  sport                 Sport     @relation(fields: [sportId], references: [id])
+  status                String // draft, visible, invisible, inscripcion_cerrada, finalizado, archivado
+  startDate             DateTime?
+  endDate               DateTime?
+  registrationStartDate DateTime?
+  registrationEndDate   DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
+
+  categories    Category[]
+  registrations Registration[]
+  messages      Message[]
+
+  @@index([status])
+  @@index([sportId])
+  @@index([startDate])
+  @@map("tournaments")
+}
+
+model Category {
+  id            String    @id @default(uuid())
+  tournamentId  String
+  tournament    Tournament @relation(fields: [tournamentId], references: [id])
+  name          String
+  sportId       String
+  sport         Sport     @relation(fields: [sportId], references: [id])
+  playoffFormat String? // single_elimination, double_elimination, round_robin
+  teamsPerZone  Int?
+  // Playoff configuration
+  teamsQualifyPerZone    Int?    @default(2) // Number of teams that qualify from each zone
+  playoffTeamsTotal      Int?    // Total teams in playoffs (overrides zone-based calculation)
+  playoffSeedingMethod   String? @default("zone_position") // zone_position, overall_record, points
+  regularPhaseCompleted  Boolean @default(false) // Indicates if regular phase is finished
+  playoffsGenerated      Boolean @default(false) // Indicates if playoffs have been generated
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  zones         Zone[]
+  matches       Match[]
+  registrations Registration[]
+
+  @@index([tournamentId])
+  @@map("categories")
+}
+
+model Zone {
+  id               String    @id @default(uuid())
+  categoryId       String
+  category         Category  @relation(fields: [categoryId], references: [id])
+  name             String
+  fixtureAlgorithm String? // round_robin, custom
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  teamZones TeamZone[]
+  matches   Match[]
+
+  @@index([categoryId])
+  @@map("zones")
+}
+
+model TeamZone {
+  id         String   @id @default(uuid())
+  teamId     String
+  team       Team     @relation(fields: [teamId], references: [id])
+  zoneId     String
+  zone       Zone     @relation(fields: [zoneId], references: [id])
+  assignedAt DateTime @default(now())
+
+  @@unique([teamId, zoneId])
+  @@index([teamId])
+  @@index([zoneId])
+  @@map("team_zones")
+}
+
+// ============================================
+// CANCHAS Y LOCACIONES
+// ============================================
+
+model Venue {
+  id            String    @id @default(uuid())
+  name          String
+  address       String?
+  city          String?
+  province      String?
+  country       String    @default("Argentina")
+  googleMapsUrl String?
+  capacity      Int?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  matches Match[]
+
+  @@map("venues")
+}
+
+// ============================================
+// PARTIDOS
+// ============================================
+
+model Match {
+  id             String    @id @default(uuid())
+  homeTeamId     String?   // Nullable for playoff matches where team is TBD
+  homeTeam       Team?     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId     String?   // Nullable for playoff matches where team is TBD
+  awayTeam       Team?     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  categoryId     String?
+  category       Category? @relation(fields: [categoryId], references: [id])
+  zoneId         String?
+  zone           Zone?     @relation(fields: [zoneId], references: [id])
+  venueId        String?
+  venue          Venue?    @relation(fields: [venueId], references: [id])
+  matchDate      DateTime
+  matchTime      String?
+  status         String // programado, en_curso, suspendido, cancelado, reprogramado, finalizado
+  matchType      String // regular, playoff, semifinal, final, third_place, amistoso
+  homeScore      Int       @default(0)
+  awayScore      Int       @default(0)
+  costPerTeam    Float?
+  liveStatsJson  Json?
+  processedStats Json?
+  // Playoff bracket fields
+  playoffRound     Int?    // 1=Final, 2=Semifinal, 3=Quarterfinal, etc. (counted from final)
+  playoffPosition  Int?    // Position within the round (1, 2, 3, 4 for quarterfinals)
+  bracketPosition  String? // Unique bracket identifier like "QF1", "SF1", "F", "3rd"
+  homeSeed         Int?    // Seed number of home team
+  awaySeed         Int?    // Seed number of away team
+  // References to source matches for bracket advancement
+  homeFromMatchId  String? // Winner/loser of this match becomes home team
+  awayFromMatchId  String? // Winner/loser of this match becomes away team
+  homeFromPosition String? // "winner" or "loser" from source match
+  awayFromPosition String? // "winner" or "loser" from source match
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  matchStaff    MatchStaff[]
+  payments      Payment[]
+  announcements MatchAnnouncement[]
+  messages      Message[]
+
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@index([categoryId])
+  @@index([zoneId])
+  @@index([venueId])
+  @@index([status])
+  @@index([matchDate])
+  @@index([status, matchDate])
+  @@index([playoffRound])
+  @@index([bracketPosition])
+  @@map("matches")
+}
+
+model MatchAnnouncement {
+  id        String   @id @default(uuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id])
+  type      String // suspension, cancellation, reschedule, other
+  title     String
+  message   String
+  createdBy String
+  creator   Profile  @relation(fields: [createdBy], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([matchId])
+  @@map("match_announcements")
+}
+
+// ============================================
+// PERSONAL (STAFF)
+// ============================================
+
+model Staff {
+  id        String    @id @default(uuid())
+  profileId String?   @unique // Opcional: vinculado a Profile si tiene cuenta
+  type      String // referee, table_official, photographer
+  firstName String
+  lastName  String
+  phone     String?
+  email     String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  availability StaffAvailability[]
+  matchStaff   MatchStaff[]
+
+  @@index([profileId])
+  @@index([type])
+  @@map("staff")
+}
+
+model StaffAvailability {
+  id        String   @id @default(uuid())
+  staffId   String
+  staff     Staff    @relation(fields: [staffId], references: [id])
+  dayOfWeek Int // 0=domingo, 6=sábado
+  startTime String // HH:mm
+  endTime   String // HH:mm
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId])
+  @@index([dayOfWeek])
+  @@map("staff_availability")
+}
+
+model MatchStaff {
+  id         String    @id @default(uuid())
+  matchId    String
+  match      Match     @relation(fields: [matchId], references: [id])
+  staffId    String
+  staff      Staff     @relation(fields: [staffId], references: [id])
+  role       String // referee, table_official, photographer
+  status     String // assigned, applied, rejected
+  assignedBy String?
+  assignor   Profile?  @relation("AssignedBy", fields: [assignedBy], references: [id])
+  assignedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([matchId, role])
+  @@index([matchId])
+  @@index([staffId])
+  @@map("match_staff")
+}
+
+// ============================================
+// INSCRIPCIONES
+// ============================================
+
+model Registration {
+  id              String    @id @default(uuid())
+  teamId          String
+  team            Team      @relation(fields: [teamId], references: [id])
+  tournamentId    String
+  tournament      Tournament @relation(fields: [tournamentId], references: [id])
+  categoryId      String
+  category        Category  @relation(fields: [categoryId], references: [id])
+  status          String // pendiente, aprobada, rechazada, pagada
+  requestedBy     String
+  requester       Profile   @relation("RequestedBy", fields: [requestedBy], references: [id])
+  approvedBy      String?
+  approver        Profile?  @relation("ApprovedBy", fields: [approvedBy], references: [id])
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  payments Payment[]
+
+  @@unique([teamId, tournamentId])
+  @@index([teamId])
+  @@index([tournamentId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("registrations")
+}
+
+// ============================================
+// PAGOS
+// ============================================
+
+model Payment {
+  id                String        @id @default(uuid())
+  registrationId    String?
+  registration      Registration? @relation(fields: [registrationId], references: [id])
+  matchId           String?
+  match             Match?        @relation(fields: [matchId], references: [id])
+  profileId         String
+  profile           Profile       @relation(fields: [profileId], references: [id])
+  amount            Float
+  currency          String        @default("ARS")
+  method            String // mercadopago, cash, other
+  status            String // pendiente, procesado, fallido
+  providerPaymentId String?
+  providerResponse  Json?
+  processedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([registrationId])
+  @@index([matchId])
+  @@index([profileId])
+  @@index([status])
+  @@index([providerPaymentId])
+  @@map("payments")
+}
+
+// ============================================
+// ROLES Y PERMISOS
+// ============================================
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  profileRoles ProfileRole[]
+  permissions  RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id        String   @id @default(uuid())
+  module    String // tournaments, teams, matches, etc.
+  action    String // create, read, update, delete
+  scope     String   @default("all") // own, assigned, all
+  createdAt DateTime @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@unique([module, action, scope])
+  @@map("permissions")
+}
+
+model ProfileRole {
+  id         String   @id @default(uuid())
+  profileId  String
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id])
+  assignedBy String?
+  assignedAt DateTime @default(now())
+
+  @@unique([profileId, roleId])
+  @@index([profileId])
+  @@index([roleId])
+  @@map("profile_roles")
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id])
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================
+// NOTIFICACIONES Y MENSAJERÍA
+// ============================================
+
+model Notification {
+  id        String    @id @default(uuid())
+  profileId String
+  profile   Profile   @relation(fields: [profileId], references: [id])
+  type      String // in_app, email, whatsapp
+  title     String
+  message   String
+  link      String?
+  read      Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([profileId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Message {
+  id                  String      @id @default(uuid())
+  senderId            String
+  sender              Profile     @relation("Sender", fields: [senderId], references: [id])
+  recipientId         String
+  recipient           Profile     @relation("Recipient", fields: [recipientId], references: [id])
+  subject             String?
+  content             String
+  relatedTournamentId String?
+  tournament          Tournament? @relation(fields: [relatedTournamentId], references: [id])
+  relatedMatchId      String?
+  match               Match?      @relation(fields: [relatedMatchId], references: [id])
+  read                Boolean     @default(false)
+  readAt              DateTime?
+  createdAt           DateTime    @default(now())
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// ============================================
+// REPORTES Y CONFIGURACIONES
+// ============================================
+
+model Report {
+  id          String   @id @default(uuid())
+  type        String // tournament, team, player, match, financial
+  title       String
+  parameters  Json?
+  generatedBy String
+  generator   Profile  @relation(fields: [generatedBy], references: [id])
+  fileUrl     String?
+  format      String? // excel, pdf
+  createdAt   DateTime @default(now())
+
+  @@index([type])
+  @@index([generatedBy])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+model Setting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String?
+  type        String // string, number, boolean, json
+  scope       String   @default("global") // global, tournament, category
+  scopeId     String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+  @@index([scope])
+  @@index([scopeId])
+  @@map("settings")
+}
+
+// ============================================
+// SOPORTE
+// ============================================
+
+model SupportTicket {
+  id          String    @id @default(uuid())
+  profileId   String
+  profile     Profile   @relation("ProfileTickets", fields: [profileId], references: [id])
+  subject     String
+  description String
+  status      String // open, in_progress, resolved, closed
+  priority    String    @default("medium") // low, medium, high, urgent
+  assignedTo  String?
+  assignee    Profile?  @relation("AssignedTo", fields: [assignedTo], references: [id])
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  comments SupportTicketComment[]
+
+  @@index([profileId])
+  @@index([status])
+  @@index([assignedTo])
+  @@index([createdAt])
+  @@map("support_tickets")
+}
+
+model SupportTicketComment {
+  id         String        @id @default(uuid())
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id])
+  profileId  String
+  profile    Profile       @relation(fields: [profileId], references: [id])
+  comment    String
+  isInternal Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+
+  @@index([ticketId])
+  @@index([profileId])
+  @@index([createdAt])
+  @@map("support_ticket_comments")
+}
+

@@ -1,0 +1,15 @@
+{
+  "name": "overtime-mono",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=overtime-fe",
+    "dev:api": "turbo dev --filter=overtime-be",
+    "lint": "turbo lint"
+  },
+  "devDependencies": {
+    "turbo": "^2"
+  }
+}

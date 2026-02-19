@@ -1,0 +1,12 @@
+import { Module } from '@nestjs/common';
+import { ZonesService } from './zones.service';
+import { ZonesController } from './zones.controller';
+import { DatabaseModule } from '../../database/database.module';
+
+@Module({
+  imports: [DatabaseModule],
+  controllers: [ZonesController],
+  providers: [ZonesService],
+  exports: [ZonesService],
+})
+export class ZonesModule {}
