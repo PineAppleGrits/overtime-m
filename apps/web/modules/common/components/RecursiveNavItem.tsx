@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { NavItem } from "../types";
 import { cn } from "@/utils/cn";
+import { ChevronDown } from "lucide-react";
 
 interface RecursiveNavItemProps {
     item: NavItem;
@@ -8,16 +9,16 @@ interface RecursiveNavItemProps {
 }
 
 export const RecursiveNavItem = ({ item, depth = 0 }: RecursiveNavItemProps) => {
+    const arrowClass = cn("icon w-4 h-4 transition-transform ml-2 text-xs", depth === 0 ? "text-white" : "text-ot-orange");
+
     return (
-        <li className={cn("relative text-sm py-2 cursor-pointer hover:[&>a>div>span]:text-ot-orange hover:[&>ul]:block hover:[&>a>div>span.icon]:rotate-90 uppercase font-semibold",
+        <li className={cn("relative text-sm py-2 cursor-pointer group hover:[&>a>div>svg]:text-ot-orange hover:[&>ul]:block hover:[&>a>div>span.icon]:rotate-90 uppercase font-semibold",
             (depth > 1 || (item.subMenu && item.subMenu.length > 0)) && "hover:bg-ot-light-blue")}>
             <Link href={item.href} className="block w-full h-full px-4 py-2 text-gray-400" prefetch>
                 <div className="flex justify-between items-center">
-                    <span className={`hover:text-ot-orange ${depth === 0 ? "text-white" : "text-ot-orange"}`}>{item.name}</span>
+                    <span className={`group-hover:text-ot-orange ${depth === 0 ? "text-white" : "text-ot-orange"}`}>{item.name}</span>
                     {item.subMenu && item.subMenu.length > 0 && (
-                        <span className={`icon ml-2 text-xs transition-transform ${depth === 0 ? "text-white " : "text-ot-orange"}`}>
-                            ▶
-                        </span>
+                        <ChevronDown className={arrowClass} />
                     )}
                 </div>
             </Link>

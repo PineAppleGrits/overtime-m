@@ -2,7 +2,7 @@ import TournamentService from "@/modules/tournament/TournamentService";
 import { NavItem, Tournament } from "../types";
 import { RecursiveNavItem } from "./RecursiveNavItem";
 import Image from "next/image";
-import { UserMenu } from "@/components/UserMenu";
+import { UserMenu } from "@/modules/common/components/UserMenu";
 
 const navItem: NavItem[] = [
     { id: "inicio", name: "inicio", href: "/" },

@@ -2,8 +2,11 @@ export type Tournament = {
     id: string;
     name: string;
     slug: string;
-    categories: Category[]
-    hidden: boolean
+    description?: string | null;
+    registrationStartDate?: string | null;
+    registrationEndDate?: string | null;
+    categories: Category[];
+    hidden: boolean;
 }
 
 export type Category = {
