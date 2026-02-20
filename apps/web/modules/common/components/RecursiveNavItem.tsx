@@ -9,16 +9,17 @@ interface RecursiveNavItemProps {
 }
 
 export const RecursiveNavItem = ({ item, depth = 0 }: RecursiveNavItemProps) => {
-    const arrowClass = cn("icon w-4 h-4 rotate-0 group-hover:rotate-180 transition-transform ml-2 text-xs", 
+    const arrowClass = cn("icon w-4 h-4 shrink-0 transition-transform duration-200 ml-2 text-xs", 
         depth === 0 ? "text-white" : "text-ot-orange");
 
     return (
-        <li className={cn("relative text-sm py-2 cursor-pointer group hover:[&>a>div>svg]:text-ot-orange hover:[&>ul]:block hover:[&>a>div>span.icon]:rotate-90 uppercase font-semibold",
+        <li className={cn("relative group text-sm py-2 cursor-pointer hover:[&>a>div>svg]:rotate-180 hover:[&>a>div>svg]:text-ot-orange hover:[&>ul]:block uppercase font-semibold",
+            depth > 0 && "",
             (depth > 1 || (item.subMenu && item.subMenu.length > 0)) && "hover:bg-ot-light-blue/90",
-            depth > 1 && "bg-linear-to-r from-ot-dark-blue/30 to-ot-light-blue/70")}>
+            depth > 1 && "bg-linear-to-r from-ot-dark-blue/30 to-ot-light-blue/70 hover:bg-purple-950")}>
             <Link href={item.href} className="block w-full h-full px-4 py-2 text-gray-400" prefetch>
                 <div className="flex justify-between items-center">
-                    <span className={`group-hover:text-ot-orange ${depth === 0 ? "text-white" : "text-ot-orange"}`}>{item.name}</span>
+                    <span className={cn(depth === 0 ? "text-white group-hover:text-ot-orange" : "text-ot-orange ")}>{item.name}</span>
                     {item.subMenu && item.subMenu.length > 0 && (
                         <ChevronDown className={arrowClass} />
                     )}
@@ -26,7 +27,7 @@ export const RecursiveNavItem = ({ item, depth = 0 }: RecursiveNavItemProps) => 
             </Link>
             {item.subMenu && item.subMenu.length > 0 && (
                 <ul
-                    className={cn("absolute hidden text-ot-orange! shadow-lg w-64 z-50 bg-ot-light-blue",
+                    className={cn("absolute hidden shadow-lg w-64 z-50 bg-ot-light-blue",
                         depth === 0 ? "top-full left-0" : "top-0 left-full",
                     )}
                 >
