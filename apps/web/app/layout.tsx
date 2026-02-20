@@ -36,7 +36,7 @@ export default async function RootLayout({
   const profile = user ? await getProfile() : null;
 
   return (
-    <html lang="es">
+    <html lang="es" className="dark">
       <body className={cn(geistSans.variable, geistMono.variable, "antialiased")}>
         <QueryProvider>
           <AuthProvider serverUser={user} serverProfile={profile}>
