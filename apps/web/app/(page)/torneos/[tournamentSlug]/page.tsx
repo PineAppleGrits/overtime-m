@@ -107,7 +107,7 @@ export default async function TournamentPage({
               {categories.map((category) => (
                 <li key={category.id}>
                   <Link
-                    href={`/torneos/${tournamentSlug}/${category.slug}`}
+                    href={`/torneos/${tournamentSlug}/${category.slug ?? category.id}`}
                     className={cn(
                       "group flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-ot-dark-blue/30 p-5",
                       "transition-colors hover:border-ot-orange/40 hover:bg-ot-dark-blue/50",

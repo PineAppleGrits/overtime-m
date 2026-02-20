@@ -9,7 +9,7 @@ interface RecursiveNavItemProps {
 }
 
 export const RecursiveNavItem = ({ item, depth = 0 }: RecursiveNavItemProps) => {
-    const arrowClass = cn("icon w-4 h-4 transition-transform ml-2 text-xs", depth === 0 ? "text-white" : "text-ot-orange");
+    const arrowClass = cn("icon w-4 h-4 group-hover:rotate-180 transition-transform ml-2 text-xs", depth === 0 ? "text-white" : "text-ot-orange");
 
     return (
         <li className={cn("relative text-sm py-2 cursor-pointer group hover:[&>a>div>svg]:text-ot-orange hover:[&>ul]:block hover:[&>a>div>span.icon]:rotate-90 uppercase font-semibold",

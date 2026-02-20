@@ -12,9 +12,11 @@ export type Tournament = {
 export type Category = {
     id: string;
     name: string;
-    slug: string;
-    zones: Zone[]
-    hidden: boolean
+    slug?: string;
+    zones: Zone[];
+    hidden?: boolean;
+    teamsPerZone?: number | null;
+    _count?: { zones: number; registrations: number; matches: number };
 }
 
 export type Zone = {

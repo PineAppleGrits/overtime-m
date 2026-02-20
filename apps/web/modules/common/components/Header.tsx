@@ -8,8 +8,7 @@ const navItem: NavItem[] = [
     { id: "inicio", name: "inicio", href: "/" },
     { id: "torneos", name: "torneos", href: "/#" },
     { id: "amistosos", name: "amistosos", href: "/amistosos" },
-    { id: "contacto", name: "contacto", href: "/contacto" },
-    { id: "inscripciones", name: "inscripciones", href: "/inscripciones" }
+    { id: "contacto", name: "contacto", href: "/contacto" }
 ]
 
 const tournamentsToNavItems = (tournaments: Tournament[]): NavItem[] => {

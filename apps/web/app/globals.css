@@ -4,11 +4,29 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Din Display – public/fonts/DinDisplay/ */
+@font-face {
+  font-family: "Din Display";
+  src: url("/fonts/DinDisplay/DinDisplay-regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Din Display";
+  src: url("/fonts/DinDisplay/DinDisplay-bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-ot-background: #100f14;
   --color-ot-orange: #ff3b2f;
   --color-ot-dark-blue: #292548;
   --color-ot-light-blue: #3a3563;
+  --font-din-display: "Din Display", sans-serif;
 }
 
 @theme inline {
@@ -57,7 +75,7 @@
 }
 
 body {
-  font-family: "Din Display", sans-serif;
+  font-family: var(--font-din-display);
   background-color: var(--color-ot-background);
 }
 
