@@ -22,14 +22,15 @@ const socialLinks = [
 export const Footer = () => {
     return (
         <footer className="bg-newbox py-8 bg-ot-dark-blue text-white">
-            <div className="ot-container  flex items-center justify-between">
+            <div className="ot-container flex flex-col gap-6 items-center justify-between md:flex-row md:items-center md:gap-0">
                 <Link
                     href="#"
                     target="_blank"
+                    className="order-2 md:order-1 text-center md:text-left"
                 >
-                    <p>Web by Someone</p>
+                    <p className="text-sm">Web by Someone</p>
                 </Link>
-                <div className="flex justify-center items-center h-full w-1/3 cursor-default">
+                <div className="flex justify-center items-center cursor-default order-1 md:order-2 w-full md:w-1/3">
                     <div className="flex flex-col sm:flex-row gap-2 items-center">
                         <Image
                             src="/overtime_logo.png"
@@ -43,8 +44,8 @@ export const Footer = () => {
                         </p>
                     </div>
                 </div>
-                <div>
-                    <div className="flex items-center justify-evenly gap-3">
+                <div className="order-3">
+                    <div className="flex items-center justify-center gap-3">
                         {socialLinks.map((link) => (
                             <Link href={link.href} target="_blank" key={link.alt}>
                                 <Image
