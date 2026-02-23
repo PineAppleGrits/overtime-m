@@ -1,6 +1,4 @@
-import { Loader2 } from 'lucide-react';
-import { Suspense } from 'react';
-import { ProfileNav } from './ProfileNav';
+import { ProfileNav } from '../../../modules/auth/components/ProfileNav';
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,15 +9,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
         <ProfileNav />
 
         <section className="min-w-0 flex-1">
-          <Suspense
-            fallback={
-              <div className="flex min-h-[30vh] items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-white/50" />
-              </div>
-            }
-          >
-            {children}
-          </Suspense>
+          {children}
         </section>
       </div>
     </div>

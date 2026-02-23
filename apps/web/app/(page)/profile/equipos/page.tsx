@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
 
-export default function ProfileTeamsPage() {
+export default async function ProfileTeamsPage() {
   return (
     <Card className="border-ot-light-blue/50 bg-ot-dark-blue/30">
       <CardHeader>
