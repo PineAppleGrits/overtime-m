@@ -3,6 +3,7 @@ import {
   Logger,
   UnauthorizedException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
@@ -171,6 +172,80 @@ export class AuthService {
       playerName: player ? `${player.firstName} ${player.lastName}` : null,
       createdAt: profile.createdAt,
     };
+  }
+
+  /**
+   * Permite al usuario establecer su DNI por primera vez.
+   * Una vez establecido, no puede ser modificado por el propio usuario.
+   */
+  async setDocumentNumber(
+    supabaseUserId: string,
+    documentNumber: string,
+  ): Promise<Record<string, unknown>> {
+    const profile = await this.prisma.profile.findUnique({
+      where: { supabaseUserId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    if (profile.documentNumber) {
+      throw new ForbiddenException(
+        'El número de documento ya fue establecido. Contactá a un administrador para modificarlo.',
+      );
+    }
+
+    const updated = await this.prisma.profile.update({
+      where: { supabaseUserId },
+      data: { documentNumber },
+      include: {
+        profileRoles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    this.logger.log(`Document number set for user: ${supabaseUserId}`);
+
+    return this.formatProfileResponse(updated, supabaseUserId);
+  }
+
+  /**
+   * Permite a un usuario autorizado modificar el DNI de cualquier perfil.
+   * Usado por admin/superadmin para corregir DNIs ya establecidos.
+   */
+  async adminUpdateDocumentNumber(
+    profileId: string,
+    documentNumber: string,
+  ): Promise<Record<string, unknown>> {
+    const profile = await this.prisma.profile.findUnique({
+      where: { id: profileId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    const updated = await this.prisma.profile.update({
+      where: { id: profileId },
+      data: { documentNumber },
+      include: {
+        profileRoles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    this.logger.log(
+      `Document number updated by admin for profile: ${profileId}`,
+    );
+
+    return this.formatProfileResponse(updated, profile.supabaseUserId);
   }
 
   /**
