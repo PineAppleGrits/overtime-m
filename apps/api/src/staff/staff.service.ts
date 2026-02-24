@@ -6,11 +6,14 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateStaffDto, StaffType } from './dto/create-staff.dto';
-import { UpdateStaffDto } from './dto/update-staff.dto';
-import { SetAvailabilityDto } from './dto/set-availability.dto';
-import { AssignStaffToMatchDto } from './dto/assign-staff-match.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import {
+  CreateStaffDto,
+  StaffType,
+  UpdateStaffDto,
+  SetAvailabilityDto,
+  AssignStaffToMatchDto,
+  PaginationDto,
+} from '@overtime-mono/shared';
 
 @Injectable()
 export class StaffService {

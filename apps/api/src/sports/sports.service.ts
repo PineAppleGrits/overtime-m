@@ -5,8 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateSportDto } from './dto/create-sport.dto';
-import { UpdateSportDto } from './dto/update-sport.dto';
+import { CreateSportDto, UpdateSportDto } from '@overtime-mono/shared';
 
 @Injectable()
 export class SportsService {

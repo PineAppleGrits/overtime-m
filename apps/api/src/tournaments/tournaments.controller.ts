@@ -10,10 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TournamentsService } from './tournaments.service';
-import { CreateTournamentDto } from './dto/create-tournament.dto';
-import { UpdateTournamentDto } from './dto/update-tournament.dto';
-import { ChangeStatusDto } from './dto/change-status.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { CreateTournamentDto, UpdateTournamentDto, ChangeStatusDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';

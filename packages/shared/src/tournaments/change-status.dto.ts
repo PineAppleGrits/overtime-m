@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { TournamentStatus } from './create-tournament.dto';
+import { TournamentStatus } from './enums';
 
 export class ChangeStatusDto {
   @IsEnum(TournamentStatus)

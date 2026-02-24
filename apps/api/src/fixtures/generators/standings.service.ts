@@ -4,7 +4,7 @@ import {
   TeamStanding,
   ZoneStandings,
   CategoryStandings,
-} from '../dto/standings.dto';
+} from '@overtime-mono/shared';
 
 @Injectable()
 export class StandingsService {

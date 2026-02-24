@@ -4,10 +4,9 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { CategorySubstatus } from '@prisma/client';
+import { CategorySubstatus, CategoryStandings } from '@overtime-mono/shared';
 import { PrismaService } from '../database/prisma.service';
 import { StandingsService } from './generators/standings.service';
-import { CategoryStandings } from './dto/standings.dto';
 
 @Injectable()
 export class FixturesService {

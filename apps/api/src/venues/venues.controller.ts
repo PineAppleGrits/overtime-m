@@ -10,10 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { VenuesService } from './venues.service';
-import { CreateVenueDto } from './dto/create-venue.dto';
-import { UpdateVenueDto } from './dto/update-venue.dto';
-import { CheckAvailabilityDto } from './dto/check-availability.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { CreateVenueDto, UpdateVenueDto, CheckAvailabilityDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';

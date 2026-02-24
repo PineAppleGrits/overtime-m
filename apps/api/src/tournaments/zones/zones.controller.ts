@@ -9,10 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ZonesService } from './zones.service';
-import { CreateZoneDto } from './dto/create-zone.dto';
-import { UpdateZoneDto } from './dto/update-zone.dto';
-import { AssignTeamDto } from './dto/assign-team.dto';
-import { PaginationDto } from '../../common/dto/pagination.dto';
+import { CreateZoneDto, UpdateZoneDto, AssignTeamDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';

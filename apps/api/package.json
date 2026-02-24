@@ -26,6 +26,7 @@
     "prisma:seed": "node --env-file=.env --loader ts-node/esm prisma/seed.ts"
   },
   "dependencies": {
+    "@overtime-mono/shared": "workspace:*",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",

@@ -6,11 +6,15 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateMatchDto, MatchStatus, MatchType } from './dto/create-match.dto';
-import { UpdateMatchDto } from './dto/update-match.dto';
-import { ChangeMatchStatusDto } from './dto/change-status.dto';
-import { CreateAnnouncementDto } from './dto/create-announcement.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import {
+  CreateMatchDto,
+  MatchStatus,
+  MatchType,
+  UpdateMatchDto,
+  ChangeMatchStatusDto,
+  CreateAnnouncementDto,
+  PaginationDto,
+} from '@overtime-mono/shared';
 import { VenuesService } from '../venues/venues.service';
 
 @Injectable()

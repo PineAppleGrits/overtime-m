@@ -8,7 +8,7 @@ import {
   IsNumber,
   Min,
 } from 'class-validator';
-import { TournamentStatus } from '@prisma/client';
+import { TournamentStatus } from './enums';
 
 export { TournamentStatus };
 

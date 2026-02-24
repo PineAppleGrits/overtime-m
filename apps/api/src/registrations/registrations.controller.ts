@@ -10,9 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RegistrationsService } from './registrations.service';
-import { CreateRegistrationDto } from './dto/create-registration.dto';
-import { ApproveRegistrationDto } from './dto/approve-registration.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { CreateRegistrationDto, ApproveRegistrationDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';

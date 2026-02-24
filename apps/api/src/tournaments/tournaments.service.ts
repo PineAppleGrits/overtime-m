@@ -5,11 +5,13 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateTournamentDto } from './dto/create-tournament.dto';
-import { TournamentStatus } from '@prisma/client';
-import { UpdateTournamentDto } from './dto/update-tournament.dto';
-import { ChangeStatusDto } from './dto/change-status.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import {
+  CreateTournamentDto,
+  TournamentStatus,
+  UpdateTournamentDto,
+  ChangeStatusDto,
+  PaginationDto,
+} from '@overtime-mono/shared';
 import slugify from 'slugify';
 
 @Injectable()

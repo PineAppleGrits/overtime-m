@@ -6,10 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateTeamDto } from './dto/create-team.dto';
-import { UpdateTeamDto } from './dto/update-team.dto';
-import { AddPlayerDto } from './dto/add-player.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { CreateTeamDto, UpdateTeamDto, AddPlayerDto, PaginationDto } from '@overtime-mono/shared';
 
 @Injectable()
 export class TeamsService {

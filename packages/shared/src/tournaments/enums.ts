@@ -1,0 +1,10 @@
+export enum TournamentStatus {
+  DRAFT = 'DRAFT',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  READY_TO_SHIP = 'READY_TO_SHIP',
+  IN_PROGRESS = 'IN_PROGRESS',
+  FINISHED = 'FINISHED',
+  ARCHIVED = 'ARCHIVED',
+  CANCELLED = 'CANCELLED',
+}

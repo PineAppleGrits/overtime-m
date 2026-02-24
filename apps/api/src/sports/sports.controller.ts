@@ -9,8 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { SportsService } from './sports.service';
-import { CreateSportDto } from './dto/create-sport.dto';
-import { UpdateSportDto } from './dto/update-sport.dto';
+import { CreateSportDto, UpdateSportDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';

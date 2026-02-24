@@ -13,9 +13,9 @@ import {
   MarkAsPaidDto,
   PaymentMethod,
   PaymentStatus,
-} from './dto/create-payment.dto';
-import { CreateCheckoutDto, CheckoutType, CheckoutResponse } from './dto/create-checkout.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+} from '@overtime-mono/shared';
+import { CreateCheckoutDto, CheckoutType, CheckoutResponse } from '@overtime-mono/shared';
+import { PaginationDto } from '@overtime-mono/shared';
 
 @Injectable()
 export class PaymentsService {

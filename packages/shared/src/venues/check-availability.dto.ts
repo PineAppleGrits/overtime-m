@@ -11,5 +11,5 @@ export class CheckAvailabilityDto {
 
   @IsUUID()
   @IsOptional()
-  excludeMatchId?: string; // Para excluir un partido específico (útil al editar)
+  excludeMatchId?: string;
 }

@@ -6,9 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateRegistrationDto } from './dto/create-registration.dto';
-import { ApproveRegistrationDto } from './dto/approve-registration.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { CreateRegistrationDto, ApproveRegistrationDto, PaginationDto } from '@overtime-mono/shared';
 
 @Injectable()
 export class RegistrationsService {

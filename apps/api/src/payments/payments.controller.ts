@@ -16,9 +16,9 @@ import {
   MarkAsPaidDto,
   PaymentMethod,
   PaymentStatus,
-} from './dto/create-payment.dto';
-import { CreateCheckoutDto } from './dto/create-checkout.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+} from '@overtime-mono/shared';
+import { CreateCheckoutDto } from '@overtime-mono/shared';
+import { PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';

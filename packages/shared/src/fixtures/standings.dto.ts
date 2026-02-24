@@ -4,24 +4,16 @@ export interface TeamStanding {
   teamLogo?: string;
   zoneId: string;
   zoneName: string;
-  
-  // Record
   played: number;
   wins: number;
   losses: number;
   ties: number;
-  
-  // Points
   pointsFor: number;
   pointsAgainst: number;
   pointsDiff: number;
-  
-  // Ranking
   winPercentage: number;
-  position: number; // Position within zone
-  overallPosition?: number; // Position across all zones
-  
-  // Tiebreakers
+  position: number;
+  overallPosition?: number;
   headToHeadWins?: number;
   homeRecord?: string;
   awayRecord?: string;
@@ -39,7 +31,7 @@ export interface CategoryStandings {
   tournamentId: string;
   tournamentName: string;
   zones: ZoneStandings[];
-  overallStandings: TeamStanding[]; // All teams ranked
+  overallStandings: TeamStanding[];
   regularPhaseCompleted: boolean;
   totalMatches: number;
   completedMatches: number;

@@ -7,7 +7,7 @@ import {
   IsNumber,
   Min,
 } from 'class-validator';
-import { TournamentStatus } from './create-tournament.dto';
+import { TournamentStatus } from './enums';
 
 export class UpdateTournamentDto {
   @IsString()

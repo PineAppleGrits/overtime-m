@@ -10,11 +10,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { StaffService } from './staff.service';
-import { CreateStaffDto, StaffType } from './dto/create-staff.dto';
-import { UpdateStaffDto } from './dto/update-staff.dto';
-import { SetAvailabilityDto } from './dto/set-availability.dto';
-import { AssignStaffToMatchDto } from './dto/assign-staff-match.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import {
+  CreateStaffDto,
+  StaffType,
+  UpdateStaffDto,
+  SetAvailabilityDto,
+  AssignStaffToMatchDto,
+  PaginationDto,
+} from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';

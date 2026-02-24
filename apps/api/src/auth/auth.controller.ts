@@ -11,15 +11,8 @@ import { AuthService } from './auth.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { CreatePlayerProfileDto } from '@overtime-mono/shared';
 import { IsString, IsNotEmpty, Matches } from 'class-validator';
-
-class CreatePlayerProfileDto {
-  @IsString()
-  firstName: string;
-
-  @IsString()
-  lastName: string;
-}
 
 class UpdateDocumentNumberDto {
   @IsString()

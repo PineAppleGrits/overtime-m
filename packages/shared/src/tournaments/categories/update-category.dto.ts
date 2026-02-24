@@ -5,7 +5,7 @@ import {
   Min,
   IsEnum,
 } from 'class-validator';
-import { CategoryStatus, CategorySubstatus } from '@prisma/client';
+import { CategoryStatus, CategorySubstatus } from './enums';
 
 export class UpdateCategoryDto {
   @IsString()

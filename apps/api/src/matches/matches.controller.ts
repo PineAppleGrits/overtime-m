@@ -10,11 +10,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { MatchesService } from './matches.service';
-import { CreateMatchDto } from './dto/create-match.dto';
-import { UpdateMatchDto } from './dto/update-match.dto';
-import { ChangeMatchStatusDto } from './dto/change-status.dto';
-import { CreateAnnouncementDto } from './dto/create-announcement.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import {
+  CreateMatchDto,
+  UpdateMatchDto,
+  ChangeMatchStatusDto,
+  CreateAnnouncementDto,
+  PaginationDto,
+} from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';

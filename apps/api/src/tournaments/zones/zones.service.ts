@@ -6,10 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateZoneDto } from './dto/create-zone.dto';
-import { UpdateZoneDto } from './dto/update-zone.dto';
-import { AssignTeamDto } from './dto/assign-team.dto';
-import { PaginationDto } from '../../common/dto/pagination.dto';
+import { CreateZoneDto, UpdateZoneDto, AssignTeamDto, PaginationDto } from '@overtime-mono/shared';
 
 @Injectable()
 export class ZonesService {
