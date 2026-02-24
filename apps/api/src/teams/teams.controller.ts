@@ -68,21 +68,21 @@ export class TeamsController {
     return this.teamsService.addPlayer(id, addPlayerDto);
   }
 
-  @Delete(':id/players/:playerId')
+  @Delete(':id/players/:profileId')
   removePlayer(
     @Param('id', ParseUUIDPipe) id: string,
-    @Param('playerId', ParseUUIDPipe) playerId: string,
+    @Param('profileId', ParseUUIDPipe) profileId: string,
   ) {
     // TODO: Verificar que el usuario es el creador del equipo o admin
-    return this.teamsService.removePlayer(id, playerId);
+    return this.teamsService.removePlayer(id, profileId);
   }
 
-  @Patch(':id/captain/:playerId')
+  @Patch(':id/captain/:profileId')
   assignCaptain(
     @Param('id', ParseUUIDPipe) id: string,
-    @Param('playerId', ParseUUIDPipe) playerId: string,
+    @Param('profileId', ParseUUIDPipe) profileId: string,
   ) {
     // TODO: Verificar que el usuario es el creador del equipo o admin
-    return this.teamsService.assignCaptain(id, playerId);
+    return this.teamsService.assignCaptain(id, profileId);
   }
 }

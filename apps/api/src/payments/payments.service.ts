@@ -152,7 +152,7 @@ export class PaymentsService {
       title,
       description,
       amount,
-      payerEmail: profile.email,
+      payerEmail: profile.email ?? '',
       payerName: profile.name,
       externalReference: payment.id,
       metadata: {
@@ -677,7 +677,7 @@ export class PaymentsService {
       title,
       description,
       amount: payment.amount,
-      payerEmail: payment.profile.email,
+      payerEmail: payment.profile.email ?? '',
       payerName: payment.profile.name,
       externalReference: payment.id,
       metadata: {

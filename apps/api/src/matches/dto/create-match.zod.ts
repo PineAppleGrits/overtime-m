@@ -9,12 +9,7 @@ export const MatchStatusEnum = z.enum([
   'finalizado',
 ]);
 
-export const MatchTypeEnum = z.enum([
-  'regular',
-  'playoff',
-  'final',
-  'amistoso',
-]);
+export const MatchTypeEnum = z.enum(['regular', 'amistoso']);
 
 export const createMatchSchema = z
   .object({

@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
 export const TournamentStatusEnum = z.enum([
-  'draft',
-  'visible',
-  'invisible',
-  'inscripcion_cerrada',
-  'finalizado',
-  'archivado',
+  'DRAFT',
+  'OPEN',
+  'CLOSED',
+  'READY_TO_SHIP',
+  'IN_PROGRESS',
+  'FINISHED',
+  'ARCHIVED',
+  'CANCELLED',
 ]);
 
 export const createTournamentSchema = z
@@ -14,11 +16,12 @@ export const createTournamentSchema = z
     name: z.string().min(1, 'Name is required'),
     description: z.string().optional().nullable(),
     sportId: z.string().uuid('Invalid sport ID'),
-    status: TournamentStatusEnum.optional().default('draft'),
+    status: TournamentStatusEnum.optional().default('DRAFT'),
     startDate: z.string().datetime().optional().nullable(),
     endDate: z.string().datetime().optional().nullable(),
     registrationStartDate: z.string().datetime().optional().nullable(),
     registrationEndDate: z.string().datetime().optional().nullable(),
+    insurancePerPlayer: z.number().min(0).optional().nullable(),
   })
   .refine(
     (data) => {

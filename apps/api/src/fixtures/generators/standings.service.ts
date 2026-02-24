@@ -4,7 +4,6 @@ import {
   TeamStanding,
   ZoneStandings,
   CategoryStandings,
-  PlayoffSeed,
 } from '../dto/standings.dto';
 
 @Injectable()
@@ -203,67 +202,6 @@ export class StandingsService {
     }
 
     return standings;
-  }
-
-  /**
-   * Generate playoff seeds based on standings and configuration
-   */
-  async generatePlayoffSeeds(
-    categoryId: string,
-    teamsPerZone: number = 2,
-    seedingMethod: string = 'zone_position',
-  ): Promise<PlayoffSeed[]> {
-    const standings = await this.getCategoryStandings(categoryId);
-
-    let qualifyingTeams: TeamStanding[] = [];
-
-    if (seedingMethod === 'zone_position') {
-      // Take top N teams from each zone, interleaved for seeding
-      for (const zone of standings.zones) {
-        const qualifiers = zone.teams.slice(0, teamsPerZone);
-        qualifyingTeams.push(...qualifiers);
-      }
-
-      // Sort by zone position first, then by overall record within same position
-      qualifyingTeams.sort((a, b) => {
-        if (a.position !== b.position) {
-          return a.position - b.position;
-        }
-        // Same zone position - sort by overall record
-        if (b.winPercentage !== a.winPercentage) {
-          return b.winPercentage - a.winPercentage;
-        }
-        return b.pointsDiff - a.pointsDiff;
-      });
-    } else if (seedingMethod === 'overall_record') {
-      // Take best overall records regardless of zone
-      const totalTeams = teamsPerZone * standings.zones.length;
-      qualifyingTeams = standings.overallStandings.slice(0, totalTeams);
-    } else if (seedingMethod === 'points') {
-      // Sort by points scored
-      qualifyingTeams = [...standings.overallStandings];
-      qualifyingTeams.sort((a, b) => b.pointsFor - a.pointsFor);
-      const totalTeams = teamsPerZone * standings.zones.length;
-      qualifyingTeams = qualifyingTeams.slice(0, totalTeams);
-    }
-
-    // Create seeds
-    const seeds: PlayoffSeed[] = qualifyingTeams.map((team, index) => ({
-      seed: index + 1,
-      teamId: team.teamId,
-      teamName: team.teamName,
-      zoneId: team.zoneId,
-      zoneName: team.zoneName,
-      zonePosition: team.position,
-      record: `${team.wins}-${team.losses}${team.ties > 0 ? `-${team.ties}` : ''}`,
-      pointsDiff: team.pointsDiff,
-    }));
-
-    this.logger.log(
-      `Generated ${seeds.length} playoff seeds for category ${categoryId}`,
-    );
-
-    return seeds;
   }
 
   /**

@@ -5,14 +5,12 @@ import { PaginationParams } from "@/modules/common/dto"
 interface CreateCategoryDto {
   name: string
   sportId: string
-  playoffFormat?: 'single_elimination' | 'double_elimination' | 'round_robin'
   teamsPerZone?: number
 }
 
 interface UpdateCategoryDto {
   name?: string
   sportId?: string
-  playoffFormat?: 'single_elimination' | 'double_elimination' | 'round_robin'
   teamsPerZone?: number
 }
 

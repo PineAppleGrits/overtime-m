@@ -5,16 +5,12 @@ import {
   IsUUID,
   IsDateString,
   IsEnum,
+  IsNumber,
+  Min,
 } from 'class-validator';
+import { TournamentStatus } from '@prisma/client';
 
-export enum TournamentStatus {
-  DRAFT = 'draft',
-  VISIBLE = 'visible',
-  INVISIBLE = 'invisible',
-  INSCRIPCION_CERRADA = 'inscripcion_cerrada',
-  FINALIZADO = 'finalizado',
-  ARCHIVADO = 'archivado',
-}
+export { TournamentStatus };
 
 export class CreateTournamentDto {
   @IsString()
@@ -48,4 +44,9 @@ export class CreateTournamentDto {
   @IsDateString()
   @IsOptional()
   registrationEndDate?: string;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  insurancePerPlayer?: number;
 }

@@ -71,9 +71,8 @@ overtime-workspace/
 
 1. Un equipo solo puede estar en **1 categoría por torneo**
 2. Un jugador **NO puede estar en múltiples equipos de la misma categoría**
-3. Los playoffs **NO se generan hasta completar la fase regular**
-4. Los oficiales de mesa solo pueden anotar estadísticas en **sus partidos asignados**
-5. Equipos que no se presentan pierden **20-0** (básquet)
+3. Los oficiales de mesa solo pueden anotar estadísticas en **sus partidos asignados**
+4. Equipos que no se presentan pierden **20-0** (básquet)
 
 ## Referencias
 

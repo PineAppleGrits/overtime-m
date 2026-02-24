@@ -38,8 +38,7 @@ export class RegistrationsService {
       throw new NotFoundException('Tournament not found');
     }
 
-    // Solo permitir inscripciones si el torneo está visible o invisible
-    if (tournament.status !== 'visible' && tournament.status !== 'invisible') {
+    if (tournament.status !== 'OPEN') {
       throw new BadRequestException(
         `Tournament is not accepting registrations. Current status: ${tournament.status}`,
       );
@@ -61,13 +60,9 @@ export class RegistrationsService {
       throw new BadRequestException('Registration period has ended');
     }
 
-    // Verificar que la categoría existe y pertenece al torneo
     const category = await this.prisma.category.findUnique({
       where: { id: createRegistrationDto.categoryId, deletedAt: null },
-      include: {
-        tournament: true,
-        sport: true,
-      },
+      include: { tournament: true },
     });
 
     if (!category) {
@@ -80,8 +75,7 @@ export class RegistrationsService {
       );
     }
 
-    // Verificar que el deporte del equipo coincide con el de la categoría
-    if (team.sportId !== category.sportId) {
+    if (team.sportId !== category.tournament.sportId) {
       throw new BadRequestException('Team sport must match category sport');
     }
 
@@ -131,13 +125,12 @@ export class RegistrationsService {
             captain: {
               select: {
                 id: true,
-                firstName: true,
-                lastName: true,
+                name: true,
               },
             },
             _count: {
               select: {
-                players: true,
+                members: true,
               },
             },
           },
@@ -151,7 +144,6 @@ export class RegistrationsService {
         },
         category: {
           include: {
-            sport: true,
             tournament: {
               select: {
                 id: true,
@@ -298,18 +290,15 @@ export class RegistrationsService {
             captain: {
               select: {
                 id: true,
-                firstName: true,
-                lastName: true,
+                name: true,
               },
             },
-            players: {
+            members: {
               include: {
-                player: {
+                profile: {
                   select: {
                     id: true,
-                    firstName: true,
-                    lastName: true,
-                    jerseyNumber: true,
+                    name: true,
                   },
                 },
               },
@@ -329,7 +318,6 @@ export class RegistrationsService {
         },
         category: {
           include: {
-            sport: true,
             tournament: {
               select: {
                 id: true,

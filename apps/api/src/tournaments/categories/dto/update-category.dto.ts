@@ -1,50 +1,32 @@
 import {
   IsString,
   IsOptional,
-  IsUUID,
-  IsEnum,
   IsInt,
   Min,
-  Max,
-  IsBoolean,
+  IsEnum,
 } from 'class-validator';
-import { PlayoffFormat, SeedingMethod } from './create-category.dto';
+import { CategoryStatus, CategorySubstatus } from '@prisma/client';
 
 export class UpdateCategoryDto {
   @IsString()
   @IsOptional()
   name?: string;
 
-  @IsUUID()
+  @IsInt()
+  @Min(1)
   @IsOptional()
-  sportId?: string;
-
-  @IsEnum(PlayoffFormat)
-  @IsOptional()
-  playoffFormat?: PlayoffFormat;
+  maxTeams?: number;
 
   @IsInt()
   @Min(1)
   @IsOptional()
   teamsPerZone?: number;
 
-  @IsInt()
-  @Min(1)
-  @Max(8)
+  @IsEnum(CategoryStatus)
   @IsOptional()
-  teamsQualifyPerZone?: number;
+  status?: CategoryStatus;
 
-  @IsInt()
-  @Min(2)
-  @Max(32)
+  @IsEnum(CategorySubstatus)
   @IsOptional()
-  playoffTeamsTotal?: number;
-
-  @IsEnum(SeedingMethod)
-  @IsOptional()
-  playoffSeedingMethod?: SeedingMethod;
-
-  @IsBoolean()
-  @IsOptional()
-  regularPhaseCompleted?: boolean;
+  substatus?: CategorySubstatus;
 }

@@ -149,7 +149,6 @@ export class ZonesService {
                 status: true,
               },
             },
-            sport: true,
           },
         },
         teamZones: {
@@ -167,13 +166,12 @@ export class ZonesService {
                 captain: {
                   select: {
                     id: true,
-                    firstName: true,
-                    lastName: true,
+                    name: true,
                   },
                 },
                 _count: {
                   select: {
-                    players: true,
+                    members: true,
                   },
                 },
               },
@@ -321,15 +319,12 @@ export class ZonesService {
       }
     }
 
-    // Verificar que el deporte del equipo coincide con el de la categoría
-    const categoryWithSport = await this.prisma.category.findUnique({
+    const categoryWithTournament = await this.prisma.category.findUnique({
       where: { id: zone.categoryId },
-      include: {
-        sport: true,
-      },
+      include: { tournament: { select: { sportId: true } } },
     });
 
-    if (team.sportId !== categoryWithSport?.sport.id) {
+    if (team.sportId !== categoryWithTournament?.tournament.sportId) {
       throw new BadRequestException('Team sport must match category sport');
     }
 

@@ -21,7 +21,6 @@ interface CategoryData {
   name: string
   slug: string
   sportId: string
-  playoffFormat?: string
   teamsPerZone?: number
   zones: ZoneData[]
 }
@@ -50,7 +49,7 @@ export default function CategoriesPage() {
 
   // Category form
   const [catDialog, setCatDialog] = useState(false)
-  const [catForm, setCatForm] = useState({ name: '', sportId: '', playoffFormat: 'round_robin', teamsPerZone: '4' })
+  const [catForm, setCatForm] = useState({ name: '', sportId: '', teamsPerZone: '4' })
   const [savingCat, setSavingCat] = useState(false)
 
   // Zone form
@@ -94,12 +93,11 @@ export default function CategoriesPage() {
       await categoryService.createCategory(tournamentId, {
         name: catForm.name,
         sportId: catForm.sportId,
-        playoffFormat: catForm.playoffFormat as 'single_elimination' | 'double_elimination' | 'round_robin',
         teamsPerZone: parseInt(catForm.teamsPerZone) || undefined,
       })
       toast.success('Categoría creada')
       setCatDialog(false)
-      setCatForm({ name: '', sportId: '', playoffFormat: 'round_robin', teamsPerZone: '4' })
+      setCatForm({ name: '', sportId: '', teamsPerZone: '4' })
       fetchData()
     } catch {
       toast.error('Error al crear categoría')
@@ -273,17 +271,6 @@ export default function CategoriesPage() {
                   {sports.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Formato playoff</Label>
-              <Select value={catForm.playoffFormat} onValueChange={(v) => setCatForm({ ...catForm, playoffFormat: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="round_robin">Round Robin</SelectItem>
-                  <SelectItem value="single_elimination">Eliminación simple</SelectItem>
-                  <SelectItem value="double_elimination">Eliminación doble</SelectItem>
                 </SelectContent>
               </Select>
             </div>

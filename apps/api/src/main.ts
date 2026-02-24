@@ -101,13 +101,11 @@ Incluye el header: \`Authorization: Bearer <token>\`
     .addTag('categories', 'Categorías de torneos')
     .addTag('zones', 'Zonas dentro de categorías')
     .addTag('teams', 'Gestión de equipos')
-    .addTag('players', 'Gestión de jugadores')
     .addTag('matches', 'Gestión de partidos')
     .addTag('venues', 'Canchas y locaciones')
     .addTag('registrations', 'Inscripciones a torneos')
-    .addTag('fixtures', 'Standings y playoffs')
+    .addTag('fixtures', 'Standings')
     .addTag('sports', 'Deportes disponibles')
-    .addTag('notifications', 'Sistema de notificaciones')
     .addTag('payments', 'Sistema de pagos')
     .build();
 

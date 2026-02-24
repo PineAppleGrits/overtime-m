@@ -3,23 +3,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsUUID,
-  IsEnum,
   IsInt,
   Min,
-  Max,
+  IsEnum,
 } from 'class-validator';
-
-export enum PlayoffFormat {
-  SINGLE_ELIMINATION = 'single_elimination',
-  DOUBLE_ELIMINATION = 'double_elimination',
-  ROUND_ROBIN = 'round_robin',
-}
-
-export enum SeedingMethod {
-  ZONE_POSITION = 'zone_position',
-  OVERALL_RECORD = 'overall_record',
-  POINTS = 'points',
-}
+import { CategoryStatus, CategorySubstatus } from '@prisma/client';
 
 export class CreateCategoryDto {
   @IsUUID()
@@ -30,32 +18,21 @@ export class CreateCategoryDto {
   @IsNotEmpty()
   name: string;
 
-  @IsUUID()
-  @IsNotEmpty()
-  sportId: string;
-
-  @IsEnum(PlayoffFormat)
+  @IsInt()
+  @Min(1)
   @IsOptional()
-  playoffFormat?: PlayoffFormat;
+  maxTeams?: number;
 
   @IsInt()
   @Min(1)
   @IsOptional()
   teamsPerZone?: number;
 
-  @IsInt()
-  @Min(1)
-  @Max(8)
+  @IsEnum(CategoryStatus)
   @IsOptional()
-  teamsQualifyPerZone?: number;
+  status?: CategoryStatus;
 
-  @IsInt()
-  @Min(2)
-  @Max(32)
+  @IsEnum(CategorySubstatus)
   @IsOptional()
-  playoffTeamsTotal?: number;
-
-  @IsEnum(SeedingMethod)
-  @IsOptional()
-  playoffSeedingMethod?: SeedingMethod;
+  substatus?: CategorySubstatus;
 }

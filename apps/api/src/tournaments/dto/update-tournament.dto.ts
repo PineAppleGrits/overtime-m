@@ -4,6 +4,8 @@ import {
   IsUUID,
   IsDateString,
   IsEnum,
+  IsNumber,
+  Min,
 } from 'class-validator';
 import { TournamentStatus } from './create-tournament.dto';
 
@@ -39,4 +41,9 @@ export class UpdateTournamentDto {
   @IsDateString()
   @IsOptional()
   registrationEndDate?: string;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  insurancePerPlayer?: number;
 }

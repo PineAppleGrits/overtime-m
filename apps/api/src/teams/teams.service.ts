@@ -27,12 +27,10 @@ export class TeamsService {
       throw new NotFoundException('Sport not found');
     }
 
-    // Verificar que el capitán existe (si se proporciona)
     if (createTeamDto.captainId) {
-      const captain = await this.prisma.player.findUnique({
+      const captain = await this.prisma.profile.findUnique({
         where: { id: createTeamDto.captainId },
       });
-
       if (!captain) {
         throw new NotFoundException('Captain not found');
       }
@@ -52,10 +50,24 @@ export class TeamsService {
             email: true,
           },
         },
-        captain: true,
-        players: {
+        captain: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        members: {
           include: {
-            player: true,
+            profile: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatarUrl: true,
+              },
+            },
           },
         },
       },
@@ -94,20 +106,18 @@ export class TeamsService {
           captain: {
             select: {
               id: true,
-              firstName: true,
-              lastName: true,
-              photoUrl: true,
+              name: true,
+              avatarUrl: true,
             },
           },
-          players: {
+          members: {
             include: {
-              player: {
+              profile: {
                 select: {
                   id: true,
-                  firstName: true,
-                  lastName: true,
-                  jerseyNumber: true,
-                  photoUrl: true,
+                  name: true,
+                  avatarUrl: true,
+                  email: true,
                 },
               },
             },
@@ -142,10 +152,17 @@ export class TeamsService {
             email: true,
           },
         },
-        captain: true,
-        players: {
+        captain: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        members: {
           include: {
-            player: true,
+            profile: true,
           },
         },
         teamZones: {
@@ -191,26 +208,21 @@ export class TeamsService {
       }
     }
 
-    // Si se está actualizando el capitán, verificar que existe y está en el equipo
     if (updateTeamDto.captainId) {
-      const captain = await this.prisma.player.findUnique({
+      const captain = await this.prisma.profile.findUnique({
         where: { id: updateTeamDto.captainId },
       });
-
       if (!captain) {
         throw new NotFoundException('Captain not found');
       }
-
-      // Verificar que el capitán está en el equipo
-      const playerInTeam = await this.prisma.playerTeam.findFirst({
+      const member = await this.prisma.profileTeam.findFirst({
         where: {
           teamId: id,
-          playerId: updateTeamDto.captainId,
+          profileId: updateTeamDto.captainId,
           isActive: true,
         },
       });
-
-      if (!playerInTeam) {
+      if (!member) {
         throw new BadRequestException('Captain must be a member of the team');
       }
     }
@@ -227,10 +239,22 @@ export class TeamsService {
             email: true,
           },
         },
-        captain: true,
-        players: {
+        captain: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+          },
+        },
+        members: {
           include: {
-            player: true,
+            profile: {
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+              },
+            },
           },
         },
       },
@@ -254,27 +278,20 @@ export class TeamsService {
     return { message: 'Team deleted successfully' };
   }
 
-  /**
-   * Agregar jugador al equipo
-   */
   async addPlayer(teamId: string, addPlayerDto: AddPlayerDto) {
     const team = await this.findOne(teamId);
 
-    // Verificar que el jugador existe
-    const player = await this.prisma.player.findUnique({
-      where: { id: addPlayerDto.playerId },
+    const profile = await this.prisma.profile.findUnique({
+      where: { id: addPlayerDto.profileId },
       include: {
-        teams: {
+        teamMemberships: {
+          where: { isActive: true },
           include: {
             team: {
               include: {
                 teamZones: {
                   include: {
-                    zone: {
-                      include: {
-                        category: true,
-                      },
-                    },
+                    zone: { include: { category: true } },
                   },
                 },
               },
@@ -284,121 +301,103 @@ export class TeamsService {
       },
     });
 
-    if (!player) {
-      throw new NotFoundException('Player not found');
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
     }
 
-    // Verificar que el jugador no está ya en el equipo
-    const existingMembership = await this.prisma.playerTeam.findFirst({
+    const existingMembership = await this.prisma.profileTeam.findFirst({
       where: {
         teamId,
-        playerId: addPlayerDto.playerId,
+        profileId: addPlayerDto.profileId,
       },
     });
 
     if (existingMembership) {
-      // Si está inactivo, reactivar
       if (!existingMembership.isActive) {
-        await this.prisma.playerTeam.update({
+        await this.prisma.profileTeam.update({
           where: { id: existingMembership.id },
           data: { isActive: true, joinedAt: new Date() },
         });
         return this.findOne(teamId);
       }
-      throw new ConflictException('Player already in team');
+      throw new ConflictException('Profile already in team');
     }
 
-    // REGLA DE NEGOCIO: Un jugador NO puede estar en múltiples equipos de la misma categoría
-    // Obtener las categorías del equipo actual
     const teamCategories = team.teamZones.map((tz) => tz.zone.category.id);
 
     if (teamCategories.length > 0) {
-      // Verificar si el jugador está en algún equipo de las mismas categorías
-      for (const playerTeam of player.teams) {
-        if (!playerTeam.isActive) continue;
-
-        const otherTeamCategories = playerTeam.team.teamZones.map(
+      for (const membership of profile.teamMemberships) {
+        const otherTeamCategories = membership.team.teamZones.map(
           (tz) => tz.zone.category.id,
         );
-
         const commonCategories = teamCategories.filter((catId) =>
           otherTeamCategories.includes(catId),
         );
-
         if (commonCategories.length > 0) {
           throw new ConflictException(
-            `Player is already in another team in the same category`,
+            `Profile is already in another team in the same category`,
           );
         }
       }
     }
 
-    // Agregar jugador al equipo
-    await this.prisma.playerTeam.create({
+    await this.prisma.profileTeam.create({
       data: {
         teamId,
-        playerId: addPlayerDto.playerId,
+        profileId: addPlayerDto.profileId,
       },
     });
 
     this.logger.log(
-      `Player ${player.firstName} ${player.lastName} added to team ${team.name}`,
+      `Profile ${profile.name} added to team ${team.name}`,
     );
 
     return this.findOne(teamId);
   }
 
-  /**
-   * Remover jugador del equipo
-   */
-  async removePlayer(teamId: string, playerId: string) {
+  async removePlayer(teamId: string, profileId: string) {
     await this.findOne(teamId);
 
-    const playerTeam = await this.prisma.playerTeam.findFirst({
+    const membership = await this.prisma.profileTeam.findFirst({
       where: {
         teamId,
-        playerId,
+        profileId,
         isActive: true,
       },
     });
 
-    if (!playerTeam) {
-      throw new NotFoundException('Player not in team');
+    if (!membership) {
+      throw new NotFoundException('Profile not in team');
     }
 
-    // Marcar como inactivo en lugar de eliminar
-    await this.prisma.playerTeam.update({
-      where: { id: playerTeam.id },
+    await this.prisma.profileTeam.update({
+      where: { id: membership.id },
       data: { isActive: false },
     });
 
-    this.logger.log(`Player ${playerId} removed from team ${teamId}`);
+    this.logger.log(`Profile ${profileId} removed from team ${teamId}`);
 
     return this.findOne(teamId);
   }
 
-  /**
-   * Asignar capitán
-   */
-  async assignCaptain(teamId: string, playerId: string) {
+  async assignCaptain(teamId: string, profileId: string) {
     const team = await this.findOne(teamId);
 
-    // Verificar que el jugador está en el equipo
-    const playerInTeam = await this.prisma.playerTeam.findFirst({
+    const member = await this.prisma.profileTeam.findFirst({
       where: {
         teamId,
-        playerId,
+        profileId,
         isActive: true,
       },
     });
 
-    if (!playerInTeam) {
-      throw new BadRequestException('Player must be a member of the team');
+    if (!member) {
+      throw new BadRequestException('Captain must be a member of the team');
     }
 
     const updatedTeam = await this.prisma.team.update({
       where: { id: teamId },
-      data: { captainId: playerId },
+      data: { captainId: profileId },
       include: {
         sport: true,
         creator: {
@@ -408,10 +407,22 @@ export class TeamsService {
             email: true,
           },
         },
-        captain: true,
-        players: {
+        captain: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+          },
+        },
+        members: {
           include: {
-            player: true,
+            profile: {
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+              },
+            },
           },
         },
       },

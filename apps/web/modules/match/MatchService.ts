@@ -19,7 +19,7 @@ interface CreateMatchDto {
   matchDate: string
   matchTime?: string
   status?: 'programado' | 'en_curso' | 'suspendido' | 'cancelado' | 'reprogramado' | 'finalizado'
-  matchType?: 'regular' | 'playoff' | 'final' | 'amistoso'
+  matchType?: 'regular' | 'amistoso'
   homeScore?: number
   awayScore?: number
   costPerTeam?: number
@@ -34,7 +34,7 @@ interface UpdateMatchDto {
   matchDate?: string
   matchTime?: string
   status?: 'programado' | 'en_curso' | 'suspendido' | 'cancelado' | 'reprogramado' | 'finalizado'
-  matchType?: 'regular' | 'playoff' | 'final' | 'amistoso'
+  matchType?: 'regular' | 'amistoso'
   homeScore?: number
   awayScore?: number
   costPerTeam?: number

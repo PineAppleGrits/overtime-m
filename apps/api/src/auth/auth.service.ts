@@ -3,6 +3,7 @@ import {
   Logger,
   UnauthorizedException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
@@ -45,79 +46,51 @@ export class AuthService {
   }
 
   /**
-   * Crea un perfil de jugador para un usuario
-   * - Puede ser llamado por cualquier usuario en cualquier momento
-   * - Verifica que no exista Player ya
-   * - Agrega rol 'player' si no lo tiene
+   * Marca el perfil del usuario como jugador (agrega rol 'player').
+   * Solo se puede hacer una vez por perfil.
    */
   async createPlayerProfile(
     supabaseUserId: string,
     playerData: { firstName: string; lastName: string },
   ): Promise<any> {
-    // Verificar que no exista Player
-    const existingPlayer = await this.prisma.player.findUnique({
+    const profile = await this.prisma.profile.findUnique({
       where: { supabaseUserId },
     });
 
-    if (existingPlayer) {
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    if (profile.role === 'player') {
       throw new Error('Player profile already exists');
     }
 
-    // Crear Player
-    const player = await this.prisma.player.create({
+    const name =
+      profile.name?.trim() ||
+      `${playerData.firstName ?? ''} ${playerData.lastName ?? ''}`.trim() ||
+      profile.email ||
+      'User';
+
+    await this.prisma.profile.update({
+      where: { id: profile.id },
       data: {
-        supabaseUserId,
-        firstName: playerData.firstName,
-        lastName: playerData.lastName,
+        role: 'player',
+        ...(name !== profile.name && { name }),
       },
     });
-
-    // Verificar si tiene rol 'player'
-    const profile = await this.prisma.profile.findUnique({
-      where: { supabaseUserId },
-      include: {
-        profileRoles: {
-          include: {
-            role: true,
-          },
-        },
-      },
-    });
-
-    const hasPlayerRole = profile?.profileRoles.some(
-      (pr) => pr.role.name === 'player',
-    );
-
-    // Si no tiene rol 'player', agregarlo
-    if (profile && !hasPlayerRole) {
-      await this.assignRoleToProfile(profile.id, 'player');
-    }
 
     this.logger.log(`Player profile created for user: ${supabaseUserId}`);
 
-    return player;
-  }
-
-  /**
-   * Asigna un rol a un perfil
-   */
-  private async assignRoleToProfile(
-    profileId: string,
-    roleName: string,
-  ): Promise<void> {
-    const role = await this.prisma.role.findUnique({
-      where: { name: roleName },
+    return this.prisma.profile.findUnique({
+      where: { id: profile.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        role: true,
+      },
     });
-
-    if (role) {
-      await this.prisma.profileRole.create({
-        data: {
-          profileId,
-          roleId: role.id,
-        },
-      });
-      this.logger.log(`Role '${roleName}' assigned to profile: ${profileId}`);
-    }
   }
 
   /**
@@ -126,34 +99,17 @@ export class AuthService {
   async getProfile(supabaseUserId: string): Promise<any> {
     const profile = await this.prisma.profile.findUnique({
       where: { supabaseUserId },
-      include: {
-        profileRoles: {
-          include: {
-            role: true,
-          },
-        },
-      },
     });
 
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
 
-    return this.formatProfileResponse(profile, supabaseUserId);
+    return this.formatProfileResponse(profile);
   }
 
-  /**
-   * Formatea la respuesta del perfil
-   */
-  private async formatProfileResponse(
-    profile: any,
-    supabaseUserId: string,
-  ): Promise<any> {
-    // Buscar Player asociado a este supabaseUserId
-    const player = await this.prisma.player.findUnique({
-      where: { supabaseUserId },
-    });
-
+  private formatProfileResponse(profile: any): any {
+    const hasPlayerProfile = profile.role === 'player';
     return {
       id: profile.id,
       supabaseUserId: profile.supabaseUserId,
@@ -165,12 +121,82 @@ export class AuthService {
       documentNumber: profile.documentNumber,
       documentVerified: profile.documentVerified,
       dateOfBirth: profile.dateOfBirth,
-      roles: profile.profileRoles.map((pr) => pr.role.name),
-      hasPlayerProfile: !!player, // true si creó su perfil de jugador
-      playerId: player?.id,
-      playerName: player ? `${player.firstName} ${player.lastName}` : null,
+      role: profile.role,
+      hasPlayerProfile,
+      profileId: profile.id,
       createdAt: profile.createdAt,
     };
+  }
+
+  /**
+   * Completes registration: sets DNI (and optional dateOfBirth).
+   * If a profile exists with that DNI and no supabaseUserId, deletes the current
+   * profile and links the auth user to the existing profile.
+   */
+  async completeRegister(
+    supabaseUserId: string,
+    data: { documentNumber: string; dateOfBirth?: string },
+  ): Promise<any> {
+    const currentProfile = await this.prisma.profile.findUnique({
+      where: { supabaseUserId },
+    });
+
+    if (!currentProfile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    if (currentProfile.documentNumber != null) {
+      throw new BadRequestException('Registration already completed');
+    }
+
+    const documentNumber = data.documentNumber.trim();
+    const existingByDni = await this.prisma.profile.findFirst({
+      where: {
+        documentNumber,
+        supabaseUserId: null,
+        deletedAt: null,
+      },
+    });
+
+    if (existingByDni) {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.profile.delete({ where: { id: currentProfile.id } });
+        await tx.profile.update({
+          where: { id: existingByDni.id },
+          data: {
+            supabaseUserId,
+            email: currentProfile.email,
+            name: currentProfile.name,
+            avatarUrl: currentProfile.avatarUrl,
+            ...(data.dateOfBirth && {
+              dateOfBirth: new Date(data.dateOfBirth),
+            }),
+          },
+        });
+      });
+
+      this.logger.log(
+        `Linked existing profile ${existingByDni.id} to supabase user ${supabaseUserId}`,
+      );
+
+      const linked = await this.prisma.profile.findUnique({
+        where: { id: existingByDni.id },
+      });
+      return this.formatProfileResponse(linked!);
+    }
+
+    const dateOfBirth = data.dateOfBirth
+      ? new Date(data.dateOfBirth)
+      : undefined;
+    const updated = await this.prisma.profile.update({
+      where: { id: currentProfile.id },
+      data: {
+        documentNumber,
+        ...(dateOfBirth && { dateOfBirth }),
+      },
+    });
+
+    return this.formatProfileResponse(updated);
   }
 
   /**
@@ -179,19 +205,12 @@ export class AuthService {
   async hasRole(supabaseUserId: string, roleName: string): Promise<boolean> {
     const profile = await this.prisma.profile.findUnique({
       where: { supabaseUserId },
-      include: {
-        profileRoles: {
-          include: {
-            role: true,
-          },
-        },
-      },
     });
 
     if (!profile) {
       return false;
     }
 
-    return profile.profileRoles.some((pr) => pr.role.name === roleName);
+    return profile.role === roleName;
   }
 }

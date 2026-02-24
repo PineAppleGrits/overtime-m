@@ -13,67 +13,50 @@ datasource db {
 // PERFILES Y AUTENTICACIÓN
 // ============================================
 
-// Profile: Información básica de cualquier usuario autenticado con Supabase
+enum ProfileRole {
+  master
+  admin
+  player
+  photographer
+  referee
+  official
+}
+
+// Profile: Persona (con o sin cuenta). Stub sin supabaseUserId/email para lista de buena fe; al registrarse se asocia por DNI.
 model Profile {
   id                 String    @id @default(uuid())
-  supabaseUserId     String    @unique // ID de Supabase Auth
-  email              String    @unique
+  supabaseUserId     String?   @unique
+  email              String?   @unique
   name               String
   phone              String?   @unique
   phoneVerified      Boolean   @default(false)
-  documentNumber     String?
+  documentNumber     String?    @unique
   documentVerified   Boolean   @default(false)
-  documentVerifiedBy String?   // Profile ID de quien verificó
+  documentVerifiedBy String?
   documentVerifiedAt DateTime?
   dateOfBirth        DateTime?
   avatarUrl          String?
+  role               ProfileRole   @default(player)
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   deletedAt          DateTime?
 
-  // Relaciones
-  profileRoles          ProfileRole[]
+  franchisesOwned       Franchise[]
   teamsCreated          Team[]                @relation("TeamCreator")
+  teamsCaptainOf        Team[]                @relation("TeamCaptain")
+  teamMemberships       ProfileTeam[]
+  matchRosters          MatchRoster[]
   assignedMatches       MatchStaff[]          @relation("AssignedBy")
   registrations         Registration[]        @relation("RequestedBy")
   approvedRegistrations Registration[]        @relation("ApprovedBy")
   payments              Payment[]
-  sentMessages          Message[]             @relation("Sender")
-  receivedMessages      Message[]             @relation("Recipient")
-  reports               Report[]
-  tickets               SupportTicket[]       @relation("ProfileTickets")
-  assignedTickets       SupportTicket[]       @relation("AssignedTo")
-  ticketComments        SupportTicketComment[]
   matchAnnouncements    MatchAnnouncement[]
-  notifications         Notification[]
 
   @@map("profiles")
 }
 
-// Player: Perfil de jugador (vinculado directamente a Supabase User)
-// OPCIONAL: Cualquier usuario puede crear su perfil de jugador cuando quiera
-model Player {
-  id             String    @id @default(uuid())
-  supabaseUserId String    @unique // Vinculado directamente a Supabase Auth
-  firstName      String
-  lastName       String
-  jerseyNumber   Int?
-  position       String?   // Posición en el campo
-  height         Float?    // cm
-  weight         Float?    // kg
-  photoUrl       String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
-
-  teams     PlayerTeam[]
-  captainOf Team[]       @relation("TeamCaptain")
-
-  @@map("players")
-}
-
 // ============================================
-// DEPORTES Y EQUIPOS
+// DEPORTES, FRANQUICIAS Y EQUIPOS
 // ============================================
 
 model Sport {
@@ -86,45 +69,64 @@ model Sport {
 
   teams       Team[]
   tournaments Tournament[]
-  categories  Category[]
 
   @@map("sports")
 }
 
-model Team {
+model Franchise {
   id        String    @id @default(uuid())
   name      String
   logoUrl   String?
-  sportId   String
-  sport     Sport     @relation(fields: [sportId], references: [id])
-  creatorId String
-  creator   Profile   @relation("TeamCreator", fields: [creatorId], references: [id])
-  captainId String?
-  captain   Player?   @relation("TeamCaptain", fields: [captainId], references: [id])
+  ownerId   String
+  owner     Profile   @relation(fields: [ownerId], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  players       PlayerTeam[]
-  teamZones     TeamZone[]
-  homeMatches   Match[]        @relation("HomeTeam")
+  teams Team[]
+
+  @@index([ownerId])
+  @@map("franchises")
+}
+
+model Team {
+  id          String    @id @default(uuid())
+  name        String
+  logoUrl     String?
+  sportId     String
+  sport       Sport     @relation(fields: [sportId], references: [id])
+  franchiseId String?
+  franchise   Franchise? @relation(fields: [franchiseId], references: [id])
+  creatorId   String?
+  creator     Profile?  @relation("TeamCreator", fields: [creatorId], references: [id])
+  captainId   String?
+  captain     Profile?  @relation("TeamCaptain", fields: [captainId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  members     ProfileTeam[]
+  teamZones   TeamZone[]
+  homeMatches Match[]        @relation("HomeTeam")
   awayMatches   Match[]        @relation("AwayTeam")
   registrations Registration[]
 
+  @@index([franchiseId])
   @@map("teams")
 }
 
-model PlayerTeam {
-  id       String   @id @default(uuid())
-  playerId String
-  player   Player   @relation(fields: [playerId], references: [id])
-  teamId   String
-  team     Team     @relation(fields: [teamId], references: [id])
-  joinedAt DateTime @default(now())
-  isActive Boolean  @default(true)
+model ProfileTeam {
+  id        String   @id @default(uuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  position  String?
+  joinedAt  DateTime @default(now())
+  isActive  Boolean  @default(true)
 
-  @@unique([playerId, teamId])
-  @@index([playerId])
+  @@unique([profileId, teamId])
+  @@index([profileId])
   @@index([teamId])
   @@map("player_teams")
 }
@@ -133,25 +135,49 @@ model PlayerTeam {
 // TORNEOS, CATEGORÍAS Y ZONAS
 // ============================================
 
+enum TournamentStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  READY_TO_SHIP
+  IN_PROGRESS
+  FINISHED
+  ARCHIVED
+  CANCELLED
+}
+
+enum CategoryStatus {
+  OPEN
+  CLOSED
+  IN_PROGRESS
+  FINISHED
+}
+
+enum CategorySubstatus {
+  REGULAR_FASE
+  PLAYOFFS_FASE
+}
+
 model Tournament {
-  id                    String    @id @default(uuid())
+  id                    String           @id @default(uuid())
   name                  String
-  slug                  String    @unique
+  slug                  String           @unique
   description           String?
   sportId               String
-  sport                 Sport     @relation(fields: [sportId], references: [id])
-  status                String // draft, visible, invisible, inscripcion_cerrada, finalizado, archivado
+  sport                 Sport            @relation(fields: [sportId], references: [id])
+  status                TournamentStatus @default(DRAFT)
   startDate             DateTime?
   endDate               DateTime?
   registrationStartDate DateTime?
   registrationEndDate   DateTime?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  insurancePerPlayer    Float?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
   deletedAt             DateTime?
 
-  categories    Category[]
-  registrations Registration[]
-  messages      Message[]
+  categories     Category[]
+  registrations  Registration[]
+  registrationPricing TournamentRegistrationPricing[]
 
   @@index([status])
   @@index([sportId])
@@ -159,30 +185,41 @@ model Tournament {
   @@map("tournaments")
 }
 
+model TournamentRegistrationPricing {
+  id          String    @id @default(uuid())
+  tournamentId String
+  tournament  Tournament @relation(fields: [tournamentId], references: [id])
+  validFrom   DateTime
+  validTo     DateTime
+  entryFeeAmount Float
+  currency    String    @default("ARS")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([tournamentId])
+  @@index([tournamentId, validFrom, validTo])
+  @@map("tournament_registration_pricing")
+}
+
 model Category {
-  id            String    @id @default(uuid())
-  tournamentId  String
-  tournament    Tournament @relation(fields: [tournamentId], references: [id])
-  name          String
-  sportId       String
-  sport         Sport     @relation(fields: [sportId], references: [id])
-  playoffFormat String? // single_elimination, double_elimination, round_robin
-  teamsPerZone  Int?
-  // Playoff configuration
-  teamsQualifyPerZone    Int?    @default(2) // Number of teams that qualify from each zone
-  playoffTeamsTotal      Int?    // Total teams in playoffs (overrides zone-based calculation)
-  playoffSeedingMethod   String? @default("zone_position") // zone_position, overall_record, points
-  regularPhaseCompleted  Boolean @default(false) // Indicates if regular phase is finished
-  playoffsGenerated      Boolean @default(false) // Indicates if playoffs have been generated
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  id           String            @id @default(uuid())
+  tournamentId String
+  tournament   Tournament        @relation(fields: [tournamentId], references: [id])
+  name         String
+  maxTeams     Int?
+  teamsPerZone Int?
+  status       CategoryStatus    @default(OPEN)
+  substatus    CategorySubstatus?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  deletedAt    DateTime?
 
   zones         Zone[]
   matches       Match[]
   registrations Registration[]
 
   @@index([tournamentId])
+  @@index([status])
   @@map("categories")
 }
 
@@ -246,9 +283,9 @@ model Venue {
 
 model Match {
   id             String    @id @default(uuid())
-  homeTeamId     String?   // Nullable for playoff matches where team is TBD
+  homeTeamId     String?
   homeTeam       Team?     @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeamId     String?   // Nullable for playoff matches where team is TBD
+  awayTeamId     String?
   awayTeam       Team?     @relation("AwayTeam", fields: [awayTeamId], references: [id])
   categoryId     String?
   category       Category? @relation(fields: [categoryId], references: [id])
@@ -258,32 +295,19 @@ model Match {
   venue          Venue?    @relation(fields: [venueId], references: [id])
   matchDate      DateTime
   matchTime      String?
-  status         String // programado, en_curso, suspendido, cancelado, reprogramado, finalizado
-  matchType      String // regular, playoff, semifinal, final, third_place, amistoso
-  homeScore      Int       @default(0)
-  awayScore      Int       @default(0)
-  costPerTeam    Float?
-  liveStatsJson  Json?
-  processedStats Json?
-  // Playoff bracket fields
-  playoffRound     Int?    // 1=Final, 2=Semifinal, 3=Quarterfinal, etc. (counted from final)
-  playoffPosition  Int?    // Position within the round (1, 2, 3, 4 for quarterfinals)
-  bracketPosition  String? // Unique bracket identifier like "QF1", "SF1", "F", "3rd"
-  homeSeed         Int?    // Seed number of home team
-  awaySeed         Int?    // Seed number of away team
-  // References to source matches for bracket advancement
-  homeFromMatchId  String? // Winner/loser of this match becomes home team
-  awayFromMatchId  String? // Winner/loser of this match becomes away team
-  homeFromPosition String? // "winner" or "loser" from source match
-  awayFromPosition String? // "winner" or "loser" from source match
-  createdAt      DateTime  @default(now())
+  status         String
+  matchType      String
+  homeScore   Int     @default(0)
+  awayScore   Int     @default(0)
+  costPerTeam Float?
+  createdAt   DateTime @default(now())
   updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?
 
   matchStaff    MatchStaff[]
+  roster        MatchRoster[]
   payments      Payment[]
   announcements MatchAnnouncement[]
-  messages      Message[]
 
   @@index([homeTeamId])
   @@index([awayTeamId])
@@ -293,9 +317,22 @@ model Match {
   @@index([status])
   @@index([matchDate])
   @@index([status, matchDate])
-  @@index([playoffRound])
-  @@index([bracketPosition])
   @@map("matches")
+}
+
+model MatchRoster {
+  id          String   @id @default(uuid())
+  matchId     String
+  match       Match    @relation(fields: [matchId], references: [id])
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  jerseyNumber Int
+  createdAt   DateTime @default(now())
+
+  @@unique([matchId, profileId])
+  @@index([matchId])
+  @@index([profileId])
+  @@map("match_rosters")
 }
 
 model MatchAnnouncement {
@@ -377,23 +414,24 @@ model MatchStaff {
 // ============================================
 
 model Registration {
-  id              String    @id @default(uuid())
-  teamId          String
-  team            Team      @relation(fields: [teamId], references: [id])
-  tournamentId    String
-  tournament      Tournament @relation(fields: [tournamentId], references: [id])
-  categoryId      String
-  category        Category  @relation(fields: [categoryId], references: [id])
-  status          String // pendiente, aprobada, rechazada, pagada
-  requestedBy     String
-  requester       Profile   @relation("RequestedBy", fields: [requestedBy], references: [id])
-  approvedBy      String?
-  approver        Profile?  @relation("ApprovedBy", fields: [approvedBy], references: [id])
-  approvedAt      DateTime?
-  rejectedAt      DateTime?
-  rejectionReason String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  teamId           String
+  team             Team      @relation(fields: [teamId], references: [id])
+  tournamentId     String
+  tournament       Tournament @relation(fields: [tournamentId], references: [id])
+  categoryId       String
+  category         Category  @relation(fields: [categoryId], references: [id])
+  status           String
+  requestedBy      String
+  requester        Profile   @relation("RequestedBy", fields: [requestedBy], references: [id])
+  approvedBy       String?
+  approver         Profile?  @relation("ApprovedBy", fields: [approvedBy], references: [id])
+  approvedAt       DateTime?
+  rejectedAt       DateTime?
+  rejectionReason  String?
+  paymentProofUrl  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   payments Payment[]
 
@@ -433,190 +471,5 @@ model Payment {
   @@index([status])
   @@index([providerPaymentId])
   @@map("payments")
-}
-
-// ============================================
-// ROLES Y PERMISOS
-// ============================================
-
-model Role {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  isSystem    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  profileRoles ProfileRole[]
-  permissions  RolePermission[]
-
-  @@map("roles")
-}
-
-model Permission {
-  id        String   @id @default(uuid())
-  module    String // tournaments, teams, matches, etc.
-  action    String // create, read, update, delete
-  scope     String   @default("all") // own, assigned, all
-  createdAt DateTime @default(now())
-
-  rolePermissions RolePermission[]
-
-  @@unique([module, action, scope])
-  @@map("permissions")
-}
-
-model ProfileRole {
-  id         String   @id @default(uuid())
-  profileId  String
-  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  roleId     String
-  role       Role     @relation(fields: [roleId], references: [id])
-  assignedBy String?
-  assignedAt DateTime @default(now())
-
-  @@unique([profileId, roleId])
-  @@index([profileId])
-  @@index([roleId])
-  @@map("profile_roles")
-}
-
-model RolePermission {
-  id           String     @id @default(uuid())
-  roleId       String
-  role         Role       @relation(fields: [roleId], references: [id])
-  permissionId String
-  permission   Permission @relation(fields: [permissionId], references: [id])
-
-  @@unique([roleId, permissionId])
-  @@index([roleId])
-  @@index([permissionId])
-  @@map("role_permissions")
-}
-
-// ============================================
-// NOTIFICACIONES Y MENSAJERÍA
-// ============================================
-
-model Notification {
-  id        String    @id @default(uuid())
-  profileId String
-  profile   Profile   @relation(fields: [profileId], references: [id])
-  type      String // in_app, email, whatsapp
-  title     String
-  message   String
-  link      String?
-  read      Boolean   @default(false)
-  readAt    DateTime?
-  createdAt DateTime  @default(now())
-
-  @@index([profileId])
-  @@index([read])
-  @@index([createdAt])
-  @@map("notifications")
-}
-
-model Message {
-  id                  String      @id @default(uuid())
-  senderId            String
-  sender              Profile     @relation("Sender", fields: [senderId], references: [id])
-  recipientId         String
-  recipient           Profile     @relation("Recipient", fields: [recipientId], references: [id])
-  subject             String?
-  content             String
-  relatedTournamentId String?
-  tournament          Tournament? @relation(fields: [relatedTournamentId], references: [id])
-  relatedMatchId      String?
-  match               Match?      @relation(fields: [relatedMatchId], references: [id])
-  read                Boolean     @default(false)
-  readAt              DateTime?
-  createdAt           DateTime    @default(now())
-
-  @@index([senderId])
-  @@index([recipientId])
-  @@index([read])
-  @@index([createdAt])
-  @@map("messages")
-}
-
-// ============================================
-// REPORTES Y CONFIGURACIONES
-// ============================================
-
-model Report {
-  id          String   @id @default(uuid())
-  type        String // tournament, team, player, match, financial
-  title       String
-  parameters  Json?
-  generatedBy String
-  generator   Profile  @relation(fields: [generatedBy], references: [id])
-  fileUrl     String?
-  format      String? // excel, pdf
-  createdAt   DateTime @default(now())
-
-  @@index([type])
-  @@index([generatedBy])
-  @@index([createdAt])
-  @@map("reports")
-}
-
-model Setting {
-  id          String   @id @default(uuid())
-  key         String   @unique
-  value       String?
-  type        String // string, number, boolean, json
-  scope       String   @default("global") // global, tournament, category
-  scopeId     String?
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([key])
-  @@index([scope])
-  @@index([scopeId])
-  @@map("settings")
-}
-
-// ============================================
-// SOPORTE
-// ============================================
-
-model SupportTicket {
-  id          String    @id @default(uuid())
-  profileId   String
-  profile     Profile   @relation("ProfileTickets", fields: [profileId], references: [id])
-  subject     String
-  description String
-  status      String // open, in_progress, resolved, closed
-  priority    String    @default("medium") // low, medium, high, urgent
-  assignedTo  String?
-  assignee    Profile?  @relation("AssignedTo", fields: [assignedTo], references: [id])
-  resolvedAt  DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  comments SupportTicketComment[]
-
-  @@index([profileId])
-  @@index([status])
-  @@index([assignedTo])
-  @@index([createdAt])
-  @@map("support_tickets")
-}
-
-model SupportTicketComment {
-  id         String        @id @default(uuid())
-  ticketId   String
-  ticket     SupportTicket @relation(fields: [ticketId], references: [id])
-  profileId  String
-  profile    Profile       @relation(fields: [profileId], references: [id])
-  comment    String
-  isInternal Boolean       @default(false)
-  createdAt  DateTime      @default(now())
-
-  @@index([ticketId])
-  @@index([profileId])
-  @@index([createdAt])
-  @@map("support_ticket_comments")
 }
 

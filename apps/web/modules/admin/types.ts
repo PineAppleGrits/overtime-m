@@ -42,7 +42,6 @@ export interface AdminCategory {
   slug: string
   tournamentId: string
   sportId: string
-  playoffFormat?: 'single_elimination' | 'double_elimination' | 'round_robin'
   teamsPerZone?: number
   zones: AdminZone[]
   hidden: boolean

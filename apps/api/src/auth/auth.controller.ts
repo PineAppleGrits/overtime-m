@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { CompleteRegisterDto } from './dto/complete-register.dto';
 import { IsString } from 'class-validator';
 
 class CreatePlayerProfileDto {
@@ -32,18 +33,32 @@ export class AuthController {
     };
   }
 
+  @Post('complete-register')
+  async completeRegister(
+    @CurrentUser() user: any,
+    @Body() dto: CompleteRegisterDto,
+  ) {
+    const profile = await this.authService.completeRegister(user.supabaseUserId, {
+      documentNumber: dto.documentNumber,
+      dateOfBirth: dto.dateOfBirth,
+    });
+    return {
+      success: true,
+      message: 'Registration completed',
+      data: profile,
+    };
+  }
+
   /**
-   * Crea un perfil de jugador para el usuario actual
-   * - Cualquier usuario puede crear su perfil de jugador
-   * - Automáticamente agrega rol 'player' si no lo tiene
-   * - Solo se puede crear una vez
+   * Marca el perfil del usuario como jugador (rol 'player').
+   * Solo se puede hacer una vez por perfil.
    */
   @Post('create-player-profile')
   async createPlayerProfile(
     @CurrentUser() user: any,
     @Body() dto: CreatePlayerProfileDto,
   ) {
-    const player = await this.authService.createPlayerProfile(
+    const profile = await this.authService.createPlayerProfile(
       user.supabaseUserId,
       {
         firstName: dto.firstName,
@@ -54,7 +69,7 @@ export class AuthController {
     return {
       success: true,
       message: 'Player profile created successfully',
-      data: player,
+      data: profile,
     };
   }
 }

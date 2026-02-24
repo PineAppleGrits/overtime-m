@@ -44,14 +44,3 @@ export interface CategoryStandings {
   totalMatches: number;
   completedMatches: number;
 }
-
-export interface PlayoffSeed {
-  seed: number;
-  teamId: string;
-  teamName: string;
-  zoneId: string;
-  zoneName: string;
-  zonePosition: number;
-  record: string; // e.g., "8-2"
-  pointsDiff: number;
-}

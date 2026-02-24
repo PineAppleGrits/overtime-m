@@ -5,10 +5,8 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import {
-  CreateTournamentDto,
-  TournamentStatus,
-} from './dto/create-tournament.dto';
+import { CreateTournamentDto } from './dto/create-tournament.dto';
+import { TournamentStatus } from '@prisma/client';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { ChangeStatusDto } from './dto/change-status.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
@@ -28,27 +26,14 @@ export class TournamentsService {
     newStatus: TournamentStatus,
   ): void {
     const validTransitions: Record<string, TournamentStatus[]> = {
-      draft: [
-        TournamentStatus.VISIBLE,
-        TournamentStatus.INVISIBLE,
-        TournamentStatus.ARCHIVADO,
-      ],
-      visible: [
-        TournamentStatus.INVISIBLE,
-        TournamentStatus.INSCRIPCION_CERRADA,
-        TournamentStatus.ARCHIVADO,
-      ],
-      invisible: [
-        TournamentStatus.VISIBLE,
-        TournamentStatus.INSCRIPCION_CERRADA,
-        TournamentStatus.ARCHIVADO,
-      ],
-      inscripcion_cerrada: [
-        TournamentStatus.FINALIZADO,
-        TournamentStatus.ARCHIVADO,
-      ],
-      finalizado: [TournamentStatus.ARCHIVADO],
-      archivado: [], // No se puede cambiar desde archivado
+      DRAFT: [TournamentStatus.OPEN, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
+      OPEN: [TournamentStatus.CLOSED, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
+      CLOSED: [TournamentStatus.READY_TO_SHIP, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
+      READY_TO_SHIP: [TournamentStatus.IN_PROGRESS, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
+      IN_PROGRESS: [TournamentStatus.FINISHED, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
+      FINISHED: [TournamentStatus.ARCHIVED],
+      ARCHIVED: [],
+      CANCELLED: [],
     };
 
     const allowedStatuses = validTransitions[currentStatus] || [];
@@ -65,32 +50,20 @@ export class TournamentsService {
   private async applyAutomaticStatusTransitions(): Promise<void> {
     const now = new Date();
 
-    // Cambiar a inscripcion_cerrada si la fecha de fin de inscripción pasó
     await this.prisma.tournament.updateMany({
       where: {
-        status: {
-          in: [TournamentStatus.VISIBLE, TournamentStatus.INVISIBLE],
-        },
-        registrationEndDate: {
-          lte: now,
-        },
+        status: TournamentStatus.OPEN,
+        registrationEndDate: { lte: now },
       },
-      data: {
-        status: TournamentStatus.INSCRIPCION_CERRADA,
-      },
+      data: { status: TournamentStatus.CLOSED },
     });
 
-    // Cambiar a finalizado si la fecha de fin pasó
     await this.prisma.tournament.updateMany({
       where: {
-        status: TournamentStatus.INSCRIPCION_CERRADA,
-        endDate: {
-          lte: now,
-        },
+        status: { in: [TournamentStatus.CLOSED, TournamentStatus.READY_TO_SHIP] },
+        endDate: { lte: now },
       },
-      data: {
-        status: TournamentStatus.FINALIZADO,
-      },
+      data: { status: TournamentStatus.FINISHED },
     });
   }
 
@@ -127,9 +100,11 @@ export class TournamentsService {
 
     const tournament = await this.prisma.tournament.create({
       data: {
-        ...createTournamentDto,
+        name: createTournamentDto.name,
         slug: slugify(createTournamentDto.name),
-        status: createTournamentDto.status || TournamentStatus.DRAFT,
+        description: createTournamentDto.description ?? null,
+        sportId: createTournamentDto.sportId,
+        status: createTournamentDto.status ?? TournamentStatus.DRAFT,
         startDate: createTournamentDto.startDate
           ? new Date(createTournamentDto.startDate)
           : null,
@@ -142,6 +117,7 @@ export class TournamentsService {
         registrationEndDate: createTournamentDto.registrationEndDate
           ? new Date(createTournamentDto.registrationEndDate)
           : null,
+        insurancePerPlayer: createTournamentDto.insurancePerPlayer ?? null,
       },
       include: {
         sport: true,
@@ -238,7 +214,6 @@ export class TournamentsService {
         sport: true,
         categories: {
           include: {
-            sport: true,
             zones: {
               include: {
                 teamZones: {
@@ -307,7 +282,6 @@ export class TournamentsService {
         sport: true,
         categories: {
           include: {
-            sport: true,
             zones: {
               include: {
                 teamZones: {

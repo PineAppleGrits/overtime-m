@@ -4,8 +4,6 @@ import {
   BadRequestException,
   ConflictException,
   Logger,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CreateMatchDto, MatchStatus, MatchType } from './dto/create-match.dto';
@@ -14,7 +12,6 @@ import { ChangeMatchStatusDto } from './dto/change-status.dto';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { VenuesService } from '../venues/venues.service';
-import { PlayoffGenerator } from '../fixtures/generators/playoff.generator';
 
 @Injectable()
 export class MatchesService {
@@ -23,8 +20,6 @@ export class MatchesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly venuesService: VenuesService,
-    @Inject(forwardRef(() => PlayoffGenerator))
-    private readonly playoffGenerator: PlayoffGenerator,
   ) {}
 
   /**
@@ -159,17 +154,10 @@ export class MatchesService {
   }
 
   async create(createMatchDto: CreateMatchDto) {
-    const isPlayoffMatch = this.isPlayoffMatchType(
-      createMatchDto.matchType || MatchType.REGULAR,
-    );
-
-    // For regular matches, both teams are required
-    if (!isPlayoffMatch) {
-      if (!createMatchDto.homeTeamId || !createMatchDto.awayTeamId) {
-        throw new BadRequestException(
-          'Both home and away teams are required for regular matches',
-        );
-      }
+    if (!createMatchDto.homeTeamId || !createMatchDto.awayTeamId) {
+      throw new BadRequestException(
+        'Both home and away teams are required',
+      );
     }
 
     let homeTeam: { id: string; sportId: string; name: string } | null = null;
@@ -215,12 +203,7 @@ export class MatchesService {
         throw new NotFoundException('Category not found');
       }
 
-      // For regular matches with both teams, validate they're in the same category
-      if (
-        !isPlayoffMatch &&
-        createMatchDto.homeTeamId &&
-        createMatchDto.awayTeamId
-      ) {
+      if (createMatchDto.homeTeamId && createMatchDto.awayTeamId) {
         await this.validateTeamsInSameCategory(
           createMatchDto.homeTeamId,
           createMatchDto.awayTeamId,
@@ -286,12 +269,6 @@ export class MatchesService {
         matchDate: new Date(createMatchDto.matchDate),
         homeScore: createMatchDto.homeScore ?? 0,
         awayScore: createMatchDto.awayScore ?? 0,
-        // Playoff fields
-        playoffRound: createMatchDto.playoffRound,
-        playoffPosition: createMatchDto.playoffPosition,
-        bracketPosition: createMatchDto.bracketPosition,
-        homeSeed: createMatchDto.homeSeed,
-        awaySeed: createMatchDto.awaySeed,
       },
       include: {
         homeTeam: {
@@ -451,8 +428,7 @@ export class MatchesService {
             captain: {
               select: {
                 id: true,
-                firstName: true,
-                lastName: true,
+                name: true,
               },
             },
           },
@@ -470,8 +446,7 @@ export class MatchesService {
             captain: {
               select: {
                 id: true,
-                firstName: true,
-                lastName: true,
+                name: true,
               },
             },
           },
@@ -485,7 +460,6 @@ export class MatchesService {
                 status: true,
               },
             },
-            sport: true,
           },
         },
         zone: {
@@ -697,29 +671,7 @@ export class MatchesService {
 
     this.logger.log(`Match status changed: ${id} -> ${changeStatusDto.status}`);
 
-    // If playoff match is finalized, advance winner in bracket
-    if (
-      changeStatusDto.status === MatchStatus.FINALIZADO &&
-      this.isPlayoffMatchType(updatedMatch.matchType)
-    ) {
-      try {
-        await this.playoffGenerator.advanceWinner(id);
-        this.logger.log(`Advanced winner for playoff match ${id}`);
-      } catch (error) {
-        this.logger.warn(
-          `Failed to advance winner for match ${id}: ${error.message}`,
-        );
-      }
-    }
-
     return updatedMatch;
-  }
-
-  /**
-   * Check if match type is a playoff type
-   */
-  private isPlayoffMatchType(matchType: string): boolean {
-    return ['playoff', 'semifinal', 'final', 'third_place'].includes(matchType);
   }
 
   async remove(id: string) {

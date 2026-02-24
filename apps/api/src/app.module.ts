@@ -6,7 +6,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
-import { PlayersModule } from './players/players.module';
 import { TeamsModule } from './teams/teams.module';
 import { SportsModule } from './sports/sports.module';
 import { TournamentsModule } from './tournaments/tournaments.module';
@@ -45,15 +44,14 @@ import mercadopagoConfig from './config/mercadopago.config';
       }),
     }),
     DatabaseModule,
-    AuthModule, // Maneja Profile + 2 flujos de registro
-    PlayersModule, // Maneja Players vinculados a Profile
+    AuthModule,
     TeamsModule,
     SportsModule,
     TournamentsModule, // Maneja Torneos, Categorías y Zonas
     VenuesModule, // Maneja Canchas y Locaciones
     MatchesModule, // Maneja Partidos y Comunicados
     RegistrationsModule, // Maneja Inscripciones de Equipos a Torneos
-    FixturesModule, // Maneja Fixture, Standings y Playoffs
+    FixturesModule,
     StaffModule, // Maneja Personal (árbitros, oficiales, fotógrafos)
     NotificationsModule, // Maneja Sistema de Notificaciones
     PaymentsModule, // Maneja Pagos (inscripciones, partidos)

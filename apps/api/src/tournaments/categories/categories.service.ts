@@ -16,28 +16,12 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
-    // Verificar que el torneo existe
     const tournament = await this.prisma.tournament.findUnique({
       where: { id: createCategoryDto.tournamentId, deletedAt: null },
     });
 
     if (!tournament) {
       throw new NotFoundException('Tournament not found');
-    }
-
-    // Verificar que el deporte existe y coincide con el del torneo
-    const sport = await this.prisma.sport.findUnique({
-      where: { id: createCategoryDto.sportId },
-    });
-
-    if (!sport) {
-      throw new NotFoundException('Sport not found');
-    }
-
-    if (tournament.sportId !== createCategoryDto.sportId) {
-      throw new BadRequestException(
-        'Category sport must match tournament sport',
-      );
     }
 
     const category = await this.prisma.category.create({
@@ -50,7 +34,6 @@ export class CategoriesService {
             status: true,
           },
         },
-        sport: true,
         zones: true,
         _count: {
           select: {
@@ -96,7 +79,7 @@ export class CategoriesService {
         take: limit,
         orderBy: { [sortBy]: sortOrder },
         include: {
-          sport: true,
+          tournament: { select: { id: true, name: true, sportId: true } },
           zones: {
             include: {
               _count: {
@@ -144,9 +127,9 @@ export class CategoriesService {
             id: true,
             name: true,
             status: true,
+            sportId: true,
           },
         },
-        sport: true,
         zones: {
           include: {
             teamZones: {
@@ -197,28 +180,7 @@ export class CategoriesService {
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    const category = await this.findOne(id);
-
-    // Si se está actualizando el deporte, verificar que existe y coincide con el del torneo
-    if (updateCategoryDto.sportId) {
-      const sport = await this.prisma.sport.findUnique({
-        where: { id: updateCategoryDto.sportId },
-      });
-
-      if (!sport) {
-        throw new NotFoundException('Sport not found');
-      }
-
-      const tournament = await this.prisma.tournament.findUnique({
-        where: { id: category.tournamentId },
-      });
-
-      if (tournament && tournament.sportId !== updateCategoryDto.sportId) {
-        throw new BadRequestException(
-          'Category sport must match tournament sport',
-        );
-      }
-    }
+    await this.findOne(id);
 
     const updatedCategory = await this.prisma.category.update({
       where: { id },
@@ -231,7 +193,6 @@ export class CategoriesService {
             status: true,
           },
         },
-        sport: true,
         zones: true,
         _count: {
           select: {
