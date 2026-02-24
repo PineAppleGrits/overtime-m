@@ -52,6 +52,9 @@ model Profile {
   payments              Payment[]
   matchAnnouncements    MatchAnnouncement[]
 
+  @@index([deletedAt, name])
+  @@index([deletedAt, email])
+  @@index([deletedAt, createdAt])
   @@map("profiles")
 }
 
