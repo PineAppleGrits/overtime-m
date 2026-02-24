@@ -3,9 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { cn } from "@/utils/cn";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
-import { getProfile } from "@/lib/auth/session";
+import { headers } from "next/headers";
 import "./globals.css";
-import { getUser } from "@/lib/supabase/getSessionSsr";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,18 +21,25 @@ export const metadata: Metadata = {
   description: "Mejor organizador de torneos privados de básquet en Argentina",
 };
 
-/**
- * Root Layout - Server Component
- * Obtiene la sesión y profile server-side y los pasa al AuthProvider
- */
+async function getAuthDataFromProxy() {
+  const headersList = await headers();
+  const raw = headersList.get("x-auth-data");
+
+  if (!raw) return { user: null, profile: null };
+
+  try {
+    return JSON.parse(raw) as { user: Record<string, unknown> | null; profile: Record<string, unknown> | null };
+  } catch {
+    return { user: null, profile: null };
+  }
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Obtener usuario y profile server-side
-  const user = await getUser();
-  const profile = user ? await getProfile() : null;
+  const { user, profile } = await getAuthDataFromProxy();
 
   return (
     <html lang="es" className="dark">

@@ -6,6 +6,13 @@ class AuthService extends Service {
     const { data } = await this.client.get("/auth/profile");
     return data;
   }
+
+  async updateDocumentNumber(documentNumber: string) {
+    const { data } = await this.client.patch("/auth/profile/document", {
+      documentNumber,
+    });
+    return data;
+  }
 }
 
 const authService = new AuthService(client);

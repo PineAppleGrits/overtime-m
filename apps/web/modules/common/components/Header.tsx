@@ -3,6 +3,7 @@ import { NavItem, Tournament } from "../types";
 import { RecursiveNavItem } from "./RecursiveNavItem";
 import Image from "next/image";
 import { UserMenu } from "@/modules/common/components/UserMenu";
+import { MobileNav } from "@/modules/common/components/MobileNav";
 
 const navItem: NavItem[] = [
     { id: "inicio", name: "inicio", href: "/" },
@@ -41,7 +42,9 @@ const getTorneos = async (): Promise<NavItem[]> => {
 export const Header = async () => {
     const torneos = await getTorneos()
 
-    navItem.find((item) => item.id === "torneos")!.subMenu = torneos
+    const navItems = navItem.map((item) =>
+        item.id === "torneos" ? { ...item, subMenu: torneos } : item
+    );
 
     return (
         <header className="text-white bg-ot-dark-blue">
@@ -49,14 +52,23 @@ export const Header = async () => {
                 <div className="py-1">
                     <Image src="/overtime_logo.png" alt="Overtime Logo" width={58} height={31} />
                 </div>
-                <nav>
+
+                {/* Desktop nav */}
+                <nav className="hidden lg:block">
                     <ul className="flex space-x-4">
-                        {navItem.map((item) => (
+                        {navItems.map((item) => (
                             <RecursiveNavItem key={item.id} item={item} />
                         ))}
                     </ul>
                 </nav>
-                <UserMenu />
+
+                {/* Desktop user menu */}
+                <div className="hidden lg:block">
+                    <UserMenu />
+                </div>
+
+                {/* Mobile: avatar + hamburger */}
+                <MobileNav navItems={navItems} />
             </nav>
         </header>
     )

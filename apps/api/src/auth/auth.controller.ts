@@ -1,8 +1,17 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { CompleteRegisterDto } from './dto/complete-register.dto';
-import { IsString } from 'class-validator';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { IsString, IsNotEmpty, Matches } from 'class-validator';
 
 class CreatePlayerProfileDto {
   @IsString()
@@ -10,6 +19,15 @@ class CreatePlayerProfileDto {
 
   @IsString()
   lastName: string;
+}
+
+class UpdateDocumentNumberDto {
+  @IsString()
+  @IsNotEmpty({ message: 'El número de documento es requerido' })
+  @Matches(/^\d{7,8}$/, {
+    message: 'El DNI debe tener 7 u 8 dígitos numéricos',
+  })
+  documentNumber: string;
 }
 
 @Controller('auth')
@@ -33,25 +51,55 @@ export class AuthController {
     };
   }
 
-  @Post('complete-register')
-  async completeRegister(
-    @CurrentUser() user: any,
-    @Body() dto: CompleteRegisterDto,
+  /**
+   * Establece el DNI del usuario autenticado (solo primera vez).
+   * Una vez establecido, solo un admin puede modificarlo.
+   */
+  @Patch('profile/document')
+  async setDocumentNumber(
+    @CurrentUser() user: Record<string, unknown>,
+    @Body() dto: UpdateDocumentNumberDto,
   ) {
-    const profile = await this.authService.completeRegister(user.supabaseUserId, {
-      documentNumber: dto.documentNumber,
-      dateOfBirth: dto.dateOfBirth,
-    });
+    const profile = await this.authService.setDocumentNumber(
+      user.supabaseUserId as string,
+      dto.documentNumber,
+    );
+
     return {
       success: true,
-      message: 'Registration completed',
+      message: 'Documento establecido correctamente',
       data: profile,
     };
   }
 
   /**
-   * Marca el perfil del usuario como jugador (rol 'player').
-   * Solo se puede hacer una vez por perfil.
+   * Permite a un admin/superadmin modificar el DNI de cualquier usuario.
+   * TODO: definir los roles autorizados cuando se implemente el sistema de permisos.
+   */
+  @Patch('profile/:profileId/document')
+  @UseGuards(RolesGuard)
+  @Roles(/* TODO: agregar roles autorizados, ej: 'admin', 'superadmin' */)
+  async adminUpdateDocumentNumber(
+    @Param('profileId') profileId: string,
+    @Body() dto: UpdateDocumentNumberDto,
+  ) {
+    const profile = await this.authService.adminUpdateDocumentNumber(
+      profileId,
+      dto.documentNumber,
+    );
+
+    return {
+      success: true,
+      message: 'Documento actualizado correctamente',
+      data: profile,
+    };
+  }
+
+  /**
+   * Crea un perfil de jugador para el usuario actual
+   * - Cualquier usuario puede crear su perfil de jugador
+   * - Automáticamente agrega rol 'player' si no lo tiene
+   * - Solo se puede crear una vez
    */
   @Post('create-player-profile')
   async createPlayerProfile(

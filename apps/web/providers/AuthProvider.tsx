@@ -1,11 +1,10 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
-type Profile = {
+export type Profile = {
   id: string;
   supabaseUserId: string;
   email: string;
@@ -15,11 +14,16 @@ type Profile = {
   hasPlayerProfile: boolean;
   playerId?: string;
   playerName?: string;
-  documentNumber: string;
+  documentNumber: string | null;
+};
+
+export type AuthUser = Record<string, unknown> & {
+  id: string;
+  email?: string;
 };
 
 type AuthContextType = {
-  user: User | null;
+  user: AuthUser | null;
   profile: Profile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
@@ -31,8 +35,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 type AuthProviderProps = {
   children: React.ReactNode;
-  serverUser: User | null;
-  serverProfile: Profile | null;
+  serverUser: Record<string, unknown> | null;
+  serverProfile: Record<string, unknown> | null;
 };
 
 /**
@@ -44,8 +48,8 @@ export function AuthProvider({
   serverUser,
   serverProfile,
 }: AuthProviderProps) {
-  const user = serverUser;
-  const profile = serverProfile;
+  const user = serverUser as AuthUser | null;
+  const profile = serverProfile as Profile | null;
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
