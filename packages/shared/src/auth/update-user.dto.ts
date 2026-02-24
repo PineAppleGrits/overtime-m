@@ -1,35 +1,23 @@
 import {
   IsString,
-  IsNotEmpty,
   IsOptional,
   IsDateString,
   IsEmail,
   IsIn,
   MaxLength,
-} from "class-validator";
+} from 'class-validator';
+import { ProfileRoleEnum, ProfileRoleType } from './create-user.dto';
 
-export const ProfileRole = {
-  master: "master",
-  admin: "admin",
-  player: "player",
-  photographer: "photographer",
-  referee: "referee",
-  official: "official",
-} as const;
-
-export type ProfileRoleType = (typeof ProfileRole)[keyof typeof ProfileRole];
-export const ProfileRoleEnum = Object.values(ProfileRole);
-
-export class CreateUserDto {
+export class UpdateUserDto {
   @IsOptional()
   @IsEmail()
   @MaxLength(255)
   email?: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(255)
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsString()

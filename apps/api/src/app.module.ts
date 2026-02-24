@@ -16,6 +16,7 @@ import { FixturesModule } from './fixtures/fixtures.module';
 import { StaffModule } from './staff/staff.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
+import { UsersModule } from './users/users.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -30,17 +31,25 @@ import mercadopagoConfig from './config/mercadopago.config';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, supabaseConfig, resendConfig, mercadopagoConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        supabaseConfig,
+        resendConfig,
+        mercadopagoConfig,
+      ],
       envFilePath: '.env',
     }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        throttlers: [{
-          ttl: config.get<number>('app.throttle.ttl') || 60,
-          limit: config.get<number>('app.throttle.limit') || 100,
-        }],
+        throttlers: [
+          {
+            ttl: config.get<number>('app.throttle.ttl') || 60,
+            limit: config.get<number>('app.throttle.limit') || 100,
+          },
+        ],
       }),
     }),
     DatabaseModule,
@@ -55,6 +64,7 @@ import mercadopagoConfig from './config/mercadopago.config';
     StaffModule, // Maneja Personal (árbitros, oficiales, fotógrafos)
     NotificationsModule, // Maneja Sistema de Notificaciones
     PaymentsModule, // Maneja Pagos (inscripciones, partidos)
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [
