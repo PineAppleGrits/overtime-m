@@ -10,8 +10,9 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto, PaginationDto } from '@overtime-mono/shared';
+import { CreateUserDto, UpdateUserDto } from '@overtime-mono/shared';
 import { Admin } from '../common/decorators/admin.decorator';
+import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
 
@@ -32,11 +33,8 @@ export class UsersController {
 
   @Admin()
   @Get()
-  findAll(
-    @Query('search') search?: string,
-    @Query() paginationDto?: PaginationDto,
-  ) {
-    return this.usersService.findAll(search, paginationDto);
+  findAll(@Query() query: ListUsersQueryDto) {
+    return this.usersService.findAll(query.search, query);
   }
 
   @Admin()
