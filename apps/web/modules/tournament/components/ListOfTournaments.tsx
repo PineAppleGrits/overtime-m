@@ -55,7 +55,7 @@ export async function ListOfTournaments() {
   }
 
   return (
-    <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" role="list">
+    <ul className="flex flex-col gap-4" role="list">
       {filteredTournaments.map((tournament) => {
         const visibleCategories = tournament.categories?.filter((c) => !c.hidden) ?? []
         const registrationPeriod = formatRegistrationPeriod(
@@ -65,32 +65,28 @@ export async function ListOfTournaments() {
 
         return (
           <li key={tournament.id}>
-            <article className="flex h-full flex-col rounded-2xl border border-white/10 bg-ot-dark-blue/30 p-5 transition-colors hover:border-ot-orange/30 hover:bg-ot-dark-blue/50">
-              {/* Name */}
-              <h2 className="text-lg font-bold text-white">{tournament.name}</h2>
+            <article className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-ot-dark-blue/30 p-5 transition-colors hover:border-ot-orange/30 hover:bg-ot-dark-blue/50 sm:flex-row sm:items-center">
 
-              {/* Description */}
-              {tournament.description && (
-                <p className="mt-2 line-clamp-2 text-sm text-white/60">
-                  {tournament.description}
-                </p>
-              )}
+              {/* Left: info */}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-bold text-white">{tournament.name}</h2>
 
-              {/* Registration period */}
-              {registrationPeriod && (
-                <div className="mt-3 flex items-center gap-2 text-xs text-white/60">
-                  <Calendar className="h-3.5 w-3.5 shrink-0 text-ot-orange" aria-hidden />
-                  <span>{registrationPeriod}</span>
-                </div>
-              )}
+                {tournament.description && (
+                  <p className="mt-1 line-clamp-2 text-sm text-white/60">
+                    {tournament.description}
+                  </p>
+                )}
 
-              {/* Categories */}
-              <div className="mt-4 flex-1">
-                {visibleCategories.length > 0 ? (
-                  <>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-white/40">
-                      Categorías
-                    </p>
+                {registrationPeriod && (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-white/60">
+                    <Calendar className="h-3.5 w-3.5 shrink-0 text-ot-orange" aria-hidden />
+                    <span>{registrationPeriod}</span>
+                  </div>
+                )}
+
+                {/* Categories */}
+                <div className="mt-3">
+                  {visibleCategories.length > 0 ? (
                     <ul className="flex flex-wrap gap-2" role="list">
                       {visibleCategories.map((category) => (
                         <li key={category.id}>
@@ -100,17 +96,17 @@ export async function ListOfTournaments() {
                         </li>
                       ))}
                     </ul>
-                  </>
-                ) : (
-                  <p className="text-xs text-white/40">Sin categorías publicadas</p>
-                )}
+                  ) : (
+                    <p className="text-xs text-white/40">Sin categorías publicadas</p>
+                  )}
+                </div>
               </div>
 
-              {/* CTA */}
-              <div className="mt-5">
+              {/* Right: CTA */}
+              <div className="shrink-0">
                 <Link
                   href={`/torneos/${tournament.slug}`}
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-ot-orange/90 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ot-orange focus:outline-none focus:ring-2 focus:ring-ot-orange focus:ring-offset-2 focus:ring-offset-ot-background"
+                  className="group inline-flex items-center gap-2 rounded-xl bg-ot-orange/90 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ot-orange focus:outline-none focus:ring-2 focus:ring-ot-orange focus:ring-offset-2 focus:ring-offset-ot-background whitespace-nowrap"
                 >
                   Ver torneo
                   <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
