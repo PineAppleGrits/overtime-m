@@ -10,14 +10,14 @@ import { getSession } from '../supabase/getSessionSsr';
  */
 export async function getProfile() {
   const session = await getSession();
-  
+
   if (!session?.access_token) {
     return null;
   }
 
   try {
     const response = await AuthService.getProfile();
-    
+
     const profile = {
       ...response.data,
       roles: ['admin']

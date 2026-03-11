@@ -13,46 +13,53 @@ import { cn } from "@/lib/utils";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-ot-background text-white overflow-hidden">
+    <div className="min-h-screen bg-ot-background text-white">
       {/* Hero */}
-      <section className="relative ot-container pt-16 pb-24 md:pt-24 md:pb-32">
-        <div className="absolute inset-0 bg-linear-to-b from-ot-dark-blue/40 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-ot-orange/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-ot-light-blue/20 rounded-full blur-[100px] pointer-events-none" />
+      <section className="min-h-screen relative w-full">
 
-        <div className="relative max-w-4xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-ot-light-blue/50 bg-ot-dark-blue/50 px-4 py-1.5 text-sm text-white/90 mb-6">
-            <Award className="h-4 w-4 text-ot-orange" />
-            <span>Básquet en Argentina</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white">
-            Jugá. Competí.{" "}
-            <span className="text-ot-orange">Ganá.</span>
-          </h1>
-          <p className="mt-6 text-lg md:text-xl text-white/80 max-w-2xl">
-            Unite a los mejores torneos privados de básquet. Inscripción simple,
-            fixtures al día y toda la emoción en la cancha.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-4">
-            <Button asChild className={cn(
-              "bg-ot-orange! hover:bg-ot-orange/90! text-white! border-0!",
-              "h-12 px-8 text-base font-semibold rounded-lg shadow-lg shadow-ot-orange/25"
-            )}>
-              <Link href="/torneos" className="inline-flex items-center justify-center gap-2">
-                Ver torneos abiertos
-                <ChevronRight className="h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className={cn(
-                "border-white/30! bg-transparent! text-white! hover:bg-white/10! hover:text-white!",
-                "h-12 px-8 text-base font-semibold rounded-lg"
-              )}
-            >
-              <Link href="/auth/login">Iniciar sesión</Link>
-            </Button>
+        <video autoPlay loop muted playsInline className="w-full h-full absolute inset-0 object-cover pointer-events-none top-0">
+          <source src="/hero.webm" type="video/webm" />
+        </video>
+
+        {/* Gradient Overlays */}
+        <div className="absolute inset-0 bg-linear-to-b from-ot-background/20 via-ot-background/60 to-ot-background pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-r from-ot-background/90 via-ot-background/40 to-transparent pointer-events-none" />
+
+        <div className="ot-container relative pt-16 pb-24 md:pt-24 md:pb-32 flex flex-col justify-center min-h-screen">
+          <div className="relative max-w-4xl ">
+            <div className="inline-flex items-center gap-2 rounded-full border border-ot-light-blue/50 bg-ot-dark-blue/50 px-4 py-1.5 text-sm text-white/90 mb-6">
+              <Award className="h-4 w-4 text-ot-orange" />
+              <span>Básquet en Argentina</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white">
+              Jugá. Competí.{" "}
+              <span className="text-ot-orange">Ganá.</span>
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-white/80 max-w-2xl">
+              Unite a los mejores torneos privados de básquet. Inscripción simple,
+              fixtures al día y toda la emoción en la cancha.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Button asChild className={cn(
+                "bg-ot-orange! hover:bg-ot-orange/90! text-white! border-0!",
+                "h-12 px-8 text-base font-semibold rounded-lg shadow-lg shadow-ot-orange/25"
+              )}>
+                <Link href="/torneos" className="inline-flex items-center justify-center gap-2">
+                  Ver torneos abiertos
+                  <ChevronRight className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className={cn(
+                  "border-white/30! bg-transparent! text-white! hover:bg-white/10! hover:text-white!",
+                  "h-12 px-8 text-base font-semibold rounded-lg"
+                )}
+              >
+                <Link href="/auth/login">Iniciar sesión</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -202,6 +209,10 @@ export default function Home() {
 
       {/* Final CTA */}
       <section className="relative ot-container py-20 md:py-28 border-t border-white/5">
+        <div className="absolute inset-0 bg-linear-to-b from-ot-dark-blue/40 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-ot-orange/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-ot-light-blue/20 rounded-full blur-[100px] pointer-events-none" />
+
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white">
             No te quedes afuera
@@ -231,21 +242,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/5 py-8">
-        <div className="ot-container flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-white/50 text-sm">Overtime · Torneos de básquet</span>
-          <div className="flex gap-6 text-sm">
-            <Link href="/torneos" className="text-white/70 hover:text-ot-orange transition-colors">
-              Torneos
-            </Link>
-            <Link href="/auth/login" className="text-white/70 hover:text-ot-orange transition-colors">
-              Iniciar sesión
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
