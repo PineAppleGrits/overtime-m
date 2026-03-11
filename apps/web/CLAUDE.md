@@ -1,25 +1,31 @@
-## Skills & Context
-- **Reglas de Desarrollo:** Antes de generar código, consulta y aplica estrictamente las convenciones definidas en la carpeta `.claude/`.
+# Development Standards & Project Guidelines
 
-## Estándares de Frontend
-- **Mobile First:** Implementar siempre un enfoque "mobile-first" utilizando Media Queries o utilidades de Tailwind (si aplica).
-- **Responsive Design:** Todo componente o página debe ser 100% responsivo.
-- **Unidades Relativas:** Priorizar el uso de `rem`, `em`, `vh/vw` y porcentajes sobre valores fijos en `px`.
-- **Flexbox/Grid:** Utilizar layouts flexibles para asegurar la adaptabilidad en diferentes tamaños de pantalla (Desktop, Tablet, Mobile).
+## 1. Context & Governance
+- **Strict Adherence:** Before generating or refactoring code, strictly consult and apply the conventions defined within the `.claude/skills` directory.
+- **Monorepo Architecture:** Maintain a clean separation between the Frontend (Next.js) and Backend (Nest.js) packages.
 
-## Manejo de Formularios y Validación
-- **React Hook Form:** Es obligatorio para la gestión de estado de formularios.
+---
 
-Zod: Todas las validaciones de esquemas deben definirse con Zod. El esquema debe ser la única fuente de verdad para los tipos de los inputs.
+## 2. Frontend Standards (Next.js)
 
-Integración: Usar el resolver de Zod para conectar ambos: @hookform/resolvers/zod.
+### Design & Responsiveness
+- **Mobile-First Approach:** Always implement a mobile-first strategy using Tailwind CSS utilities or CSS Media Queries.
+- **Fluid Layouts:** Every component or page must be 100% responsive. Use **Flexbox** and **CSS Grid** for structural adaptability.
+- **Relative Units:** Prioritize `rem`, `em`, `vh/vw`, and percentages over fixed `px` values to ensure scalability across devices.
 
-## Mutaciones de Datos (Server Actions)
-Prohibido API Routes: No crear rutas en /api para mutaciones internas. Usar Server Actions exclusivamente.
+### Form Management & Validation
+- **React Hook Form:** Mandatory for all form state management to ensure optimal performance and re-rendering control.
+- **Zod Schemas:** All schema validations must be defined with **Zod**. The schema is the **single source of truth** for both validation and input types.
+- **Integration:** Use `@hookform/resolvers/zod` to bridge React Hook Form and Zod.
 
-Ubicación: Definir las acciones en archivos actions.ts dentro de sus respectivos módulos.
+### Data Mutations (Server Actions)
+- **No API Routes:** Do not create internal mutation routes in `/api`. Use **Next.js Server Actions** exclusively.
+- **Organization:** Actions must be defined in `actions.ts` files within their respective feature modules.
+- **Type Safety:** Actions must perform server-side validation of `formData` or payloads using the corresponding Zod schema before executing business logic.
 
-Type Safety: Las acciones deben validar el formData o el payload usando el esquema de Zod antes de procesar la lógica.
+---
 
-## Rate Limiting (Client-Side / Edge)
-Implementar un rate limiter preventivo en el middleware de Next.js o mediante una librería como upstash/ratelimit si se requiere persistencia en el Edge.
+## 4. Development Workflow
+1. **Schema First:** Define the Zod schema before building the form or the server action.
+2. **Type Sharing:** Wherever possible, export types from the Zod schema to be used in both the UI and the Server Action.
+3. **Validation:** Always validate on both ends: client-side for UX and server-side for security.
