@@ -4,6 +4,7 @@ import { RecursiveNavItem } from "./RecursiveNavItem";
 import Image from "next/image";
 import { UserMenu } from "@/modules/common/components/UserMenu";
 import { MobileNav } from "@/modules/common/components/MobileNav";
+import { HeaderClientWrapper } from "./HeaderClientWrapper";
 
 const navItem: NavItem[] = [
     { id: "inicio", name: "inicio", href: "/" },
@@ -47,7 +48,7 @@ export const Header = async () => {
     );
 
     return (
-        <header className="text-white bg-ot-dark-blue">
+        <HeaderClientWrapper>
             <nav className="flex justify-between items-center ot-container">
                 <div className="py-1">
                     <Image src="/overtime_logo.png" alt="Overtime Logo" width={58} height={31} />
@@ -70,6 +71,6 @@ export const Header = async () => {
                 {/* Mobile: avatar + hamburger */}
                 <MobileNav navItems={navItems} />
             </nav>
-        </header>
+        </HeaderClientWrapper>
     )
-}
+} 

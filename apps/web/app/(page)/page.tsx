@@ -27,10 +27,6 @@ export default function Home() {
 
         <div className="ot-container relative pt-16 pb-24 md:pt-24 md:pb-32 flex flex-col justify-center min-h-screen">
           <div className="relative max-w-4xl ">
-            <div className="inline-flex items-center gap-2 rounded-full border border-ot-light-blue/50 bg-ot-dark-blue/50 px-4 py-1.5 text-sm text-white/90 mb-6">
-              <Award className="h-4 w-4 text-ot-orange" />
-              <span>Básquet en Argentina</span>
-            </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white">
               Jugá. Competí.{" "}
               <span className="text-ot-orange">Ganá.</span>
@@ -179,9 +175,9 @@ export default function Home() {
         <div className="rounded-2xl border border-white/10 bg-linear-to-br from-ot-dark-blue/50 to-ot-light-blue/20 p-8 md:p-12 text-center">
           <div className="flex flex-wrap justify-center gap-8 md:gap-16 mb-8">
             {[
-              { value: "Torneos", label: "organizados" },
-              { value: "Equipos", label: "inscriptos" },
-              { value: "Partidos", label: "por temporada" },
+              { value: "Torneos", label: "+5 torneos organizados" },
+              { value: "Equipos", label: "+100 equipos inscriptos" },
+              { value: "Partidos", label: "+500 partidos jugados" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="text-3xl md:text-4xl font-bold text-ot-orange">
@@ -209,7 +205,6 @@ export default function Home() {
 
       {/* Final CTA */}
       <section className="relative ot-container py-20 md:py-28 border-t border-white/5">
-        <div className="absolute inset-0 bg-linear-to-b from-ot-dark-blue/40 via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-ot-orange/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-ot-light-blue/20 rounded-full blur-[100px] pointer-events-none" />
 
