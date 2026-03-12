@@ -34,3 +34,19 @@ export async function deleteBlacklistAction(input: unknown): Promise<ActionResul
     return { success: true }
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo eliminar de la lista negra' } }
 }
+
+export async function checkPlayerAction(dni: string): Promise<{ success: boolean; data?: { isBlacklisted: boolean; reason: string | null }; error?: string }> {
+  try {
+    const response = await blacklistService.checkPlayer(dni);
+    return { 
+      success: true, 
+      data: {
+        isBlacklisted: response.data?.isBlacklisted ?? false,
+        reason: response.data?.reason ?? null
+      }
+    };
+  } catch (error) {
+    console.error('Error checking player blacklist status:', error);
+    return { success: false, error: 'Error verificando estado del jugador' };
+  }
+}

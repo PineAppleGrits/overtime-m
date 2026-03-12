@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { updateDocumentNumberAction } from '@/modules/auth/actions/profileActions';
-import blacklistService from '@/modules/admin/services/BlacklistService';
+import { checkPlayerAction } from '@/modules/admin/actions/blacklistActions';
 import {
   IdCard,
   Mail,
@@ -44,12 +44,16 @@ export default function ProfileInfoPage() {
   const checkBlacklist = useCallback(async (dni: string) => {
     setCheckingBlacklist(true);
     try {
-      const response = await blacklistService.checkPlayer(dni);
-      setBlacklistStatus({
-        checked: true,
-        isBlacklisted: response.data?.isBlacklisted ?? false,
-        reason: response.data?.reason ?? null,
-      });
+      const result = await checkPlayerAction(dni);
+      if (result.success && result.data) {
+        setBlacklistStatus({
+          checked: true,
+          isBlacklisted: result.data.isBlacklisted,
+          reason: result.data.reason,
+        });
+      } else {
+        setBlacklistStatus({ checked: true, isBlacklisted: false, reason: null });
+      }
     } catch {
       setBlacklistStatus({ checked: true, isBlacklisted: false, reason: null });
     } finally {

@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import TeamService from "@/modules/team/TeamService";
-import RegistrationService from "@/modules/registration/RegistrationService";
+import { getTeamsAction } from "@/modules/team/teamActions";
+import { createRegistrationAction } from "@/modules/registration/registrationActions";
 
 type Props = {
   tournamentId: string;
@@ -33,8 +33,8 @@ export function InscribirseForm({
     let cancelled = false;
     (async () => {
       try {
-        const res = await TeamService.getTeams({ limit: 100 });
-        const data = res?.data ?? [];
+        const res = await getTeamsAction({ limit: 100 });
+        const data = res.data ?? [];
         if (!cancelled) setTeams(Array.isArray(data) ? data : []);
       } catch (e) {
         if (!cancelled) setError("No se pudieron cargar los equipos.");
@@ -53,22 +53,21 @@ export function InscribirseForm({
     setSubmitting(true);
     setError(null);
     try {
-      await RegistrationService.createRegistration({
+      const result = await createRegistrationAction({
         teamId: selectedTeamId,
         tournamentId,
         categoryId,
       });
+
+      if (!result.success) {
+        setError(result.error || "No se pudo completar la inscripción. Intente de nuevo.");
+        return;
+      }
+
       router.push(`/torneos/${tournamentSlug}/${categorySlug}?inscrito=1`);
       router.refresh();
     } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data
-              ?.message
-          : null;
-      setError(
-        message || "No se pudo completar la inscripción. Intente de nuevo."
-      );
+      setError("No se pudo completar la inscripción. Intente de nuevo.");
     } finally {
       setSubmitting(false);
     }
