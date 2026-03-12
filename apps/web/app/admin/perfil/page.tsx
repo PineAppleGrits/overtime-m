@@ -123,11 +123,9 @@ export default function AdminProfilePage() {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Roles</span>
                 <div className="flex gap-1">
-                  {profile?.roles.map((role) => (
-                    <Badge key={role} variant="secondary" className="text-xs">
-                      {role}
-                    </Badge>
-                  ))}
+                  <Badge key={profile?.role} variant="secondary" className="text-xs">
+                    {profile?.role}
+                  </Badge>
                 </div>
               </div>
               {profile?.documentNumber && (

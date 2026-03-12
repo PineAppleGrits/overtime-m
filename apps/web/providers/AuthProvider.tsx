@@ -10,7 +10,7 @@ export type Profile = {
   email: string;
   name: string;
   avatarUrl?: string;
-  roles: string;
+  role: string;
   hasPlayerProfile: boolean;
   playerId?: string;
   playerName?: string;
