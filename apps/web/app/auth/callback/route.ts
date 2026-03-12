@@ -17,18 +17,16 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     
     if (!error) {
+      // Usar directamente el origin (en Vercel será el dominio correcto)
+      // O hacer fallback a los headers nativos de next/server si se precisa un overriding duro
       const forwardedHost = request.headers.get('x-forwarded-host');
-      const isLocalEnv = process.env.NODE_ENV === 'development';
+      const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https';
       
-      if (isLocalEnv) {
-        // En desarrollo, redirigir a localhost
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        // En producción con proxy, usar el host forwardeado
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
+      if (forwardedHost) {
+        return NextResponse.redirect(`${forwardedProto}://${forwardedHost}${next}`);
       }
+      
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
