@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/modules/common/components/Button';
 import Image from 'next/image';
+import { hasAdminRole } from '@/lib/auth/hasAdminRole';
 
 export function UserMenu() {
   const { user, profile, signOut, loading, refresh } = useAuth();
@@ -70,7 +71,7 @@ export function UserMenu() {
             >
               Mi perfil
             </Link>
-            {profile.roles.includes('admin') && (
+            {hasAdminRole(profile) && (
               <Link
                 href="/admin"
                 className="block px-4 py-2 text-sm text-purple-600 hover:bg-gray-100"

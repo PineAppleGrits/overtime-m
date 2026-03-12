@@ -10,7 +10,7 @@ export type Profile = {
   email: string;
   name: string;
   avatarUrl?: string;
-  roles: string[];
+  roles: string;
   hasPlayerProfile: boolean;
   playerId?: string;
   playerName?: string;
@@ -59,7 +59,7 @@ export function AuthProvider({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      
+
       if (isInitialAuthEvent.current) {
         isInitialAuthEvent.current = false;
         return;

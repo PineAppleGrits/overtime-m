@@ -1,7 +1,10 @@
 import { defineConfig } from 'prisma/config';
 
-process.loadEnvFile();
-console.log(process.env.DATABASE_URL);
+try {
+  process.loadEnvFile();
+} catch (error) {
+  // Ignore error if .env file doesn't exist (e.g. in production)
+}
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',

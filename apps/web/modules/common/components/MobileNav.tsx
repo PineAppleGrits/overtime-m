@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Button } from '@/modules/common/components/Button';
+import { hasAdminRole } from '@/lib/auth/hasAdminRole';
 
 type MobileNavItem = {
   id: string;
@@ -159,7 +160,7 @@ export function MobileNav({ navItems }: { navItems: MobileNavItem[] }) {
                   <User className="h-4 w-4" />
                   Mi perfil
                 </Link>
-                {profile.roles.includes('admin') && (
+                {hasAdminRole(profile) && (
                   <Link
                     href="/admin"
                     onClick={() => setOpen(false)}

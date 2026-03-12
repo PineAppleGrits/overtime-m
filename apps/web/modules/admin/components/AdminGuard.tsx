@@ -1,5 +1,6 @@
 'use client'
 
+import { hasAdminRole } from '@/lib/auth/hasAdminRole';
 import { useAuth } from '@/providers/AuthProvider'
 import { notFound } from 'next/navigation'
 
@@ -21,7 +22,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     )
   }
 
-  if (!profile || !profile.roles.includes('admin')) {
+  if (!profile || !hasAdminRole(profile)) {
     notFound()
   }
 

@@ -68,12 +68,6 @@ export async function proxy(request: NextRequest) {
       const response = await AuthService.getProfile();
       profile = response?.data ?? null;
 
-      // TODO - Remove it
-      profile = {
-        ...profile,
-        roles: ['admin']
-      }
-
       if (
         profile &&
         !profile.documentNumber &&
