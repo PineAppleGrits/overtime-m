@@ -7,7 +7,11 @@ import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
-  process.loadEnvFile();
+  try {
+    process.loadEnvFile();
+  } catch (error) {
+    // Ignore error if .env file doesn't exist (e.g. in production)
+  }
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
