@@ -9,8 +9,8 @@ type ProxyAuthData = {
 
 const PROTECTED_PATHS = ['/admin', '/profile', '/teams/create'];
 
+// Only skip profile fetch for /auth routes (login, callback, etc.)
 const SKIP_PROFILE_PREFIXES = [
-  '/admin',
   '/auth',
 ];
 
@@ -89,6 +89,10 @@ export async function proxy(request: NextRequest) {
   }
 
   const authData: ProxyAuthData = { user: user as Record<string, unknown> | null, profile };
+
+  // x-auth-data must be a REQUEST header so Server Components can read it via headers().
+  // We create a new response with the updated request headers, then copy session cookies
+  // from supabaseResponse so refreshed tokens always reach the browser.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-auth-data', JSON.stringify(authData));
 
