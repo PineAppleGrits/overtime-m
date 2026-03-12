@@ -181,7 +181,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
         v.isActive ? (
           <Badge
             variant="outline"
-            className="border-green-200 bg-green-50 text-green-700"
+            className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
           >
             Activa
           </Badge>
@@ -198,7 +198,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
             href={v.googleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
           >
             <ExternalLink className="h-3 w-3" />
             Ver mapa

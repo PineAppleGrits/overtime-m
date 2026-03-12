@@ -5,12 +5,12 @@ import { Trophy, Users, UserCog, MapPin, ClipboardList, Dumbbell } from 'lucide-
 import Link from 'next/link'
 
 const stats = [
-  { label: 'Torneos', icon: Trophy, href: '/admin/torneos', color: 'text-blue-600' },
-  { label: 'Equipos', icon: Users, href: '/admin/equipos', color: 'text-green-600' },
-  { label: 'Jugadores', icon: UserCog, href: '/admin/jugadores', color: 'text-purple-600' },
-  { label: 'Canchas', icon: MapPin, href: '/admin/canchas', color: 'text-orange-600' },
-  { label: 'Inscripciones', icon: ClipboardList, href: '/admin/inscripciones', color: 'text-red-600' },
-  { label: 'Disciplinas', icon: Dumbbell, href: '/admin/disciplinas', color: 'text-teal-600' },
+  { label: 'Torneos', icon: Trophy, href: '/admin/torneos', color: 'text-blue-600 dark:text-blue-400' },
+  { label: 'Equipos', icon: Users, href: '/admin/equipos', color: 'text-green-600 dark:text-green-400' },
+  { label: 'Jugadores', icon: UserCog, href: '/admin/jugadores', color: 'text-purple-600 dark:text-purple-400' },
+  { label: 'Canchas', icon: MapPin, href: '/admin/canchas', color: 'text-orange-600 dark:text-orange-400' },
+  { label: 'Inscripciones', icon: ClipboardList, href: '/admin/inscripciones', color: 'text-red-600 dark:text-red-400' },
+  { label: 'Disciplinas', icon: Dumbbell, href: '/admin/disciplinas', color: 'text-teal-600 dark:text-teal-400' },
 ]
 
 export default function AdminDashboardPage() {

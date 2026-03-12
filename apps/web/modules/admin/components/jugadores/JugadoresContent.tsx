@@ -108,7 +108,7 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
       key: 'isBlacklisted', label: 'Estado',
       render: (p) => p.isBlacklisted
         ? <Badge variant="destructive">Lista negra</Badge>
-        : <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">Activo</Badge>,
+        : <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400">Activo</Badge>,
     },
     {
       key: 'actions', label: '', className: 'w-10',

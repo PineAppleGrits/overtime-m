@@ -110,7 +110,7 @@ export function EmployeeDetailContent({ employeeId, initialData }: EmployeeDetai
       <div className="mb-6 flex items-center gap-3">
         <StatusBadge status={employee.role} type="employee" />
         {employee.isActive ? (
-          <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">Activo</Badge>
+          <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400">Activo</Badge>
         ) : (
           <Badge variant="outline">Inactivo</Badge>
         )}

@@ -151,15 +151,15 @@ export default function AdminProfilePage() {
                 <p className="text-muted-foreground">Resumen de asignaciones</p>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-md bg-blue-50 p-2 dark:bg-blue-950">
-                    <p className="text-lg font-bold text-blue-600">{upcomingMatches.length}</p>
+                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{upcomingMatches.length}</p>
                     <p className="text-xs text-muted-foreground">Por jugar</p>
                   </div>
                   <div className="rounded-md bg-yellow-50 p-2 dark:bg-yellow-950">
-                    <p className="text-lg font-bold text-yellow-600">{inProgressMatches.length}</p>
+                    <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{inProgressMatches.length}</p>
                     <p className="text-xs text-muted-foreground">En curso</p>
                   </div>
                   <div className="rounded-md bg-green-50 p-2 dark:bg-green-950">
-                    <p className="text-lg font-bold text-green-600">{playedMatches.length}</p>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">{playedMatches.length}</p>
                     <p className="text-xs text-muted-foreground">Jugados</p>
                   </div>
                 </div>

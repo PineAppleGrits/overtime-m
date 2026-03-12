@@ -94,7 +94,7 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
     { key: 'name', label: 'Nombre', render: (e) => (<div><p className="font-medium">{e.firstName} {e.lastName}</p>{e.email && <p className="text-xs text-muted-foreground">{e.email}</p>}</div>) },
     { key: 'role', label: 'Rol', render: (e) => <StatusBadge status={e.role} type="employee" /> },
     { key: 'phone', label: 'Teléfono', render: (e) => <span className="text-sm">{e.phone ?? '-'}</span> },
-    { key: 'isActive', label: 'Estado', render: (e) => e.isActive ? <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">Activo</Badge> : <Badge variant="outline">Inactivo</Badge> },
+    { key: 'isActive', label: 'Estado', render: (e) => e.isActive ? <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400">Activo</Badge> : <Badge variant="outline">Inactivo</Badge> },
     { key: 'assignedMatches', label: 'Partidos', render: (e) => <span className="text-sm">{e.assignedMatches?.length ?? 0} asignados</span> },
     {
       key: 'actions', label: '', className: 'w-10',
