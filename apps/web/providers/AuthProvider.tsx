@@ -88,11 +88,13 @@ export function AuthProvider({
 
   const signInWithGoogle = async () => {
     setLoading(true);
+    const url = getURL();
+    console.log("URL VERCEL", url);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${getURL()}/auth/callback`,
+          redirectTo: `${url}auth/callback`,
         },
       });
 

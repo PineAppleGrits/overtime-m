@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { MatchAssignmentList } from '@/modules/my-matches/components/MatchAssignmentList'
 import { MyMatchesEmptyState } from '@/modules/my-matches/components/MyMatchesEmptyState'
