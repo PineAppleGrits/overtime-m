@@ -36,8 +36,9 @@ import adminTournamentService, {
 } from '@/modules/admin/services/AdminTournamentService'
 import { AdminTournament, TournamentStatus } from '@/modules/admin/types'
 import { useDebouncedValue } from '@/modules/admin/hooks/useDebouncedValue'
-import { toast } from 'sonner'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
+import { deleteTournamentAction, changeStatusAction } from '@/modules/admin/actions/tournamentActions'
+import { useServerAction } from '@/modules/admin/hooks/useServerAction'
 
 const TOURNAMENTS_QUERY_KEY = ['admin', 'tournaments'] as const
 
@@ -95,28 +96,16 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
     placeholderData: (prev) => prev,
   })
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => adminTournamentService.deleteTournament(id),
-    onSuccess: () => {
-      toast.success('Torneo eliminado')
-      queryClient.invalidateQueries({ queryKey: TOURNAMENTS_QUERY_KEY })
-      setDeleteId(null)
-    },
-    onError: () => {
-      toast.error('Error al eliminar el torneo')
-    },
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: TOURNAMENTS_QUERY_KEY })
+
+  const deleteAction = useServerAction(deleteTournamentAction, {
+    successMessage: 'Torneo eliminado',
+    onSuccess: () => { invalidate(); setDeleteId(null) },
   })
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: TournamentStatus }) =>
-      adminTournamentService.changeStatus(id, status),
-    onSuccess: () => {
-      toast.success('Estado actualizado')
-      queryClient.invalidateQueries({ queryKey: TOURNAMENTS_QUERY_KEY })
-    },
-    onError: () => {
-      toast.error('Error al cambiar el estado')
-    },
+  const statusAction = useServerAction(changeStatusAction, {
+    successMessage: 'Estado actualizado',
+    onSuccess: invalidate,
   })
 
   const tournaments = data?.data ?? []
@@ -124,11 +113,11 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
 
   const handleDelete = () => {
     if (!deleteId) return
-    deleteMutation.mutate(deleteId)
+    deleteAction.execute({ id: deleteId })
   }
 
   const handleStatusChange = (id: string, status: TournamentStatus) => {
-    statusMutation.mutate({ id, status })
+    statusAction.execute({ id, status })
   }
 
   const columns: Column<AdminTournament>[] = [
@@ -290,7 +279,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
         variant="destructive"
         confirmLabel="Eliminar"
         onConfirm={handleDelete}
-        loading={deleteMutation.isPending}
+        loading={deleteAction.isPending}
       />
     </div>
   )
