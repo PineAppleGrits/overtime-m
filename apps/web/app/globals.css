@@ -21,12 +21,30 @@
   font-display: swap;
 }
 
+/* 946 Latin – score numbers font (from overtime-frontend) */
+@font-face {
+  font-family: "946 Latin";
+  src: url("/fonts/946Latin/946Latin-Wide3.otf") format("opentype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "946 Latin";
+  src: url("/fonts/946Latin/946Latin-Regular4.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-ot-background: #100f14;
   --color-ot-orange: #ff3b2f;
   --color-ot-dark-blue: #292548;
   --color-ot-light-blue: #3a3563;
   --font-din-display: "Din Display", sans-serif;
+  --font-946-latin: "946 Latin", sans-serif;
 }
 
 /* Skew accent used in player stat cards – replicado del frontend anterior */

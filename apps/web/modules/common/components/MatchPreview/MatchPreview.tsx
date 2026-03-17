@@ -25,57 +25,17 @@ export function MatchPreview({ match }: Props) {
       : undefined
 
   return (
-    <div
-      style={{
-        overflow: 'hidden',
-        position: 'relative',
-        minWidth: '450px',
-        width: '450px',
-        filter: 'drop-shadow(0px 0px 7px rgba(0,0,0,0.4))',
-        cursor: 'default',
-      }}
-    >
+    <div className="overflow-hidden relative min-w-88.75 w-112.5 filter-[drop-shadow(0px_0px_7px_rgba(0,0,0,0.4))] cursor-default">
+
       {/* ── HEAD (trapezoid) ── */}
-      <div
-        style={{
-          position: 'relative',
-          width: '95%',
-          margin: 'auto',
-          color: '#a9a5bb',
-          borderRight: '20px solid transparent',
-          borderLeft: '20px solid transparent',
-          borderBottom: '34px solid #2a2548',
-        }}
-      >
+      <div className="relative w-[95%] mx-auto text-[#a9a5bb] [border-right:20px_solid_transparent] [border-left:20px_solid_transparent] [border-bottom:34px_solid_#2a2548]">
+
         {/* Purple triangle accent behind match type */}
-        <div
-          style={{
-            zIndex: 1,
-            width: '137px',
-            left: '125px',
-            top: '18px',
-            position: 'absolute',
-            borderRight: '22px solid transparent',
-            borderLeft: '22px solid transparent',
-            borderBottom: '36px solid #3b336a',
-          }}
-        />
+        <div className="absolute z-1 w-34.25 left-31.25 top-4.5 [border-right:22px_solid_transparent] [border-left:22px_solid_transparent] [border-bottom:36px_solid_#3b336a]" />
 
         {/* Head data row */}
-        <div
-          style={{
-            zIndex: 2,
-            height: '20px',
-            width: '100%',
-            top: '27px',
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-evenly',
-            alignItems: 'center',
-          }}
-        >
-          <div style={{ width: '33%', textAlign: 'center', overflow: 'hidden' }}>
+        <div className="relative z-2 h-5 w-full top-6.75 flex flex-row justify-evenly items-center">
+          <div className="w-[33%] text-center overflow-hidden">
             <p className="font-din-display text-[13px] text-[#a9a5bb]">
               {match.date ? (
                 <>{formatDate(match.date)} <strong>{formatTime(match.date)}</strong></>
@@ -84,12 +44,12 @@ export function MatchPreview({ match }: Props) {
               )}
             </p>
           </div>
-          <div style={{ width: '35%', textAlign: 'center' }}>
+          <div className="w-[35%] text-center">
             <h3 className="font-din-display text-[12px] font-bold uppercase text-[#a9a5bb]">
               {match.matchType}
             </h3>
           </div>
-          <div style={{ width: '33%', textAlign: 'center', overflow: 'hidden' }}>
+          <div className="w-[33%] text-center overflow-hidden">
             <p className="font-din-display text-[13px] text-[#a9a5bb] truncate">
               {match.location ?? 'A confirmar'}
             </p>
@@ -98,133 +58,80 @@ export function MatchPreview({ match }: Props) {
       </div>
 
       {/* ── BODY ── */}
-      <div
-        style={{
-          position: 'relative',
-          height: '135px',
-          borderRadius: '5px',
-          backgroundColor: '#181525',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            padding: '25px 40px 0 40px',
-          }}
-        >
+      <div className="relative h-33.75 rounded-[5px] bg-[#181525]">
+        <div className="flex flex-row justify-between pt-6.25 px-10">
+
           {/* Skewed background left */}
           <div
-            className="absolute left-0 w-1/2 h-[60px]"
+            className="absolute left-0 w-1/2 h-15 z-1 transform-[skew(150deg,0deg)]"
             style={{
-              zIndex: 1,
               background: hasScore
                 ? 'linear-gradient(270deg, rgba(59,51,106,0.2) 1%, rgba(59,51,106,0) 75%)'
                 : 'linear-gradient(270deg, rgba(59,51,106,0.2) 6.78%, rgba(59,51,106,0) 77%), #181525',
-              transform: 'skew(150deg, 0deg)',
             }}
           />
           {/* Skewed background right */}
           <div
-            className="absolute right-0 w-1/2 h-[60px]"
+            className="absolute right-0 w-1/2 h-15 z-1 transform-[skew(-30deg,0deg)]"
             style={{
-              zIndex: 1,
               background: hasScore
                 ? 'linear-gradient(90deg, #3B336A 19.94%, rgba(59,51,106,0) 80%)'
                 : 'linear-gradient(90deg, rgba(59,51,106,0.4) 6%, rgba(59,51,106,0) 75%)',
-              transform: 'skew(-30deg, 0deg)',
             }}
           />
 
           {/* Team 1 badge */}
-          <div style={{ zIndex: 2, maxWidth: '120px' }}>
+          <div className="z-2 max-w-30">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={match.team1.logoUrl ?? DEFAULT_BADGE}
               alt={match.team1.name}
-              style={{ objectFit: 'contain', width: '60px', height: '60px' }}
+              className="object-contain w-15 h-15"
             />
           </div>
 
           {/* Score */}
-          <div
-            style={{
-              zIndex: 2,
-              width: '65%',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              textAlign: 'center',
-              fontSize: '35px',
-              fontWeight: 700,
-              paddingTop: '3px',
-            }}
-            className="font-din-display"
-          >
-            <div style={{ width: '50%', color: hasScore ? '#fff' : '#4e4585' }}>
+          <div className="z-2 w-85 flex justify-between items-center text-center text-[35px] font-bold font-946-latin">
+            <div className={`w-1/2 ${hasScore ? 'text-white' : 'text-[#4e4585]'}`}>
               {match.team1Score ?? '-'}
             </div>
-            <div style={{ width: '50%', color: hasScore ? '#ff3b2f' : '#4e4585' }}>
+            <div className={`w-1/2 ${hasScore ? 'text-ot-orange' : 'text-[#4e4585]'}`}>
               {match.team2Score ?? '-'}
             </div>
           </div>
 
           {/* Team 2 badge */}
-          <div style={{ zIndex: 2, maxWidth: '120px' }}>
+          <div className="z-2 max-w-30">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={match.team2.logoUrl ?? DEFAULT_BADGE}
               alt={match.team2.name}
-              style={{ objectFit: 'contain', width: '60px', height: '60px' }}
+              className="object-contain w-15 h-15"
             />
           </div>
         </div>
 
         {/* Team names */}
-        <div
-          style={{
-            marginTop: '12px',
-            padding: '0 23px',
-            color: '#f1f1f1',
-            display: 'flex',
-            width: '100%',
-            justifyContent: 'space-between',
-            fontSize: '14px',
-            fontWeight: 100,
-            lineHeight: '1em',
-            textAlign: 'center',
-            textTransform: 'uppercase',
-          }}
-          className="font-din-display"
-        >
-          <div style={{ width: '93px', display: 'flex', justifyContent: 'center' }}>
-            {match.team1.name}
-          </div>
-          <div style={{ width: '93px', display: 'flex', justifyContent: 'center' }}>
-            {match.team2.name}
-          </div>
+        <div className="mt-3 px-5.75 text-[#f1f1f1] flex w-full justify-between text-[14px] font-thin leading-[1em] text-center uppercase font-din-display">
+          <div className="w-23.25 flex justify-center">{match.team1.name}</div>
+          <div className="w-23.25 flex justify-center">{match.team2.name}</div>
         </div>
       </div>
 
       {/* ── FOOTER ── */}
-      <div className="relative flex items-center justify-center h-[40px] -translate-y-full">
-        {hasScore ?
-
-          (
-            <Link
-              href={statsHref ?? "#"}
-              className="inline-block rounded-sm relative px-4 py-2  border-none text-md text-black translate-y-1/2  cursor-pointer uppercase font-bold hover:bg-ot-red/80 transition-colors duration-200 bg-ot-orange"
-            >
-              Ver estadísticas
-            </Link>
-          ) : (
-            <div
-              className="uppercase inline-block font-bold text-sm text-ot-light-blue relative"
-            >
-              pendiente
-            </div>
-          )}
+      <div className="relative flex items-center justify-center h-10 -translate-y-full">
+        {hasScore ? (
+          <Link
+            href={statsHref ?? '#'}
+            className="inline-block rounded-sm relative px-4 py-2 border-none text-md text-black translate-y-1/2 cursor-pointer uppercase font-bold hover:bg-ot-orange/80 transition-colors duration-200 bg-ot-orange font-din-display"
+          >
+            Ver estadísticas
+          </Link>
+        ) : (
+          <div className="uppercase inline-block font-bold text-sm text-[#4e4585] relative font-din-display">
+            pendiente
+          </div>
+        )}
       </div>
     </div>
   )
