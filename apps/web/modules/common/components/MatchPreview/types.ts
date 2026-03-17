@@ -6,6 +6,8 @@ export interface MatchTeam {
 
 export interface MatchPreviewData {
   id: string
+  tournamentId?: string
+  categoryId?: string
   date?: string
   location?: string
   matchType: string

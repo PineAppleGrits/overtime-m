@@ -1,6 +1,7 @@
 import { hasAdminRole } from '@/lib/auth/hasAdminRole'
 import { getProfile } from '@/lib/auth/session'
 import { getMockPlayerStats, getMockTeamStats } from '@/modules/team/mock/playerStats.mock'
+import { getMockTeamMatches, MatchPreview } from '@/modules/common/components/MatchPreview'
 import teamService from '@/modules/team/TeamService'
 import { Star, Trash2, UserPlus } from 'lucide-react'
 import { notFound } from 'next/navigation'
@@ -69,6 +70,8 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
   // TODO: Reemplazar por llamada a API cuando GET /teams/:id/stats esté disponible
   const teamStats = getMockTeamStats(id)
   const playerStats = getMockPlayerStats(id)
+  // TODO: Reemplazar por llamada a API cuando GET /teams/:id/matches esté disponible
+  const { lastMatch, nextMatch } = getMockTeamMatches(id)
 
   const isAdmin = profile ? hasAdminRole(profile) : false
   const isCreator = profile?.id === team.creatorId
@@ -169,6 +172,28 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
+      {/* ── MATCHES ── */}
+      {(lastMatch || nextMatch) && (
+        <div className="flex flex-wrap justify-center gap-12 bg-ot-background px-4 pt-12">
+          {lastMatch && (
+            <div className="flex flex-col gap-3 items-center">
+              <span className="text-ot-orange text-sm text-center font-din-display font-bold uppercase tracking-wider">
+                Último partido
+              </span>
+              <MatchPreview match={lastMatch} />
+            </div>
+          )}
+          {nextMatch && (
+            <div className="flex flex-col gap-3 items-center">
+              <span className="text-ot-orange text-sm text-center font-din-display font-bold uppercase tracking-wider">
+                Próximo partido
+              </span>
+              <MatchPreview match={nextMatch} />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── LEAVE TEAM BUTTON ── */}
       {isMember && !isCreator && (
         <div className="flex justify-center mt-6 px-4">
@@ -248,7 +273,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                             {canRemovePlayers && !isMemberCreator && (
                               <button
                                 title="Quitar del equipo"
-                                className="text-[#4E4585] hover:text-red-400 transition-colors"
+                                className="text-[#4E4585] hover:text-red-400 transition-colors cursor-pointer"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -316,11 +341,11 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
           {/* Agregar / Eliminar – solo delegado y admin */}
           {(isAdmin || isCaptain) && (
             <div className="flex flex-col gap-2 w-full max-w-sm">
-              <button className="flex items-center justify-center gap-1.5 w-full rounded border border-ot-orange/40 bg-ot-orange/10 px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-ot-orange hover:bg-ot-orange/20 transition-colors font-din-display">
+              <button className="flex items-center justify-center gap-1.5 w-full rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-blue-400 hover:bg-blue-500/20 transition-colors font-din-display cursor-pointer">
                 <UserPlus className="h-3.5 w-3.5" />
                 Agregar jugador
               </button>
-              <button className="flex items-center justify-center gap-1.5 w-full rounded border border-red-500/30 bg-red-500/5 px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-red-400/60 hover:bg-red-500/10 hover:text-red-400 transition-colors font-din-display">
+              <button className="flex items-center justify-center gap-1.5 w-full rounded border border-red-500/30 bg-red-500/5 px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-red-400/60 hover:bg-red-500/10 hover:text-red-400 transition-colors font-din-display cursor-pointer">
                 <Trash2 className="h-3.5 w-3.5" />
                 Eliminar equipo
               </button>

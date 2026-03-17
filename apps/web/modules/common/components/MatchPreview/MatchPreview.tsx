@@ -3,7 +3,6 @@ import type { MatchPreviewData } from './types'
 
 interface Props {
   match: MatchPreviewData
-  statsHref?: string
 }
 
 const DEFAULT_BADGE = '/overtime_logo.png'
@@ -18,16 +17,22 @@ function formatTime(dateStr: string) {
   return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
 }
 
-export function MatchPreview({ match, statsHref }: Props) {
+export function MatchPreview({ match }: Props) {
   const hasScore = match.team1Score !== undefined && match.team2Score !== undefined
+  const statsHref =
+    hasScore && match.tournamentId && match.categoryId
+      ? `/torneos/${match.tournamentId}/categoria/${match.categoryId}/partidos/${match.id}`
+      : undefined
 
   return (
     <div
-      className="relative overflow-hidden"
       style={{
+        overflow: 'hidden',
+        position: 'relative',
+        minWidth: '450px',
         width: '450px',
-        minWidth: '355px',
         filter: 'drop-shadow(0px 0px 7px rgba(0,0,0,0.4))',
+        cursor: 'default',
       }}
     >
       {/* ── HEAD (trapezoid) ── */}
@@ -70,26 +75,20 @@ export function MatchPreview({ match, statsHref }: Props) {
             alignItems: 'center',
           }}
         >
-          {/* Date + time */}
           <div style={{ width: '33%', textAlign: 'center', overflow: 'hidden' }}>
             <p className="font-din-display text-[13px] text-[#a9a5bb]">
               {match.date ? (
-                <>
-                  {formatDate(match.date)}{' '}
-                  <strong>{formatTime(match.date)}</strong>
-                </>
+                <>{formatDate(match.date)} <strong>{formatTime(match.date)}</strong></>
               ) : (
                 'A confirmar'
               )}
             </p>
           </div>
-          {/* Match type */}
           <div style={{ width: '35%', textAlign: 'center' }}>
             <h3 className="font-din-display text-[12px] font-bold uppercase text-[#a9a5bb]">
               {match.matchType}
             </h3>
           </div>
-          {/* Location */}
           <div style={{ width: '33%', textAlign: 'center', overflow: 'hidden' }}>
             <p className="font-din-display text-[13px] text-[#a9a5bb] truncate">
               {match.location ?? 'A confirmar'}
@@ -208,61 +207,31 @@ export function MatchPreview({ match, statsHref }: Props) {
         </div>
       </div>
 
-      {/* ── FOOTER: Stats button or Pending label ── */}
-      {hasScore ? (
-        statsHref ? (
-          <Link href={statsHref}>
-            <button
-              className="font-din-display font-bold uppercase"
-              style={{
-                position: 'relative',
-                bottom: '11%',
-                left: '32%',
-                backgroundColor: '#ff3b2f',
-                border: 'none',
-                borderRadius: '3px',
-                color: 'black',
-                padding: '16px 28px 10px 28px',
-                fontSize: '16px',
-                cursor: 'pointer',
-              }}
-            >
-              estadísticas
-            </button>
+      {/* ── FOOTER ── */}
+      {hasScore ?
+        (
+          <Link
+            href={statsHref ?? "#"}
+            className="inline-block rounded-sm relative px-4 py-2 left-1/2 border-none text-md text-black -translate-x-1/2 -translate-y-1/2 mx-auto cursor-pointer uppercase font-bold hover:bg-ot-red/80 transition-colors duration-200 bg-ot-orange"
+          >
+            Ver estadísticas
           </Link>
         ) : (
           <div
-            className="font-din-display font-bold uppercase"
             style={{
+              textTransform: 'uppercase',
+              fontWeight: 'bold',
+              fontSize: '12px',
+              color: '#4e4585',
               position: 'relative',
-              bottom: '11%',
-              left: '32%',
-              backgroundColor: '#ff3b2f',
-              border: 'none',
-              borderRadius: '3px',
-              color: 'black',
-              padding: '16px 28px 10px 28px',
-              fontSize: '16px',
-              display: 'inline-block',
+              bottom: '16%',
+              left: '41%',
             }}
+            className="font-din-display"
           >
-            estadísticas
+            pendiente
           </div>
-        )
-      ) : (
-        <div
-          className="font-din-display font-bold uppercase"
-          style={{
-            color: '#4e4585',
-            position: 'relative',
-            bottom: '16%',
-            left: '41%',
-            fontSize: '12px',
-          }}
-        >
-          pendiente
-        </div>
-      )}
+        )}
     </div>
   )
 }
