@@ -19,8 +19,7 @@ export async function getProfile() {
     const response = await AuthService.getProfile();
 
     const profile = {
-      ...response.data,
-      roles: ['admin']
+      ...response.data
     }
 
     return profile;

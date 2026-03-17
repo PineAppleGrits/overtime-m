@@ -7,7 +7,6 @@ export class RateLimitError extends Error {
     }
 }
 
-
 export class PublicError extends Error {
     constructor(message: string) {
         super(message);
