@@ -208,30 +208,24 @@ export function MatchPreview({ match }: Props) {
       </div>
 
       {/* ── FOOTER ── */}
-      {hasScore ?
-        (
-          <Link
-            href={statsHref ?? "#"}
-            className="inline-block rounded-sm relative px-4 py-2 left-1/2 border-none text-md text-black -translate-x-1/2 -translate-y-1/2 mx-auto cursor-pointer uppercase font-bold hover:bg-ot-red/80 transition-colors duration-200 bg-ot-orange"
-          >
-            Ver estadísticas
-          </Link>
-        ) : (
-          <div
-            style={{
-              textTransform: 'uppercase',
-              fontWeight: 'bold',
-              fontSize: '12px',
-              color: '#4e4585',
-              position: 'relative',
-              bottom: '16%',
-              left: '41%',
-            }}
-            className="font-din-display"
-          >
-            pendiente
-          </div>
-        )}
+      <div className="relative flex items-center justify-center h-[40px] -translate-y-full">
+        {hasScore ?
+
+          (
+            <Link
+              href={statsHref ?? "#"}
+              className="inline-block rounded-sm relative px-4 py-2  border-none text-md text-black translate-y-1/2  cursor-pointer uppercase font-bold hover:bg-ot-red/80 transition-colors duration-200 bg-ot-orange"
+            >
+              Ver estadísticas
+            </Link>
+          ) : (
+            <div
+              className="uppercase inline-block font-bold text-sm text-ot-light-blue relative"
+            >
+              pendiente
+            </div>
+          )}
+      </div>
     </div>
   )
 }
