@@ -37,6 +37,9 @@ export class TeamsService {
       data: {
         ...createTeamDto,
         creatorId,
+        members: {
+          create: { profileId: creatorId },
+        },
       },
       include: {
         sport: true,
@@ -73,6 +76,51 @@ export class TeamsService {
     this.logger.log(`Team created: ${team.name}`);
 
     return team;
+  }
+
+  async findMine(profileId: string) {
+    const profile = await this.prisma.profile.findUnique({
+      where: { id: profileId },
+      select: { documentNumber: true },
+    });
+
+    const documentNumber = profile?.documentNumber ?? null;
+
+    const teams = await this.prisma.team.findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          { creatorId: profileId },
+          {
+            members: {
+              some: {
+                isActive: true,
+                profile: {
+                  OR: [
+                    { id: profileId },
+                    ...(documentNumber ? [{ documentNumber }] : []),
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        sport: true,
+        creator: { select: { id: true, name: true, email: true } },
+        captain: { select: { id: true, name: true, avatarUrl: true } },
+        members: {
+          where: { isActive: true },
+          include: {
+            profile: { select: { id: true, name: true, avatarUrl: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return teams;
   }
 
   async findAll(paginationDto: PaginationDto) {

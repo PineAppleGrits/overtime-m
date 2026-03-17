@@ -21,6 +21,11 @@ interface AddPlayerDto {
 }
 
 class TeamService extends Service {
+  async getMyTeams() {
+    const { data } = await this.client.get('/teams/mine')
+    return data
+  }
+
   async getTeams(params?: PaginationParams) {
     const { data } = await this.client.get("/teams", { params })
     return data

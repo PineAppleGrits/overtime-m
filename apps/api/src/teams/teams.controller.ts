@@ -29,6 +29,11 @@ export class TeamsController {
     return this.teamsService.create(createTeamDto, userId);
   }
 
+  @Get('mine')
+  findMine(@CurrentUser('id') profileId: string) {
+    return this.teamsService.findMine(profileId);
+  }
+
   @Public()
   @Get()
   findAll(@Query() paginationDto: PaginationDto) {
