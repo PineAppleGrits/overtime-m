@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
@@ -56,7 +56,12 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
 
   const employees = data?.data ?? []
   const totalPages = data?.meta?.totalPages ?? 1
-  const filtered = debouncedSearch ? employees.filter((e) => `${e.firstName} ${e.lastName}`.toLowerCase().includes(debouncedSearch.toLowerCase())) : employees
+  const filtered = useMemo(
+    () => debouncedSearch
+      ? employees.filter((e) => `${e.firstName} ${e.lastName}`.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      : employees,
+    [employees, debouncedSearch]
+  )
 
   const closeDialog = useCallback(() => { setDialog(false); setEditingEmployee(null); setForm({ firstName: '', lastName: '', email: '', phone: '', role: 'arbitro' }) }, [])
 
@@ -81,7 +86,7 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
     return (
       <div>
         <PageHeader title="Empleados" description="Gestiona árbitros, fotógrafos y agentes de mesa" />
-        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar los empleados</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
@@ -94,7 +99,7 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
     { key: 'name', label: 'Nombre', render: (e) => (<div><p className="font-medium">{e.firstName} {e.lastName}</p>{e.email && <p className="text-xs text-muted-foreground">{e.email}</p>}</div>) },
     { key: 'role', label: 'Rol', render: (e) => <StatusBadge status={e.role} type="employee" /> },
     { key: 'phone', label: 'Teléfono', render: (e) => <span className="text-sm">{e.phone ?? '-'}</span> },
-    { key: 'isActive', label: 'Estado', render: (e) => e.isActive ? <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400">Activo</Badge> : <Badge variant="outline">Inactivo</Badge> },
+    { key: 'isActive', label: 'Estado', render: (e) => e.isActive ? <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Activo</Badge> : <Badge variant="outline">Inactivo</Badge> },
     { key: 'assignedMatches', label: 'Partidos', render: (e) => <span className="text-sm">{e.assignedMatches?.length ?? 0} asignados</span> },
     {
       key: 'actions', label: '', className: 'w-10',

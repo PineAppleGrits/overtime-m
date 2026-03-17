@@ -5,6 +5,7 @@ import Image from "next/image";
 import { UserMenu } from "@/modules/common/components/UserMenu";
 import { MobileNav } from "@/modules/common/components/MobileNav";
 import { HeaderClientWrapper } from "./HeaderClientWrapper";
+import { NotificationBell } from "@/modules/notifications/NotificationBell";
 
 const navItem: NavItem[] = [
     { id: "inicio", name: "inicio", href: "/" },
@@ -63,8 +64,9 @@ export const Header = async () => {
                     </ul>
                 </nav>
 
-                {/* Desktop user menu */}
-                <div className="hidden lg:block">
+                {/* Desktop: bell + user menu */}
+                <div className="hidden lg:flex items-center gap-1">
+                    <NotificationBell variant="light" />
                     <UserMenu />
                 </div>
 

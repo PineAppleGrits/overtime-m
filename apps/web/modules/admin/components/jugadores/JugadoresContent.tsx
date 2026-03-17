@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { DataTable, Column } from '@/modules/admin/components/DataTable'
@@ -55,9 +55,12 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
   const players = data?.data ?? []
   const totalPages = data?.meta?.totalPages ?? 1
 
-  const filteredPlayers = debouncedSearch
-    ? players.filter((p) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(debouncedSearch.toLowerCase()))
-    : players
+  const filteredPlayers = useMemo(
+    () => debouncedSearch
+      ? players.filter((p) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      : players,
+    [players, debouncedSearch]
+  )
 
   const closeDialog = useCallback(() => { setDialog(false); setEditingPlayer(null) }, [])
 
@@ -77,7 +80,7 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
     return (
       <div>
         <PageHeader title="Jugadores" description="Gestiona todos los jugadores registrados en la plataforma" />
-        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar los jugadores</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
@@ -108,7 +111,7 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
       key: 'isBlacklisted', label: 'Estado',
       render: (p) => p.isBlacklisted
         ? <Badge variant="destructive">Lista negra</Badge>
-        : <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400">Activo</Badge>,
+        : <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Activo</Badge>,
     },
     {
       key: 'actions', label: '', className: 'w-10',

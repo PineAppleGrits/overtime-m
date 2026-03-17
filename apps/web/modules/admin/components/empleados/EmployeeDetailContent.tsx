@@ -30,7 +30,7 @@ export function EmployeeDetailContent({ employeeId, initialData }: EmployeeDetai
     return (
       <div>
         <PageHeader title="Empleado" description="Detalle del empleado" backHref="/admin/empleados" />
-        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar el empleado</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
@@ -110,7 +110,7 @@ export function EmployeeDetailContent({ employeeId, initialData }: EmployeeDetai
       <div className="mb-6 flex items-center gap-3">
         <StatusBadge status={employee.role} type="employee" />
         {employee.isActive ? (
-          <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400">Activo</Badge>
+          <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Activo</Badge>
         ) : (
           <Badge variant="outline">Inactivo</Badge>
         )}

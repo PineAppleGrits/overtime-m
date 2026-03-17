@@ -1,6 +1,7 @@
 import { Profile } from "@/providers/AuthProvider";
 
+const ADMIN_PANEL_ROLES = ['admin', 'master', 'arbitro', 'agente_mesa', 'fotografo'];
+
 export function hasAdminRole(profile: Profile) {
-    const adminRoles = ['admin', 'master'];
-    return adminRoles.includes(profile.role);
+    return ADMIN_PANEL_ROLES.includes(profile.role);
 }

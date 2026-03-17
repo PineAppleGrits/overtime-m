@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { DataTable, Column } from '@/modules/admin/components/DataTable'
@@ -50,7 +50,12 @@ export function BlacklistContent({ initialData }: BlacklistContentProps) {
 
   const entries = data?.data ?? []
   const totalPages = data?.meta?.totalPages ?? 1
-  const filtered = debouncedSearch ? entries.filter((e) => `${e.firstName} ${e.lastName} ${e.documentNumber}`.toLowerCase().includes(debouncedSearch.toLowerCase())) : entries
+  const filtered = useMemo(
+    () => debouncedSearch
+      ? entries.filter((e) => `${e.firstName} ${e.lastName} ${e.documentNumber}`.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      : entries,
+    [entries, debouncedSearch]
+  )
 
   const createAction = useServerAction(createBlacklistAction, {
     successMessage: 'Persona agregada a la lista negra',
@@ -63,7 +68,7 @@ export function BlacklistContent({ initialData }: BlacklistContentProps) {
     return (
       <div>
         <PageHeader title="Lista Negra" description="Personas que no pueden participar" backHref="/admin/jugadores" />
-        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" /><p className="text-muted-foreground">Error al cargar la lista negra</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
         </div>

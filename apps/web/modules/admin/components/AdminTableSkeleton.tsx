@@ -48,7 +48,7 @@ export function AdminTableSkeleton({
       )}
 
       {/* Table skeleton */}
-      <div className="rounded-lg border bg-card">
+      <div className="rounded-lg border border-[#e8e6e1] bg-white">
         {/* Table header */}
         <div className="flex gap-4 border-b px-4 py-3">
           {Array.from({ length: columns }).map((_, i) => (

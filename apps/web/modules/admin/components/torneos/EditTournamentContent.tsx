@@ -71,7 +71,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
     return (
       <div>
         <PageHeader title="Torneo" description="Edita el torneo" backHref="/admin/torneos" />
-        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar el torneo</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { Menu, ChevronDown, LogOut, User, ShieldCheck } from 'lucide-react';
+import { NotificationBell } from '@/modules/notifications/NotificationBell';
 import {
   Sheet,
   SheetContent,
@@ -43,7 +44,10 @@ export function MobileNav({ navItems }: { navItems: MobileNavItem[] }) {
   };
 
   return (
-    <div className="flex items-center gap-3 lg:hidden">
+    <div className="flex items-center gap-1 lg:hidden">
+      {/* Notification bell (mobile) */}
+      {user && profile && <NotificationBell variant="light" />}
+
       {/* User avatar (no name on mobile) */}
       {user && profile && (
         <Link href="/profile" className="shrink-0" aria-label="Mi perfil">

@@ -93,7 +93,7 @@ export function DisciplinasContent({ initialData }: DisciplinasContentProps) {
           title="Disciplinas"
           description="Gestiona los deportes disponibles en la plataforma"
         />
-        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar las disciplinas</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>

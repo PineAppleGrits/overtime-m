@@ -60,36 +60,58 @@ export function UserMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-10">
-          <div className="px-4 py-3 border-b">
-            <p className="text-sm font-medium text-gray-900">{profile.name}</p>
+        <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1730] shadow-xl ring-1 ring-white/10 z-10 overflow-hidden">
+          <div className="px-4 py-3 border-b border-white/10">
+            <p className="text-xs text-white/50 uppercase tracking-wider">Cuenta</p>
+            <p className="mt-0.5 text-sm font-medium text-white">{profile.name}</p>
           </div>
-          <div className="py-1">
+
+          <div className="p-1.5">
             <Link
               href="/profile"
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/8 hover:text-white"
+              onClick={() => setIsOpen(false)}
             >
               Mi perfil
             </Link>
-            {hasAdminRole(profile) && (
-              <Link
-                href="/admin"
-                className="block px-4 py-2 text-sm text-purple-600 hover:bg-gray-100"
-              >
-                Panel de Admin
-              </Link>
-            )}
+            <Link
+              href="/profile/torneos"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/8 hover:text-white"
+              onClick={() => setIsOpen(false)}
+            >
+              Mis torneos
+            </Link>
+            <Link
+              href="/profile/equipos"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/8 hover:text-white"
+              onClick={() => setIsOpen(false)}
+            >
+              Mis equipos
+            </Link>
           </div>
 
-          <div className="border-t py-1">
+          {hasAdminRole(profile) && (
+            <>
+              <div className="mx-3 border-t border-white/10" />
+              <div className="p-1.5">
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#ff3b2f]/90 transition-colors hover:bg-[#ff3b2f]/10 hover:text-[#ff3b2f]"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Panel de Admin
+                </Link>
+              </div>
+            </>
+          )}
+
+          <div className="mx-3 border-t border-white/10" />
+          <div className="p-1.5">
             <button
-              onClick={() => {
-                signOut();
-                setIsOpen(false);
-              }}
-              className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
+              onClick={() => { signOut(); setIsOpen(false) }}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/50 transition-colors hover:bg-white/8 hover:text-white/80 cursor-pointer"
             >
-              Cerrar Sesión
+              Cerrar sesión
             </button>
           </div>
         </div>

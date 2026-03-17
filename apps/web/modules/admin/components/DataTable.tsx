@@ -49,7 +49,7 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
   }
 
   return (
-    <div className="rounded-lg border bg-card">
+    <div className="rounded-lg border border-[#e8e6e1] bg-white">
       <Table>
         <TableHeader>
           <TableRow>
@@ -71,7 +71,7 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
             data.map((item, idx) => (
               <TableRow
                 key={item.id ?? String(idx)}
-                className={onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''}
+                className={onRowClick ? 'cursor-pointer hover:bg-[#f5f4f1]' : 'hover:bg-[#f5f4f1]'}
                 onClick={() => onRowClick?.(item)}
               >
                 {columns.map((col) => (

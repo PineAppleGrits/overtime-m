@@ -18,11 +18,10 @@ import {
   Camera,
   Briefcase,
   UsersRound,
+  ExternalLink,
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Image from 'next/image'
 import { useAuth } from '@/providers/AuthProvider'
@@ -35,7 +34,7 @@ type SubItem = {
 type MenuItem = {
   label: string
   href?: string
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   subItems?: SubItem[]
   roles?: string[]
 }
@@ -65,10 +64,10 @@ const sidebarItems: SidebarSection[] = [
       { label: 'Torneos', href: '/admin/torneos', icon: Trophy },
       { label: 'Equipos', href: '/admin/equipos', icon: Users },
       {
-        label: 'Usuarios',
+        label: 'Jugadores',
         icon: UserCog,
         subItems: [
-          { label: 'Jugadores', href: '/admin/jugadores' },
+          { label: 'Todos los jugadores', href: '/admin/jugadores' },
           { label: 'Lista Negra', href: '/admin/jugadores/lista-negra' },
         ],
       },
@@ -114,36 +113,28 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const { profile } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({})
+  // Tracks labels the user manually toggled (true = open, false = closed)
+  const [manualOverrides, setManualOverrides] = useState<Record<string, boolean>>({})
 
   const canSee = (roles?: string[]) => {
     if (!roles) return true
     return !!profile && roles.includes(profile.role)
   }
 
-  useEffect(() => {
-    const newExpandedMenus = { ...expandedMenus }
-    let changed = false
-    sidebarItems.forEach(section => {
-      section.items.forEach(item => {
-        if (item.subItems) {
-          const isActive = item.subItems.some(sub => pathname.startsWith(sub.href))
-          if (isActive && !newExpandedMenus[item.label]) {
-            newExpandedMenus[item.label] = true
-            changed = true
-          }
-        }
-      })
-    })
-    if (changed) setExpandedMenus(newExpandedMenus)
-  }, [pathname, expandedMenus])
+  // Derived: open if pathname matches a child, OR user explicitly opened it.
+  // Path-active always wins over a manual close (better UX than hiding the active section).
+  const getIsExpanded = (label: string, subItems: SubItem[]) => {
+    const pathActive = subItems.some(sub => pathname.startsWith(sub.href))
+    if (pathActive) return true
+    return manualOverrides[label] ?? false
+  }
 
-  const toggleSubMenu = (label: string) => {
+  const toggleSubMenu = (label: string, currentExpanded: boolean) => {
     if (collapsed) {
       setCollapsed(false)
-      setExpandedMenus(prev => ({ ...prev, [label]: true }))
+      setManualOverrides(prev => ({ ...prev, [label]: true }))
     } else {
-      setExpandedMenus(prev => ({ ...prev, [label]: !prev[label] }))
+      setManualOverrides(prev => ({ ...prev, [label]: !currentExpanded }))
     }
   }
 
@@ -151,158 +142,192 @@ export function AdminSidebar() {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          'relative flex h-screen flex-col border-r bg-card transition-all duration-300',
+          'relative flex h-screen flex-col transition-all duration-300 select-none shrink-0',
+          'bg-[#1a1730]',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
-        <div className={cn('flex h-14 items-center border-b px-4', collapsed ? 'justify-center' : 'gap-2')}>
+        {/* Logo */}
+        <div
+          className={cn(
+            'flex h-16 shrink-0 items-center border-b border-white/[0.07] px-4',
+            collapsed ? 'justify-center' : 'justify-between'
+          )}
+        >
           {!collapsed && (
-            <Link href="/admin" className="flex items-center gap-2">
-              <Image src="/overtime_logo.png" alt="Overtime" width={32} height={17} />
-              <span className="text-lg font-bold text-foreground">Admin</span>
+            <Link href="/admin" className="flex items-center gap-3 min-w-0">
+              <Image src="/overtime_logo.png" alt="Overtime" width={30} height={16} className="shrink-0" />
+              <div className="min-w-0">
+                <p
+                  className="text-[13px] font-bold text-white tracking-widest leading-none"
+                  style={{ fontFamily: 'var(--font-din-display)' }}
+                >
+                  OVERTIME
+                </p>
+                <p className="text-[9px] text-[#ff3b2f] uppercase tracking-[0.25em] mt-0.5 leading-none">
+                  Panel Admin
+                </p>
+              </div>
             </Link>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn('h-8 w-8 shrink-0', !collapsed && 'ml-auto')}
+          {collapsed && (
+            <Image src="/overtime_logo.png" alt="Overtime" width={26} height={14} />
+          )}
+          <button
             onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              'h-7 w-7 rounded-lg flex items-center justify-center text-white/25 hover:text-white/60 hover:bg-white/[0.08] transition-all shrink-0',
+              collapsed && 'absolute -right-3.5 top-[22px] bg-[#1a1730] border border-white/[0.12] rounded-full shadow-lg z-10'
+            )}
           >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
+            {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          </button>
         </div>
 
-        <ScrollArea className="flex-1 py-2">
-          <nav className="flex flex-col gap-1 px-2">
+        {/* Nav */}
+        <ScrollArea className="flex-1 py-3">
+          <nav className="flex flex-col px-2">
             {sidebarItems.map((section, sectionIdx) => {
               const visibleItems = section.items.filter(item => canSee(item.roles))
               if (visibleItems.length === 0) return null
 
               return (
-                <div key={section.title}>
-                  {sectionIdx > 0 && <Separator className="my-2" />}
-                  {!collapsed && (
-                    <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <div key={section.title} className={cn(sectionIdx > 0 && 'mt-4')}>
+                  {!collapsed ? (
+                    <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25 flex items-center gap-2">
+                      <span className="h-[3px] w-[3px] rounded-full bg-[#ff3b2f] inline-block shrink-0" />
                       {section.title}
                     </p>
+                  ) : (
+                    sectionIdx > 0 && (
+                      <div className="my-2 mx-auto h-px w-7 bg-white/[0.07]" />
+                    )
                   )}
-                  {visibleItems.map(item => {
-                    const hasSubItems = !!item.subItems
-                    const isSubMenuActive = hasSubItems
-                      ? item.subItems!.some(sub => pathname.startsWith(sub.href))
-                      : false
-                    const isActive = item.href
-                      ? item.href === '/admin'
-                        ? pathname === '/admin'
-                        : pathname.startsWith(item.href)
-                      : isSubMenuActive
 
-                    const Icon = item.icon
-                    const isExpanded = expandedMenus[item.label]
+                  <div className="flex flex-col gap-0.5">
+                    {visibleItems.map(item => {
+                      const hasSubItems = !!item.subItems
+                      const isSubActive = hasSubItems
+                        ? item.subItems!.some(sub => pathname.startsWith(sub.href))
+                        : false
+                      const isActive = item.href
+                        ? item.href === '/admin'
+                          ? pathname === '/admin'
+                          : pathname.startsWith(item.href)
+                        : isSubActive
+                      const isExpanded = hasSubItems ? getIsExpanded(item.label, item.subItems!) : false
+                      const Icon = item.icon
 
-                    const linkContent = hasSubItems ? (
-                      <button
-                        key={item.label}
-                        onClick={() => toggleSubMenu(item.label)}
-                        className={cn(
-                          'flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                          isActive && !isExpanded
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                          collapsed && 'justify-center px-2'
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
+                      const itemEl = hasSubItems ? (
+                        <button
+                          onClick={() => toggleSubMenu(item.label, isExpanded)}
+                          className={cn(
+                            'w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all',
+                            isSubActive
+                              ? 'text-white bg-white/[0.09]'
+                              : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]',
+                            collapsed && 'justify-center px-0 w-10 mx-auto'
+                          )}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && (
+                            <>
+                              <span className="flex-1 text-left">{item.label}</span>
+                              <ChevronDown
+                                className={cn(
+                                  'h-3.5 w-3.5 text-white/25 transition-transform duration-200',
+                                  isExpanded && 'rotate-180'
+                                )}
+                              />
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <Link
+                          href={item.href!}
+                          className={cn(
+                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all',
+                            isActive
+                              ? 'bg-[#ff3b2f] text-white shadow-sm shadow-[#ff3b2f]/20'
+                              : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]',
+                            collapsed && 'justify-center px-0 w-10 mx-auto'
+                          )}
+                        >
                           <Icon className="h-4 w-4 shrink-0" />
                           {!collapsed && <span>{item.label}</span>}
+                        </Link>
+                      )
+
+                      const withTooltip = collapsed ? (
+                        <Tooltip key={item.href || item.label}>
+                          <TooltipTrigger asChild>{itemEl}</TooltipTrigger>
+                          <TooltipContent
+                            side="right"
+                            className="bg-[#0f0d1c] text-white border-white/10 text-xs"
+                          >
+                            {item.label}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        itemEl
+                      )
+
+                      return (
+                        <div key={item.href || item.label} className="flex flex-col">
+                          {withTooltip}
+                          {!collapsed && hasSubItems && isExpanded && (
+                            <div className="ml-3 mt-0.5 mb-0.5 flex flex-col gap-0.5 border-l border-white/[0.07] pl-3">
+                              {item.subItems!.map(sub => {
+                                const isSubItemActive = pathname.startsWith(sub.href)
+                                return (
+                                  <Link
+                                    key={sub.href}
+                                    href={sub.href}
+                                    className={cn(
+                                      'rounded-md px-3 py-1.5 text-[12px] font-medium transition-all',
+                                      isSubItemActive
+                                        ? 'text-[#ff3b2f] bg-[#ff3b2f]/[0.12]'
+                                        : 'text-white/45 hover:text-white/75 hover:bg-white/[0.05]'
+                                    )}
+                                  >
+                                    {sub.label}
+                                  </Link>
+                                )
+                              })}
+                            </div>
+                          )}
                         </div>
-                        {!collapsed && (
-                          <ChevronDown
-                            className={cn(
-                              'h-4 w-4 transition-transform duration-200',
-                              isExpanded && 'rotate-180'
-                            )}
-                          />
-                        )}
-                      </button>
-                    ) : (
-                      <Link
-                        key={item.href || item.label}
-                        href={item.href || '#'}
-                        className={cn(
-                          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                          isActive
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                          collapsed && 'justify-center px-2'
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span>{item.label}</span>}
-                      </Link>
-                    )
-
-                    const renderItem = collapsed ? (
-                      <Tooltip key={item.href || item.label}>
-                        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p>{item.label}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : linkContent
-
-                    return (
-                      <div key={item.href || item.label} className="flex flex-col gap-1">
-                        {renderItem}
-                        {!collapsed && hasSubItems && isExpanded && (
-                          <div className="ml-6 flex flex-col gap-1 border-l pl-2">
-                            {item.subItems!.map(subItem => {
-                              const isSubActive = pathname.startsWith(subItem.href)
-                              return (
-                                <Link
-                                  key={subItem.href}
-                                  href={subItem.href}
-                                  className={cn(
-                                    'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                                    isSubActive
-                                      ? 'bg-primary text-primary-foreground'
-                                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                                  )}
-                                >
-                                  <span>{subItem.label}</span>
-                                </Link>
-                              )
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
               )
             })}
           </nav>
         </ScrollArea>
 
-        <div className="border-t p-2">
+        {/* Footer */}
+        <div className="shrink-0 border-t border-white/[0.07] p-2">
           {collapsed ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link
                   href="/"
-                  className="flex items-center justify-center rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  className="flex h-9 w-10 mx-auto items-center justify-center rounded-lg text-white/25 hover:text-white/55 hover:bg-white/[0.06] transition-all"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ExternalLink className="h-4 w-4" />
                 </Link>
               </TooltipTrigger>
-              <TooltipContent side="right">Volver al sitio</TooltipContent>
+              <TooltipContent side="right" className="bg-[#0f0d1c] text-white border-white/10 text-xs">
+                Ir al sitio
+              </TooltipContent>
             </Tooltip>
           ) : (
             <Link
               href="/"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-[12px] text-white/30 hover:text-white/55 hover:bg-white/[0.06] transition-all"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ExternalLink className="h-3.5 w-3.5" />
               <span>Volver al sitio</span>
             </Link>
           )}

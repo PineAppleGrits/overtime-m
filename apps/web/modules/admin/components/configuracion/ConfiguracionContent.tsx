@@ -55,7 +55,7 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
     return (
       <div>
         <PageHeader title="Configuración del sitio" description="Personaliza la apariencia, datos de contacto y métodos de pago" />
-        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar la configuración</p>
         </div>

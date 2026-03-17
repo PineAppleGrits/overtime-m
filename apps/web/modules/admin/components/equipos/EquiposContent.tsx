@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
@@ -49,7 +49,12 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
 
   const teams = data?.data ?? []
   const totalPages = data?.meta?.totalPages ?? 1
-  const filtered = debouncedSearch ? teams.filter((t) => t.name.toLowerCase().includes(debouncedSearch.toLowerCase())) : teams
+  const filtered = useMemo(
+    () => debouncedSearch
+      ? teams.filter((t) => t.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      : teams,
+    [teams, debouncedSearch]
+  )
 
   const deleteAction = useServerAction(deleteTeamAction, { successMessage: 'Equipo eliminado', onSuccess: () => { invalidate(); setDeleteId(null) } })
 
@@ -57,7 +62,7 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
     return (
       <div>
         <PageHeader title="Equipos" description="Gestiona los equipos" />
-        <div className="flex flex-col items-center gap-3 rounded-lg border bg-card py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar los equipos</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
