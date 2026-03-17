@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Plus, Shield, Users, Star } from 'lucide-react'
 import teamService from '@/modules/team/TeamService'
+import { getProfile } from '@/lib/auth/session'
+import { LeaveTeamButton } from '@/modules/team/components/LeaveTeamButton'
 
 interface TeamMember {
   profile: { id: string; name: string; avatarUrl?: string }
@@ -26,7 +28,7 @@ async function getMyTeams(): Promise<MyTeam[]> {
 }
 
 export default async function ProfileTeamsPage() {
-  const teams = await getMyTeams()
+  const [teams, profile] = await Promise.all([getMyTeams(), getProfile()])
 
   return (
     <div className="space-y-5">
@@ -70,75 +72,89 @@ export default async function ProfileTeamsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {teams.map((team) => (
-            <Link
-              key={team.id}
-              href={`/equipos/${team.id}`}
-              className="flex items-center gap-4 rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-4 hover:border-ot-light-blue hover:bg-ot-dark-blue/50 transition-colors block"
-            >
-              {/* Logo */}
-              {team.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={team.logoUrl}
-                  alt={team.name}
-                  className="h-12 w-12 rounded-xl object-cover shrink-0"
-                />
-              ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/8 text-lg font-bold text-white/40">
-                  {team.name.charAt(0).toUpperCase()}
-                </div>
-              )}
+          {teams.map((team) => {
+            const isCreator = profile?.id === team.creatorId
+            const isCaptain = profile?.id === team.captainId
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-white truncate">{team.name}</p>
-                  {team.captainId && (
-                    <span className="flex items-center gap-1 rounded-full bg-ot-orange/20 px-2 py-0.5 text-[10px] font-semibold text-ot-orange">
-                      <Star className="h-2.5 w-2.5" />
-                      Delegado
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-white/40 mt-0.5">{team.sport.name}</p>
-                <p className="text-xs text-white/30 mt-0.5">
-                  {team.members.length} {team.members.length === 1 ? 'jugador' : 'jugadores'}
-                </p>
-              </div>
-
-              {/* Avatars */}
-              {team.members.length > 0 && (
-                <div className="flex -space-x-2 shrink-0">
-                  {team.members.slice(0, 4).map((m) => (
-                    m.profile.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        key={m.profile.id}
-                        src={m.profile.avatarUrl}
-                        alt={m.profile.name}
-                        title={m.profile.name}
-                        className="h-7 w-7 rounded-full border-2 border-[#0d0c14] object-cover"
-                      />
-                    ) : (
-                      <div
-                        key={m.profile.id}
-                        title={m.profile.name}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0d0c14] bg-white/15 text-[10px] font-semibold text-white/70"
-                      >
-                        {m.profile.name.charAt(0).toUpperCase()}
-                      </div>
-                    )
-                  ))}
-                  {team.members.length > 4 && (
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0d0c14] bg-white/10 text-[10px] font-semibold text-white/50">
-                      +{team.members.length - 4}
+            return (
+              <div key={team.id} className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30">
+                <Link
+                  href={`/equipos/${team.id}`}
+                  className="flex items-center gap-4 p-4 hover:bg-ot-dark-blue/50 transition-colors rounded-xl"
+                >
+                  {/* Logo */}
+                  {team.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={team.logoUrl}
+                      alt={team.name}
+                      className="h-12 w-12 rounded-xl object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/8 text-lg font-bold text-white/40">
+                      {team.name.charAt(0).toUpperCase()}
                     </div>
                   )}
-                </div>
-              )}
-            </Link>
-          ))}
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-white truncate">{team.name}</p>
+                      {/* Pill solo si el usuario logueado ES el capitán de este equipo */}
+                      {isCaptain && (
+                        <span className="flex items-center gap-1 rounded-full bg-ot-orange/20 px-2 py-0.5 text-[10px] font-semibold text-ot-orange">
+                          <Star className="h-2.5 w-2.5" />
+                          Delegado
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-white/40 mt-0.5">{team.sport.name}</p>
+                    <p className="text-xs text-white/30 mt-0.5">
+                      {team.members.length} {team.members.length === 1 ? 'jugador' : 'jugadores'}
+                    </p>
+                  </div>
+
+                  {/* Avatars */}
+                  {team.members.length > 0 && (
+                    <div className="flex -space-x-2 shrink-0">
+                      {team.members.slice(0, 4).map((m) => (
+                        m.profile.avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={m.profile.id}
+                            src={m.profile.avatarUrl}
+                            alt={m.profile.name}
+                            title={m.profile.name}
+                            className="h-7 w-7 rounded-full border-2 border-[#0d0c14] object-cover"
+                          />
+                        ) : (
+                          <div
+                            key={m.profile.id}
+                            title={m.profile.name}
+                            className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0d0c14] bg-white/15 text-[10px] font-semibold text-white/70"
+                          >
+                            {m.profile.name.charAt(0).toUpperCase()}
+                          </div>
+                        )
+                      ))}
+                      {team.members.length > 4 && (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0d0c14] bg-white/10 text-[10px] font-semibold text-white/50">
+                          +{team.members.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Link>
+
+                {/* Abandonar – solo si no es el creador */}
+                {!isCreator && (
+                  <div className="px-4 pb-3 pt-0">
+                    <LeaveTeamButton teamId={team.id} compact />
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import teamService from '@/modules/team/TeamService'
+import { getProfile } from '@/lib/auth/session'
 import type { ActionResult } from '@/modules/admin/actions/types'
 
 const createUserTeamSchema = z.object({
@@ -10,6 +11,21 @@ const createUserTeamSchema = z.object({
   logoUrl: z.string().url('URL inválida').optional().or(z.literal('')),
   sportId: z.string().min(1, 'La disciplina es obligatoria'),
 })
+
+export async function leaveTeamAction(teamId: string): Promise<ActionResult<void>> {
+  const profile = await getProfile()
+  if (!profile) return { success: false, error: 'No autenticado' }
+
+  try {
+    await teamService.removePlayer(teamId, profile.id)
+    revalidatePath('/profile/equipos')
+    revalidatePath(`/equipos/${teamId}`)
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { success: false, error: 'No se pudo abandonar el equipo' }
+  }
+}
 
 export async function createUserTeamAction(
   input: unknown,

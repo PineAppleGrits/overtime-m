@@ -29,6 +29,11 @@
   --font-din-display: "Din Display", sans-serif;
 }
 
+/* Skew accent used in player stat cards – replicado del frontend anterior */
+.pts {
+  transform: skew(150deg, 0deg);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
