@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 // TODO: Replace mock data with real API calls
@@ -412,13 +413,15 @@ export default async function MatchPage({
   const subtournamentName = MOCK_CATEGORY_NAME;
 
   return (
-    <div className="w-full bg-ot-background overflow-x-hidden overflow-y-hidden min-h-[170vh] max-w-[100vw]">
+    <div className="relative overflow-hidden min-h-[300vh]">
       {/* Big orange gradient background — desktop only */}
-      <div className="overflow-hidden absolute max-h-[170vh]">
-        <img
+      <div className="absolute">
+        <Image
           src="/gradients/big-gradient-naranja.png"
           alt=""
-          className="hidden lg:block w-[170vw] h-[2000px] -mt-[740px] -ml-[52vw] overflow-hidden"
+          width="2000"
+          height="170"
+          className="hidden lg:block w-[170vw] h-500 -mt-185 -ml-[52vw]"
         />
       </div>
 
@@ -433,7 +436,7 @@ export default async function MatchPage({
         <img
           src="/gradients/triangulo-big.png"
           alt=""
-          className="absolute lg:hidden w-[357vw] h-[600px] max-w-none -top-12 left-1/2 -translate-x-1/2"
+          className="absolute lg:hidden w-[357vw] h-150 max-w-none -top-20 left-1/2 -translate-x-1/2"
         />
 
         {/* Small triangles — mobile */}
@@ -443,9 +446,9 @@ export default async function MatchPage({
         </div>
 
         {/* Big triangle — desktop */}
-        <div className="hidden lg:block absolute border-gradient top-0 w-0 h-0 border-l-[400px] border-l-transparent border-r-[400px] border-r-transparent border-t-[360px] z-10 border-t-ot-negro-texto left-1/2 -translate-x-1/2 gradient-negro-texto-dark-up" />
+        <div className="hidden lg:block absolute border-gradient top-0 w-0 h-0 border-l-400 border-l-transparent border-r-400 border-r-transparent border-t-360 z-10 border-t-ot-negro-texto left-1/2 -translate-x-1/2 gradient-negro-texto-dark-up" />
         {/* Small triangle — desktop */}
-        <div className="hidden lg:block absolute border-gradient top-0 w-0 h-0 border-l-[80px] border-l-transparent border-r-[80px] border-r-transparent border-t-[75px] border-t-ot-dark-blue left-1/2 -translate-x-1/2 z-20" />
+        <div className="hidden lg:block absolute border-gradient top-0 w-0 h-0 border-l-80 border-l-transparent border-r-80 border-r-transparent border-t-75 border-t-ot-dark-blue left-1/2 -translate-x-1/2 z-20" />
 
         {/* Mini triangle image — mobile */}
         <img
@@ -457,20 +460,20 @@ export default async function MatchPage({
 
       {/* Tournament + Category name */}
       <div className="justify-center flex mt-28 z-10 relative text-md">
-        <p className="text-xl uppercase inline-block py-5 font-din-display text-ot-orange">
+        <h2 className="text-xl uppercase inline-block py-5 font-din-display text-ot-orange">
           {tournamentName} {" "} - {" "}
           <span className="font-bold">
             {subtournamentName}
           </span>
-        </p>
+        </h2>
       </div>
 
       {/* Match meta: date / type / location */}
       <div className="flex items-center justify-center gap-4 z-10 relative">
-        <div className="text-sm font-din-display z-20 grow basis-0 mr-0 text-right">
+        <div className="text-xs lg:text-sm font-din-display z-20 grow basis-0 mr-0 text-right">
           {match.date && (
             <>
-              <span className="z-20 opacity-60 inline text-ot-blanco">
+              <span className="z-20 opacity-60 block lg:inline text-ot-blanco">
                 {" "}
                 {getDate(new Date(match.date))}{" "}
               </span>
@@ -485,7 +488,7 @@ export default async function MatchPage({
             {match.matchType}
           </span>
         </div>
-        <span className="font-din-display opacity-60 grow basis-0 text-ot-blanco">
+        <span className="font-din-display text-xs lg:text-sm opacity-60 grow basis-0 text-ot-blanco">
           {match.location || "-"}
         </span>
       </div>
@@ -524,7 +527,7 @@ export default async function MatchPage({
         </div>
 
         {/* Score numbers — mobile */}
-        <div className="z-20 flex justify-center gap-2 mt-12 relative">
+        <div className="flex justify-center gap-2 mt-12 relative">
           <img
             src="/gradients/gradient-naranja-puntaje-mobile.png"
             alt=""
@@ -595,7 +598,7 @@ export default async function MatchPage({
             </div>
 
             {/* Team names — desktop */}
-            <div className="z-20 flex justify-center items-center gap-10 mt-3 max-w-sm m-auto relative">
+            <div className="z-20 flex justify-center items-center gap-10 mt-3 mb-5 max-w-sm m-auto relative">
               <img
                 src="/gradients/gradient-violeta-puntaje-desktop-arriba.png"
                 alt=""
@@ -610,7 +613,7 @@ export default async function MatchPage({
               <img
                 src="/gradients/gradient-naranja-puntaje-desktop-arriba.png"
                 alt=""
-                className="absolute hidden lg:block w-[450px] h-[50px] -top-3 right-56"
+                className="absolute hidden lg:block w-[450px] h-[50px] -top-3 right-52"
               />
               <span className="z-20 uppercase text-center text-sm font-thin w-full leading-none text-ot-blanco">
                 {match.team2.name}
@@ -618,11 +621,10 @@ export default async function MatchPage({
             </div>
           </div>
         </div>
-        <div className="z-20 flex justify-center gap-2 mt-6" />
       </div>
 
       {/* ==================== ACTION BUTTONS — MOBILE ==================== */}
-      <div className="lg:hidden gap-1.5 z-[70] relative lg:mt-0 mt-12 flex flex-col items-center">
+      <div className="gap-1.5 relative mt-6 lg:mt-0 flex flex-col items-center">
         {match.videoUrl && (
           <a
             className="flex gap-1.5 items-center justify-center"
@@ -654,7 +656,7 @@ export default async function MatchPage({
       </div>
 
       {/* ==================== STATS TABLES ==================== */}
-      <div className="lg:flex items-center lg:items-start justify-center mb-12 relative z-[65]">
+      <div className="lg:flex items-center lg:items-start justify-center relative">
         {/* ===== Team 1 stats ===== */}
         <div className="relative mt-44 lg:mt-0 lg:flex">
           {/* Delegate picture — desktop */}
@@ -665,7 +667,7 @@ export default async function MatchPage({
               "/logos-iconos/Default - Delegado.png"
             }
             alt={match.team1.name}
-            className="max-w-[330px] hidden lg:block lg:absolute -left-[58%] -top-56 z-20 w-[330px] h-[576px] object-cover"
+            className="max-w-[330px] hidden lg:block lg:absolute -left-[270px] -top-56 z-20 w-[330px] h-[576px] object-cover"
           />
 
           {/* Orange glow — mobile */}
@@ -691,27 +693,6 @@ export default async function MatchPage({
             </div>
           </div>
         </div>
-
-        {/* ===== Center: video + photos — desktop ===== */}
-        {match.videoUrl && (
-          <a
-            className="absolute z-40 bottom-0 hidden lg:block"
-            href={match.videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div className="w-44 h-12 top-5 mt-12 lg:mt-0 flex gap-1.5 items-center justify-center self-end">
-              <p className="uppercase font-din-display font-bold text-sm text-ot-orange">
-                ver partido{" "}
-              </p>
-              <img
-                src="/logos-iconos/Youtube.png"
-                alt="YouTube"
-                className="w-8"
-              />
-            </div>
-          </a>
-        )}
 
         {/* ===== Team 2 stats ===== */}
         <div className="relative mt-44 lg:mt-0 lg:flex">
@@ -756,7 +737,7 @@ export default async function MatchPage({
               "/logos-iconos/Default - Delegado.png"
             }
             alt={match.team2.name}
-            className="hidden lg:block lg:absolute left-[320px] -top-56 z-20 w-[330px] h-[576px] object-cover"
+            className="hidden rotate-y-180 lg:block lg:absolute left-[330px] -top-56 z-20 w-[330px] h-[576px] object-cover"
           />
         </div>
       </div>
