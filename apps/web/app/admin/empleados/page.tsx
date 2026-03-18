@@ -1,9 +1,12 @@
-import employeeService from '@/modules/employee/EmployeeService'
-import { EmpleadosContent } from '@/modules/admin/components/empleados/EmpleadosContent'
+import userService from '@/modules/user/UserService'
+import { UserListContent } from '@/modules/admin/components/usuarios/UserListContent'
+import { AdminUser } from '@/modules/admin/types'
+
+const EMPLOYEE_ROLES = 'referee,photographer,official'
 
 export default async function EmpleadosPage() {
   let initialData: {
-    data: never[]
+    data: AdminUser[]
     meta: { total: number; page: number; limit: number; totalPages: number }
     error: string | null
   } = {
@@ -13,7 +16,7 @@ export default async function EmpleadosPage() {
   }
 
   try {
-    const response = await employeeService.getEmployees({ page: 1, limit: 10 })
+    const response = await userService.getUsers({ page: 1, limit: 10, role: EMPLOYEE_ROLES })
     const raw = response.data ?? response
     initialData.data = raw.data ?? raw ?? []
     initialData.meta = raw.meta ?? initialData.meta
@@ -21,5 +24,14 @@ export default async function EmpleadosPage() {
     initialData.error = 'Error al cargar empleados'
   }
 
-  return <EmpleadosContent initialData={initialData} />
+  return (
+    <UserListContent
+      initialData={initialData}
+      title="Empleados"
+      description="Gestiona árbitros, fotógrafos y oficiales de mesa"
+      createLabel="Nuevo empleado"
+      queryKeyPrefix="empleados"
+      filterableRoles={['referee', 'photographer', 'official']}
+    />
+  )
 }
