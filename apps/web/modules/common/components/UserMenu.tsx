@@ -1,14 +1,14 @@
 'use client';
 
-import { useAuth } from '@/providers/AuthProvider';
-import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import { Button } from '@/modules/common/components/Button';
-import Image from 'next/image';
 import { hasAdminRole } from '@/lib/auth/hasAdminRole';
+import { Button } from '@/modules/common/components/Button';
+import { useAuth } from '@/providers/AuthProvider';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 
 export function UserMenu() {
-  const { user, profile, signOut, loading, refresh } = useAuth();
+  const { user, profile, signOut, loading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +60,7 @@ export function UserMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1730] shadow-xl ring-1 ring-white/10 z-10 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1730] shadow-xl ring-1 ring-white/10 z-60 overflow-hidden">
           <div className="px-4 py-3 border-b border-white/10">
             <p className="text-xs text-white/50 uppercase tracking-wider">Cuenta</p>
             <p className="mt-0.5 text-sm font-medium text-white">{profile.name}</p>

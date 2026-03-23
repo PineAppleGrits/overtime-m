@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export function HeaderClientWrapper({ children }: { children: React.ReactNode }) {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -25,7 +25,7 @@ export function HeaderClientWrapper({ children }: { children: React.ReactNode })
 
     return (
         <>
-            <header 
+            <header
                 className={cn(
                     "fixed top-0 left-0 right-0 z-50 transition-colors duration-300",
                     isTransparent ? "bg-transparent text-white" : "bg-ot-dark-blue text-white shadow-md",
@@ -36,7 +36,7 @@ export function HeaderClientWrapper({ children }: { children: React.ReactNode })
                 {children}
             </header>
             {/* Spacer to prevent content from jumping up behind the fixed header when not on home */}
-            {!isHome && <div className="h-[73px]" aria-hidden="true" />}
+            {!isHome && <div className="h-[53.31px]" aria-hidden="true" />}
         </>
     );
 }

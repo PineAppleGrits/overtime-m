@@ -1,7 +1,7 @@
 import { hasAdminRole } from '@/lib/auth/hasAdminRole'
 import { getProfile } from '@/lib/auth/session'
-import { getMockPlayerStats, getMockTeamStats } from '@/modules/team/mock/playerStats.mock'
 import { getMockTeamMatches, MatchPreview } from '@/modules/common/components/MatchPreview'
+import { getMockPlayerStats, getMockTeamStats } from '@/modules/team/mock/playerStats.mock'
 import teamService from '@/modules/team/TeamService'
 import { Star, Trash2, UserPlus } from 'lucide-react'
 import { notFound } from 'next/navigation'

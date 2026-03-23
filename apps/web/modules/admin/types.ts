@@ -124,6 +124,21 @@ export interface BlacklistEntry {
   isActive: boolean
 }
 
+// ============ User Types ============
+export type ProfileRole = 'master' | 'admin' | 'player' | 'photographer' | 'referee' | 'official'
+
+export interface AdminUser {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  documentNumber?: string
+  dateOfBirth?: string
+  role: ProfileRole
+  createdAt: string
+  updatedAt: string
+}
+
 // ============ Employee Types ============
 export type EmployeeRole = 'arbitro' | 'fotografo' | 'agente_mesa'
 

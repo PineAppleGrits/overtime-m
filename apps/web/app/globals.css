@@ -43,6 +43,11 @@
   --color-ot-orange: #ff3b2f;
   --color-ot-dark-blue: #292548;
   --color-ot-light-blue: #3a3563;
+  --color-ot-violeta: #3b336a;
+  --color-ot-negro-texto: #181525;
+  --color-ot-box-naranja: #2b161f;
+  --color-ot-newvioleta-claro: #4e4585;
+  --color-ot-blanco: #f1f1f1;
   --font-din-display: "Din Display", sans-serif;
   --font-946-latin: "946 Latin", sans-serif;
 }
@@ -50,6 +55,27 @@
 /* Skew accent used in player stat cards – replicado del frontend anterior */
 .pts {
   transform: skew(150deg, 0deg);
+}
+
+/* Gradient classes – ported from overtime-frontend global.scss */
+.gradient-negro-texto-dark-up {
+  background: linear-gradient(180deg, #000000 0%, #181525 100%);
+}
+
+.gradient-naranja-opacity {
+  background: linear-gradient(90deg, rgba(255, 59, 47, 0.2) 0%, rgba(43, 22, 31, 1) 100%);
+}
+
+.gradient-naranja-opacity-invert {
+  background: linear-gradient(90deg, rgba(43, 22, 31, 1) 0%, rgba(255, 59, 47, 0.2) 100%);
+}
+
+.gradient-violeta-opacity {
+  background: linear-gradient(90deg, rgba(59, 51, 106, 0.2) 0%, #181525 100%);
+}
+
+.gradient-violeta-opacity-invert {
+  background: linear-gradient(90deg, #181525 0%, rgba(59, 51, 106, 0.2) 100%);
 }
 
 @theme inline {

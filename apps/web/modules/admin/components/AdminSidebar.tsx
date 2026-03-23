@@ -87,9 +87,10 @@ const sidebarItems: SidebarSection[] = [
         icon: Briefcase,
         roles: ['admin', 'master'],
         subItems: [
-          { label: 'Oficiales de mesa', href: '/admin/empleados/oficiales' },
+          { label: 'Todos los empleados', href: '/admin/empleados' },
           { label: 'Árbitros', href: '/admin/empleados/arbitros' },
           { label: 'Fotógrafos', href: '/admin/empleados/fotografos' },
+          { label: 'Oficiales de mesa', href: '/admin/empleados/oficiales' },
         ],
       },
       { label: 'Disciplinas', href: '/admin/disciplinas', icon: Dumbbell },
@@ -124,7 +125,7 @@ export function AdminSidebar() {
   // Derived: open if pathname matches a child, OR user explicitly opened it.
   // Path-active always wins over a manual close (better UX than hiding the active section).
   const getIsExpanded = (label: string, subItems: SubItem[]) => {
-    const pathActive = subItems.some(sub => pathname.startsWith(sub.href))
+    const pathActive = subItems.some(sub => pathname === sub.href)
     if (pathActive) return true
     return manualOverrides[label] ?? false
   }
@@ -208,7 +209,7 @@ export function AdminSidebar() {
                     {visibleItems.map(item => {
                       const hasSubItems = !!item.subItems
                       const isSubActive = hasSubItems
-                        ? item.subItems!.some(sub => pathname.startsWith(sub.href))
+                        ? item.subItems!.some(sub => pathname === sub.href)
                         : false
                       const isActive = item.href
                         ? item.href === '/admin'
@@ -278,7 +279,7 @@ export function AdminSidebar() {
                           {!collapsed && hasSubItems && isExpanded && (
                             <div className="ml-3 mt-0.5 mb-0.5 flex flex-col gap-0.5 border-l border-white/[0.07] pl-3">
                               {item.subItems!.map(sub => {
-                                const isSubItemActive = pathname.startsWith(sub.href)
+                                const isSubItemActive = pathname === sub.href
                                 return (
                                   <Link
                                     key={sub.href}
