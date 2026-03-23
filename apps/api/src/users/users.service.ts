@@ -94,18 +94,20 @@ export class UsersService {
     return profile;
   }
 
-  async findAll(search?: string, paginationDto?: PaginationDto & { role?: string }) {
+  async findAll(
+    search?: string,
+    paginationDto?: PaginationDto,
+    roles?: ProfileRole[],
+  ) {
     const {
       page = 1,
       limit = 10,
       sortBy = 'name',
       sortOrder = 'asc',
-      role,
     } = paginationDto ?? {};
-
     const where: {
       deletedAt: null;
-      role?: { in: ProfileRole[] } | ProfileRole;
+      role?: { in: ProfileRole[] };
       OR?: Array<{
         name?: { contains: string; mode: 'insensitive' };
         documentNumber?: { contains: string; mode: 'insensitive' };
@@ -113,14 +115,9 @@ export class UsersService {
     } = {
       deletedAt: null,
     };
-
-    if (role?.trim()) {
-      const roles = role.includes(',')
-        ? role.split(',').map((r) => r.trim() as ProfileRole)
-        : [role.trim() as ProfileRole];
-      where.role = roles.length === 1 ? roles[0] : { in: roles };
+    if (roles?.length) {
+      where.role = { in: roles };
     }
-
     if (search?.trim()) {
       const term = search.trim();
       where.OR = [

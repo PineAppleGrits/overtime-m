@@ -34,7 +34,7 @@ export class UsersController {
   @Admin()
   @Get()
   findAll(@Query() query: ListUsersQueryDto) {
-    return this.usersService.findAll(query.search, { ...query, role: query.role });
+    return this.usersService.findAll(query.search, query, query.role);
   }
 
   @Admin()

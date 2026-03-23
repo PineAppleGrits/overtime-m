@@ -1,4 +1,6 @@
-import { IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
+import { ProfileRole } from '@prisma/client';
 import { PaginationDto } from '@overtime-mono/shared';
 
 export class ListUsersQueryDto extends PaginationDto {
@@ -6,11 +8,19 @@ export class ListUsersQueryDto extends PaginationDto {
   @IsString()
   search?: string;
 
-  /**
-   * Single role or comma-separated list of roles to filter by.
-   * Example: "player"  or  "referee,photographer,official"
-   */
   @IsOptional()
-  @IsString()
-  role?: string;
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+
+    const source = Array.isArray(value) ? value : [value];
+    const roles = source
+      .flatMap((entry) => String(entry).split(','))
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+
+    return roles.length > 0 ? roles : undefined;
+  })
+  @IsArray()
+  @IsEnum(ProfileRole, { each: true })
+  role?: ProfileRole[];
 }
