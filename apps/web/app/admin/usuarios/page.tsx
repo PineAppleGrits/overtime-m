@@ -8,13 +8,7 @@ const getUsers = async () => {
     const data = await userService.getUsers({ page: 1, limit: 10 })
     // `response` is { data: AdminUser[], meta: {...} } — extract the array
     return {
-      data,
-      meta: {
-        totalPages: 1, // TODO - Calcular esto con base en la respuesta real
-        total: data.length, // TODO - Esto también debería venir del backend
-        page: 1,
-        limit: 10,
-      },
+      ...data,
       error: null,
     }
   } catch (error) {

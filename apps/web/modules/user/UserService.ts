@@ -1,6 +1,6 @@
 import { AdminUser } from '../admin/types'
 import { client } from '../common/client/baseClient'
-import { PaginationParams } from '../common/dto'
+import { PaginatedResponse, PaginationParams } from '../common/dto'
 import { Service } from '../common/services/Service'
 
 export type ProfileRole = 'master' | 'admin' | 'player' | 'photographer' | 'referee' | 'official'
@@ -25,7 +25,7 @@ interface UpdateUserDto {
 
 class UserService extends Service {
   async getUsers(params?: PaginationParams & { search?: string; role?: string }) {
-    const { data } = await this.client.get<AdminUser[]>('/users', { params })
+    const { data } = await this.client.get<PaginatedResponse<AdminUser>>('/users', { params })
     return data
   }
 
