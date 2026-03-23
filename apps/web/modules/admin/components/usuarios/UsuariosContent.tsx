@@ -7,7 +7,7 @@ interface UsuariosContentProps {
   initialData: {
     data: AdminUser[]
     meta: { total: number; page: number; limit: number; totalPages: number }
-    error: string | null
+    error: Error | null
   }
 }
 
