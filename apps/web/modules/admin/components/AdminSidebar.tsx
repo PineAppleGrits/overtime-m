@@ -19,6 +19,7 @@ import {
   Briefcase,
   UsersRound,
   ExternalLink,
+  MapPin,
 } from 'lucide-react'
 import { useState } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -92,6 +93,12 @@ const sidebarItems: SidebarSection[] = [
           { label: 'Fotógrafos', href: '/admin/empleados/fotografos' },
           { label: 'Oficiales de mesa', href: '/admin/empleados/oficiales' },
         ],
+      },
+      {
+        label: 'Canchas',
+        href: '/admin/canchas',
+        icon: MapPin,
+        roles: ['admin', 'master'],
       },
       { label: 'Disciplinas', href: '/admin/disciplinas', icon: Dumbbell },
     ],

@@ -8,7 +8,7 @@ import {
   Trophy, Shield, AlertCircle, Upload, X, ImageIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { createUserTeamAction } from '@/modules/profile/actions/teamActions'
+import { createUserTeamAction, createFranchiseWithTeamAction } from '@/modules/profile/actions/teamActions'
 import { createClient } from '@/lib/supabase/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -302,10 +302,10 @@ function FranchiseStep({ data, onChange }: {
           </div>
         </div>
       </SectionCard>
-      <div className="flex items-start gap-2 rounded-lg border border-amber-400/20 bg-amber-400/5 p-3">
-        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-amber-400/70" />
-        <p className="text-xs text-amber-400/70 leading-relaxed">
-          La gestión de franquicias estará disponible pronto. Por ahora el equipo se creará de forma independiente con el nombre de la franquicia como referencia.
+      <div className="flex items-start gap-2 rounded-lg border border-blue-400/20 bg-blue-400/5 p-3">
+        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-blue-400/60" />
+        <p className="text-xs text-blue-400/60 leading-relaxed">
+          La franquicia puede agrupar varios equipos con diferentes disciplinas. Podrás agregar más equipos a esta franquicia después de crearla.
         </p>
       </div>
     </div>
@@ -591,29 +591,49 @@ export function CreateTeamWizard({ sports }: Props) {
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = () => {
     startTransition(async () => {
-      // 1. Create team
-      const result = await createUserTeamAction({
-        name: state.team.name,
-        sportId: state.team.sportId,
-      })
+      let teamId: string | undefined
 
-      if (!result.success) {
-        toast.error('Falló la creación del equipo', {
-          description: result.error ?? 'Ocurrió un error inesperado. Intentá de nuevo.',
+      if (isFranchise) {
+        // 1. Create franchise + team together
+        const result = await createFranchiseWithTeamAction({
+          franchiseName: state.franchise.name,
+          teamName: state.team.name,
+          sportId: state.team.sportId,
         })
-        return
+
+        if (!result.success) {
+          toast.error('Falló la creación de la franquicia', {
+            description: result.error ?? 'Ocurrió un error inesperado. Intentá de nuevo.',
+          })
+          return
+        }
+
+        teamId = result.data?.teamId
+      } else {
+        // 1. Create standalone team
+        const result = await createUserTeamAction({
+          name: state.team.name,
+          sportId: state.team.sportId,
+        })
+
+        if (!result.success) {
+          toast.error('Falló la creación del equipo', {
+            description: result.error ?? 'Ocurrió un error inesperado. Intentá de nuevo.',
+          })
+          return
+        }
+
+        teamId = result.data?.id
       }
 
-      const teamId = result.data?.id
-
-      // 2. Upload logo asynchronously (non-blocking)
+      // 2. Upload team logo asynchronously (non-blocking)
       if (teamId && state.team.logoFile) {
         uploadTeamLogo(teamId, state.team.logoFile).then((url) => {
           if (!url) toast.warning('El equipo fue creado pero el logo no pudo subirse. Podés intentarlo desde la configuración del equipo.')
         })
       }
 
-      toast.success('¡Equipo creado!')
+      toast.success(isFranchise ? '¡Franquicia y equipo creados!' : '¡Equipo creado!')
       router.push('/profile/equipos')
     })
   }

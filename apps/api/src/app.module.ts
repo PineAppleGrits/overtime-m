@@ -17,6 +17,7 @@ import { StaffModule } from './staff/staff.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
 import { UsersModule } from './users/users.module';
+import { FranchisesModule } from './franchises/franchises.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -65,6 +66,7 @@ import mercadopagoConfig from './config/mercadopago.config';
     NotificationsModule, // Maneja Sistema de Notificaciones
     PaymentsModule, // Maneja Pagos (inscripciones, partidos)
     UsersModule,
+    FranchisesModule,
   ],
   controllers: [AppController],
   providers: [

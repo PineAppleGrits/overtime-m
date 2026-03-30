@@ -15,4 +15,8 @@ export class CreateTeamDto {
   @IsUUID()
   @IsOptional()
   captainId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  franchiseId?: string;
 }

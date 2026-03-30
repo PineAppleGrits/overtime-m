@@ -2,11 +2,17 @@ import { client } from "../common/client/baseClient"
 import { Service } from "../common/services/Service"
 import { PaginationParams } from "../common/dto"
 
+interface CreateFranchiseDto {
+  name: string
+  logoUrl?: string
+}
+
 interface CreateTeamDto {
   name: string
   logoUrl?: string
   sportId: string
   captainId?: string
+  franchiseId?: string
 }
 
 interface UpdateTeamDto {
@@ -21,6 +27,11 @@ interface AddPlayerDto {
 }
 
 class TeamService extends Service {
+  async createFranchise(dto: CreateFranchiseDto) {
+    const { data } = await this.client.post('/franchises', dto)
+    return data
+  }
+
   async getMyTeams() {
     const { data } = await this.client.get('/teams/mine')
     return data

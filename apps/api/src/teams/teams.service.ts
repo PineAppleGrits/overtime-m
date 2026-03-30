@@ -108,6 +108,7 @@ export class TeamsService {
       },
       include: {
         sport: true,
+        franchise: { select: { id: true, name: true, logoUrl: true } },
         creator: { select: { id: true, name: true, email: true } },
         captain: { select: { id: true, name: true, avatarUrl: true } },
         members: {
