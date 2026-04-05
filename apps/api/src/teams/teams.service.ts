@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import type {
+  CreateFranchiseSchemaDto,
   AddPlayerSchemaDto,
   CreateTeamSchemaDto,
   PaginationSchemaDto,
@@ -18,6 +19,51 @@ export class TeamsService {
   private readonly logger = new Logger(TeamsService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  private async getTournamentForTeamOperations(tournamentId: string) {
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id: tournamentId, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        sportId: true,
+        teamOperationsOpenAt: true,
+        teamOperationsCloseAt: true,
+      },
+    });
+
+    if (!tournament) {
+      throw new NotFoundException('Tournament not found');
+    }
+
+    return tournament;
+  }
+
+  private validateTournamentTeamOperationsWindow(tournament: {
+    name: string;
+    teamOperationsOpenAt: Date | null;
+    teamOperationsCloseAt: Date | null;
+  }): void {
+    const now = new Date();
+
+    if (
+      tournament.teamOperationsOpenAt &&
+      tournament.teamOperationsOpenAt > now
+    ) {
+      throw new BadRequestException(
+        `Team operations are not open yet for tournament ${tournament.name}`,
+      );
+    }
+
+    if (
+      tournament.teamOperationsCloseAt &&
+      tournament.teamOperationsCloseAt < now
+    ) {
+      throw new BadRequestException(
+        `Team operations are closed for tournament ${tournament.name}`,
+      );
+    }
+  }
 
   async create(createTeamDto: CreateTeamSchemaDto, creatorId: string) {
     // Verificar que el deporte existe
@@ -81,6 +127,22 @@ export class TeamsService {
     this.logger.log(`Team created: ${team.name}`);
 
     return team;
+  }
+
+  async createForTournament(
+    tournamentId: string,
+    createTeamDto: CreateTeamSchemaDto,
+    creatorId: string,
+  ) {
+    const tournament = await this.getTournamentForTeamOperations(tournamentId);
+
+    this.validateTournamentTeamOperationsWindow(tournament);
+
+    if (createTeamDto.sportId !== tournament.sportId) {
+      throw new BadRequestException('Team sport must match tournament sport');
+    }
+
+    return this.create(createTeamDto, creatorId);
   }
 
   async findMine(profileId: string) {
@@ -334,22 +396,6 @@ export class TeamsService {
 
     const profile = await this.prisma.profile.findUnique({
       where: { id: addPlayerDto.profileId },
-      include: {
-        teamMemberships: {
-          where: { isActive: true },
-          include: {
-            team: {
-              include: {
-                teamZones: {
-                  include: {
-                    zone: { include: { category: true } },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
     });
 
     if (!profile) {
@@ -374,24 +420,6 @@ export class TeamsService {
       throw new ConflictException('Profile already in team');
     }
 
-    const teamCategories = team.teamZones.map((tz) => tz.zone.category.id);
-
-    if (teamCategories.length > 0) {
-      for (const membership of profile.teamMemberships) {
-        const otherTeamCategories = membership.team.teamZones.map(
-          (tz) => tz.zone.category.id,
-        );
-        const commonCategories = teamCategories.filter((catId) =>
-          otherTeamCategories.includes(catId),
-        );
-        if (commonCategories.length > 0) {
-          throw new ConflictException(
-            `Profile is already in another team in the same category`,
-          );
-        }
-      }
-    }
-
     await this.prisma.profileTeam.create({
       data: {
         teamId,
@@ -399,9 +427,7 @@ export class TeamsService {
       },
     });
 
-    this.logger.log(
-      `Profile ${profile.name} added to team ${team.name}`,
-    );
+    this.logger.log(`Profile ${profile.name} added to team ${team.name}`);
 
     return this.findOne(teamId);
   }
@@ -482,5 +508,101 @@ export class TeamsService {
     this.logger.log(`Captain assigned to team ${team.name}`);
 
     return updatedTeam;
+  }
+
+  async promoteToFranchise(
+    teamId: string,
+    dto: CreateFranchiseSchemaDto,
+    ownerId: string,
+  ) {
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        logoUrl: true,
+        creatorId: true,
+        franchiseId: true,
+      },
+    });
+
+    if (!team) {
+      throw new NotFoundException('Team not found');
+    }
+
+    if (team.creatorId !== ownerId) {
+      throw new ConflictException(
+        'Only the team creator can promote a team to a franchise',
+      );
+    }
+
+    if (team.franchiseId) {
+      throw new ConflictException('Team is already part of a franchise');
+    }
+
+    const promotedTeam = await this.prisma.$transaction(async (tx) => {
+      const franchise = await tx.franchise.create({
+        data: {
+          name: dto.name,
+          logoUrl: dto.logoUrl,
+          ownerId,
+        },
+        select: {
+          id: true,
+          name: true,
+          logoUrl: true,
+          ownerId: true,
+          createdAt: true,
+        },
+      });
+
+      const updatedTeam = await tx.team.update({
+        where: { id: teamId },
+        data: {
+          franchiseId: franchise.id,
+        },
+        include: {
+          sport: true,
+          franchise: true,
+          creator: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          captain: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+            },
+          },
+          members: {
+            where: { isActive: true },
+            include: {
+              profile: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        franchise,
+        team: updatedTeam,
+      };
+    });
+
+    this.logger.log(
+      `Team ${team.name} promoted to franchise ${promotedTeam.franchise.name}`,
+    );
+
+    return promotedTeam;
   }
 }

@@ -5,7 +5,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateCategoryDto, UpdateCategoryDto, PaginationDto } from '@overtime-mono/shared';
+import {
+  CreateCategoryDto,
+  UpdateCategoryDto,
+  PaginationDto,
+} from '@overtime-mono/shared';
 
 @Injectable()
 export class CategoriesService {

@@ -1,5 +1,3 @@
-export * from "./create-registration.dto";
-export * from "./approve-registration.dto";
 export { createRegistrationSchema } from "./create-registration.schema";
 export type { CreateRegistrationSchemaDto } from "./create-registration.schema";
 export { registrationRosterPlayerSchema } from "./create-registration.schema";

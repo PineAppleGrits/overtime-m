@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import {
-  CreateTournamentDto,
+  CreateTournamentSchemaDto,
   TournamentStatus,
-  UpdateTournamentDto,
+  UpdateTournamentSchemaDto,
   ChangeStatusDto,
   PaginationDto,
 } from '@overtime-mono/shared';
@@ -28,11 +28,31 @@ export class TournamentsService {
     newStatus: TournamentStatus,
   ): void {
     const validTransitions: Record<string, TournamentStatus[]> = {
-      DRAFT: [TournamentStatus.OPEN, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
-      OPEN: [TournamentStatus.CLOSED, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
-      CLOSED: [TournamentStatus.READY_TO_SHIP, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
-      READY_TO_SHIP: [TournamentStatus.IN_PROGRESS, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
-      IN_PROGRESS: [TournamentStatus.FINISHED, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
+      DRAFT: [
+        TournamentStatus.OPEN,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
+      OPEN: [
+        TournamentStatus.CLOSED,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
+      CLOSED: [
+        TournamentStatus.READY_TO_SHIP,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
+      READY_TO_SHIP: [
+        TournamentStatus.IN_PROGRESS,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
+      IN_PROGRESS: [
+        TournamentStatus.FINISHED,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
       FINISHED: [TournamentStatus.ARCHIVED],
       ARCHIVED: [],
       CANCELLED: [],
@@ -62,14 +82,16 @@ export class TournamentsService {
 
     await this.prisma.tournament.updateMany({
       where: {
-        status: { in: [TournamentStatus.CLOSED, TournamentStatus.READY_TO_SHIP] },
+        status: {
+          in: [TournamentStatus.CLOSED, TournamentStatus.READY_TO_SHIP],
+        },
         endDate: { lte: now },
       },
       data: { status: TournamentStatus.FINISHED },
     });
   }
 
-  async create(createTournamentDto: CreateTournamentDto) {
+  async create(createTournamentDto: CreateTournamentSchemaDto) {
     // Verificar que el deporte existe
     const sport = await this.prisma.sport.findUnique({
       where: { id: createTournamentDto.sportId },
@@ -100,6 +122,17 @@ export class TournamentsService {
       );
     }
 
+    if (
+      createTournamentDto.teamOperationsOpenAt &&
+      createTournamentDto.teamOperationsCloseAt &&
+      new Date(createTournamentDto.teamOperationsOpenAt) >
+        new Date(createTournamentDto.teamOperationsCloseAt)
+    ) {
+      throw new BadRequestException(
+        'Team operations open date must be before team operations close date',
+      );
+    }
+
     const tournament = await this.prisma.tournament.create({
       data: {
         name: createTournamentDto.name,
@@ -118,6 +151,12 @@ export class TournamentsService {
           : null,
         registrationEndDate: createTournamentDto.registrationEndDate
           ? new Date(createTournamentDto.registrationEndDate)
+          : null,
+        teamOperationsOpenAt: createTournamentDto.teamOperationsOpenAt
+          ? new Date(createTournamentDto.teamOperationsOpenAt)
+          : null,
+        teamOperationsCloseAt: createTournamentDto.teamOperationsCloseAt
+          ? new Date(createTournamentDto.teamOperationsCloseAt)
           : null,
         insurancePerPlayer: createTournamentDto.insurancePerPlayer ?? null,
       },
@@ -342,7 +381,7 @@ export class TournamentsService {
     return tournament;
   }
 
-  async update(id: string, updateTournamentDto: UpdateTournamentDto) {
+  async update(id: string, updateTournamentDto: UpdateTournamentSchemaDto) {
     const tournament = await this.findOne(id);
 
     // Si se está actualizando el deporte, verificar que existe
@@ -385,6 +424,23 @@ export class TournamentsService {
       );
     }
 
+    const teamOperationsOpenAt = updateTournamentDto.teamOperationsOpenAt
+      ? new Date(updateTournamentDto.teamOperationsOpenAt)
+      : tournament.teamOperationsOpenAt;
+    const teamOperationsCloseAt = updateTournamentDto.teamOperationsCloseAt
+      ? new Date(updateTournamentDto.teamOperationsCloseAt)
+      : tournament.teamOperationsCloseAt;
+
+    if (
+      teamOperationsOpenAt &&
+      teamOperationsCloseAt &&
+      teamOperationsOpenAt > teamOperationsCloseAt
+    ) {
+      throw new BadRequestException(
+        'Team operations open date must be before team operations close date',
+      );
+    }
+
     // Si se está cambiando el estado, validar transición
     if (updateTournamentDto.status) {
       this.validateStatusTransition(
@@ -408,6 +464,12 @@ export class TournamentsService {
           : undefined,
         registrationEndDate: updateTournamentDto.registrationEndDate
           ? new Date(updateTournamentDto.registrationEndDate)
+          : undefined,
+        teamOperationsOpenAt: updateTournamentDto.teamOperationsOpenAt
+          ? new Date(updateTournamentDto.teamOperationsOpenAt)
+          : undefined,
+        teamOperationsCloseAt: updateTournamentDto.teamOperationsCloseAt
+          ? new Date(updateTournamentDto.teamOperationsCloseAt)
           : undefined,
       },
       include: {

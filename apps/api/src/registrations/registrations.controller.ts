@@ -10,11 +10,18 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RegistrationsService } from './registrations.service';
-import { CreateRegistrationDto, ApproveRegistrationDto, PaginationDto } from '@overtime-mono/shared';
+import { ApproveRegistrationDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
-import { ParseUUIDPipe, ParseOptionalUUIDPipe } from '../common/pipes/parse-uuid.pipe';
+import {
+  ParseUUIDPipe,
+  ParseOptionalUUIDPipe,
+} from '../common/pipes/parse-uuid.pipe';
+import {
+  AddRegistrationRosterEntryBodyDto,
+  CreateRegistrationBodyDto,
+} from './dto/registration-request.dto';
 
 @ApiTags('registrations')
 @Controller('registrations')
@@ -23,7 +30,7 @@ export class RegistrationsController {
 
   @Post()
   create(
-    @Body() createRegistrationDto: CreateRegistrationDto,
+    @Body() createRegistrationDto: CreateRegistrationBodyDto,
     @CurrentUser('id') userId: string,
   ) {
     return this.registrationsService.create(createRegistrationDto, userId);
@@ -50,6 +57,24 @@ export class RegistrationsController {
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.registrationsService.findOne(id);
+  }
+
+  @Get(':id/roster')
+  findRoster(@Param('id', ParseUUIDPipe) id: string) {
+    return this.registrationsService.findRoster(id);
+  }
+
+  @Post(':id/roster/additions')
+  addRosterEntry(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() addRosterEntryDto: AddRegistrationRosterEntryBodyDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.registrationsService.addRosterEntry(
+      id,
+      addRosterEntryDto,
+      userId,
+    );
   }
 
   @Patch(':id/approve')

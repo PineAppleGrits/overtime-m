@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { FranchisesService } from './franchises.service';
-import { CreateFranchiseDto } from '@overtime-mono/shared';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
+import { CreateFranchiseBodyDto } from './dto/franchise-request.dto';
 
 @ApiTags('franchises')
 @ApiBearerAuth()
@@ -13,7 +13,7 @@ export class FranchisesController {
 
   @Post()
   create(
-    @Body() dto: CreateFranchiseDto,
+    @Body() dto: CreateFranchiseBodyDto,
     @CurrentUser('id') ownerId: string,
   ) {
     return this.franchisesService.create(dto, ownerId);

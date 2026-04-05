@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
 
 export class CreateFranchiseDto {
   @IsString()
@@ -6,6 +6,7 @@ export class CreateFranchiseDto {
   name: string;
 
   @IsString()
+  @IsUrl()
   @IsOptional()
   logoUrl?: string;
 }

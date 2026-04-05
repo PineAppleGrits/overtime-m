@@ -9,12 +9,7 @@ const normalizeEmptyString = (value: unknown): unknown => {
   return trimmedValue.length === 0 ? undefined : trimmedValue;
 };
 
-export const optionalUrlSchema = z.preprocess(
+export const optionalDateStringSchema = z.preprocess(
   normalizeEmptyString,
-  z.string().url("URL invalida").optional(),
-);
-
-export const optionalUuidSchema = z.preprocess(
-  normalizeEmptyString,
-  z.string().uuid("UUID invalido").optional(),
+  z.string().datetime("La fecha es invalida").optional(),
 );

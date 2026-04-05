@@ -4,11 +4,11 @@ import {
   IsOptional,
   IsUUID,
   IsEnum,
-} from 'class-validator';
+} from "class-validator";
 
 export enum FixtureAlgorithm {
-  ROUND_ROBIN = 'round_robin',
-  CUSTOM = 'custom',
+  ROUND_ROBIN = "round_robin",
+  CUSTOM = "custom",
 }
 
 export class CreateZoneDto {

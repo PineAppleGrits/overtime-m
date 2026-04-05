@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateFranchiseDto } from '@overtime-mono/shared';
+import type { CreateFranchiseSchemaDto } from '@overtime-mono/shared';
 
 @Injectable()
 export class FranchisesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateFranchiseDto, ownerId: string) {
+  async create(dto: CreateFranchiseSchemaDto, ownerId: string) {
     return this.prisma.franchise.create({
       data: {
         name: dto.name,

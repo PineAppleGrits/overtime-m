@@ -51,6 +51,8 @@ model Profile {
   assignedMatches       MatchStaff[]          @relation("AssignedBy")
   registrations         Registration[]        @relation("RequestedBy")
   approvedRegistrations Registration[]        @relation("ApprovedBy")
+  registrationRosterEntries RegistrationRosterEntry[] @relation("RegistrationRosterProfile")
+  registrationRosterAdditions RegistrationRosterEntry[] @relation("RegistrationRosterAddedBy")
   payments              Payment[]
   matchAnnouncements    MatchAnnouncement[]
 
@@ -175,6 +177,8 @@ model Tournament {
   endDate               DateTime?
   registrationStartDate DateTime?
   registrationEndDate   DateTime?
+  teamOperationsOpenAt  DateTime?
+  teamOperationsCloseAt DateTime?
   insurancePerPlayer    Float?
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
@@ -439,6 +443,7 @@ model Registration {
   updatedAt        DateTime  @updatedAt
 
   payments Payment[]
+  rosterEntries RegistrationRosterEntry[]
 
   @@unique([teamId, tournamentId])
   @@index([teamId])
@@ -446,6 +451,29 @@ model Registration {
   @@index([categoryId])
   @@index([status])
   @@map("registrations")
+}
+
+enum RegistrationRosterEntryType {
+  INITIAL
+  ADDITION
+}
+
+model RegistrationRosterEntry {
+  id               String                      @id @default(uuid())
+  registrationId   String
+  registration     Registration                @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  profileId        String
+  profile          Profile                     @relation("RegistrationRosterProfile", fields: [profileId], references: [id])
+  type             RegistrationRosterEntryType
+  addedAt          DateTime                    @default(now())
+  addedByProfileId String?
+  addedByProfile   Profile?                    @relation("RegistrationRosterAddedBy", fields: [addedByProfileId], references: [id], onDelete: SetNull)
+
+  @@unique([registrationId, profileId])
+  @@index([registrationId])
+  @@index([profileId])
+  @@index([addedByProfileId])
+  @@map("registration_roster_entries")
 }
 
 // ============================================

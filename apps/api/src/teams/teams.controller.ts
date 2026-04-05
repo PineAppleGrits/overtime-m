@@ -15,6 +15,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { CreateFranchiseBodyDto } from '../franchises/dto/franchise-request.dto';
 import {
   AddPlayerBodyDto,
   CreateTeamBodyDto,
@@ -32,6 +33,15 @@ export class TeamsController {
     @CurrentUser('id') userId: string,
   ) {
     return this.teamsService.create(createTeamDto, userId);
+  }
+
+  @Post(':id/promote')
+  promoteToFranchise(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() createFranchiseDto: CreateFranchiseBodyDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.teamsService.promoteToFranchise(id, createFranchiseDto, userId);
   }
 
   @Get('mine')
