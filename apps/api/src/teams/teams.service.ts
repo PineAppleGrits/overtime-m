@@ -13,12 +13,47 @@ import type {
   PaginationSchemaDto,
   UpdateTeamSchemaDto,
 } from '@overtime-mono/shared';
+import { generateUniqueSlug } from '../common/utils/slug.util';
 
 @Injectable()
 export class TeamsService {
   private readonly logger = new Logger(TeamsService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  private async generateTeamSlug(
+    name: string,
+    excludeId?: string,
+  ): Promise<string> {
+    return generateUniqueSlug({
+      value: name,
+      exists: async (slug) => {
+        const existingTeam = await this.prisma.team.findFirst({
+          where: {
+            slug,
+            ...(excludeId ? { id: { not: excludeId } } : {}),
+          },
+          select: { id: true },
+        });
+
+        return Boolean(existingTeam);
+      },
+    });
+  }
+
+  private async generateFranchiseSlug(name: string): Promise<string> {
+    return generateUniqueSlug({
+      value: name,
+      exists: async (slug) => {
+        const existingFranchise = await this.prisma.franchise.findFirst({
+          where: { slug },
+          select: { id: true },
+        });
+
+        return Boolean(existingFranchise);
+      },
+    });
+  }
 
   private async getTournamentForTeamOperations(tournamentId: string) {
     const tournament = await this.prisma.tournament.findUnique({
@@ -87,6 +122,7 @@ export class TeamsService {
     const team = await this.prisma.team.create({
       data: {
         ...createTeamDto,
+        slug: await this.generateTeamSlug(createTeamDto.name),
         creatorId,
         members: {
           create: { profileId: creatorId },
@@ -175,7 +211,9 @@ export class TeamsService {
       },
       include: {
         sport: true,
-        franchise: { select: { id: true, name: true, logoUrl: true } },
+        franchise: {
+          select: { id: true, name: true, slug: true, logoUrl: true },
+        },
         creator: { select: { id: true, name: true, email: true } },
         captain: { select: { id: true, name: true, avatarUrl: true } },
         members: {
@@ -342,7 +380,12 @@ export class TeamsService {
 
     const team = await this.prisma.team.update({
       where: { id },
-      data: updateTeamDto,
+      data: {
+        ...updateTeamDto,
+        slug: updateTeamDto.name
+          ? await this.generateTeamSlug(updateTeamDto.name, id)
+          : undefined,
+      },
       include: {
         sport: true,
         creator: {
@@ -544,12 +587,14 @@ export class TeamsService {
       const franchise = await tx.franchise.create({
         data: {
           name: dto.name,
+          slug: await this.generateFranchiseSlug(dto.name),
           logoUrl: dto.logoUrl,
           ownerId,
         },
         select: {
           id: true,
           name: true,
+          slug: true,
           logoUrl: true,
           ownerId: true,
           createdAt: true,

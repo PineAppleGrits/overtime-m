@@ -83,6 +83,7 @@ model Sport {
 model Franchise {
   id        String    @id @default(uuid())
   name      String
+  slug      String    @unique
   logoUrl   String?
   ownerId   String
   owner     Profile   @relation(fields: [ownerId], references: [id])
@@ -99,6 +100,7 @@ model Franchise {
 model Team {
   id          String    @id @default(uuid())
   name        String
+  slug        String    @unique
   logoUrl     String?
   sportId     String
   sport       Sport     @relation(fields: [sportId], references: [id])

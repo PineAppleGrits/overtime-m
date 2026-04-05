@@ -12,13 +12,33 @@ import {
   ChangeStatusDto,
   PaginationDto,
 } from '@overtime-mono/shared';
-import slugify from 'slugify';
+import { generateUniqueSlug } from '../common/utils/slug.util';
 
 @Injectable()
 export class TournamentsService {
   private readonly logger = new Logger(TournamentsService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  private async generateTournamentSlug(
+    name: string,
+    excludeId?: string,
+  ): Promise<string> {
+    return generateUniqueSlug({
+      value: name,
+      exists: async (slug) => {
+        const existingTournament = await this.prisma.tournament.findFirst({
+          where: {
+            slug,
+            ...(excludeId ? { id: { not: excludeId } } : {}),
+          },
+          select: { id: true },
+        });
+
+        return Boolean(existingTournament);
+      },
+    });
+  }
 
   /**
    * Validar transiciones de estado permitidas
@@ -136,7 +156,7 @@ export class TournamentsService {
     const tournament = await this.prisma.tournament.create({
       data: {
         name: createTournamentDto.name,
-        slug: slugify(createTournamentDto.name),
+        slug: await this.generateTournamentSlug(createTournamentDto.name),
         description: createTournamentDto.description ?? null,
         sportId: createTournamentDto.sportId,
         status: createTournamentDto.status ?? TournamentStatus.DRAFT,
@@ -263,6 +283,7 @@ export class TournamentsService {
                       select: {
                         id: true,
                         name: true,
+                        slug: true,
                         logoUrl: true,
                       },
                     },
@@ -291,6 +312,7 @@ export class TournamentsService {
               select: {
                 id: true,
                 name: true,
+                slug: true,
                 logoUrl: true,
               },
             },
@@ -331,6 +353,7 @@ export class TournamentsService {
                       select: {
                         id: true,
                         name: true,
+                        slug: true,
                         logoUrl: true,
                       },
                     },
@@ -359,6 +382,7 @@ export class TournamentsService {
               select: {
                 id: true,
                 name: true,
+                slug: true,
                 logoUrl: true,
               },
             },
@@ -453,6 +477,9 @@ export class TournamentsService {
       where: { id },
       data: {
         ...updateTournamentDto,
+        slug: updateTournamentDto.name
+          ? await this.generateTournamentSlug(updateTournamentDto.name, id)
+          : undefined,
         startDate: updateTournamentDto.startDate
           ? new Date(updateTournamentDto.startDate)
           : undefined,

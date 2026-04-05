@@ -13,9 +13,11 @@ describe('TeamsService', () => {
       },
       team: {
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
       },
       franchise: {
         create: jest.fn(),
+        findFirst: jest.fn(),
       },
       $transaction: jest.fn(),
     }) as unknown as PrismaService;
@@ -53,6 +55,7 @@ describe('TeamsService', () => {
       creatorId: makeUuid(111),
       franchiseId: null,
     });
+    prisma.franchise.findFirst = jest.fn().mockResolvedValue(null);
 
     const service = new TeamsService(prisma);
 
