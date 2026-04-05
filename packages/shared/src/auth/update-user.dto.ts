@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsIn,
   MaxLength,
+  IsUrl,
 } from 'class-validator';
 import { ProfileRoleEnum, ProfileRoleType } from './create-user.dto';
 
@@ -32,6 +33,16 @@ export class UpdateUserDto {
   @IsOptional()
   @IsDateString()
   dateOfBirth?: string;
+
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  medicalCertificateUrl?: string;
+
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  swornStatementUrl?: string;
 
   @IsOptional()
   @IsIn(ProfileRoleEnum)

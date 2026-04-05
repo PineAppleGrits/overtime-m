@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsIn,
   MaxLength,
+  IsUrl,
 } from "class-validator";
 
 export const ProfileRole = {
@@ -44,6 +45,16 @@ export class CreateUserDto {
   @IsOptional()
   @IsDateString()
   dateOfBirth?: string;
+
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  medicalCertificateUrl?: string;
+
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  swornStatementUrl?: string;
 
   @IsOptional()
   @IsIn(ProfileRoleEnum)
