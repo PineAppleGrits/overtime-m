@@ -99,6 +99,7 @@ Incluye el header: \`Authorization: Bearer <token>\`
     .addTag('fixtures', 'Standings')
     .addTag('sports', 'Deportes disponibles')
     .addTag('payments', 'Sistema de pagos')
+    .addTag('eligibility', 'Blacklist, sanciones y elegibilidad')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

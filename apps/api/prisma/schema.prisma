@@ -55,6 +55,12 @@ model Profile {
   registrationRosterAdditions RegistrationRosterEntry[] @relation("RegistrationRosterAddedBy")
   payments              Payment[]
   matchAnnouncements    MatchAnnouncement[]
+  blacklistEntries      BlacklistEntry[]
+  blacklistsIssued      BlacklistEntry[]             @relation("BlacklistBlockedBy")
+  blacklistsLifted      BlacklistEntry[]             @relation("BlacklistLiftedBy")
+  sanctions             Sanction[]                   @relation("SanctionTargetProfile")
+  sanctionsCreated      Sanction[]                   @relation("SanctionCreatedBy")
+  sanctionsResolved     Sanction[]                   @relation("SanctionResolvedBy")
 
   @@index([deletedAt, name])
   @@index([deletedAt, email])
@@ -119,6 +125,7 @@ model Team {
   homeMatches Match[]        @relation("HomeTeam")
   awayMatches   Match[]        @relation("AwayTeam")
   registrations Registration[]
+  sanctions     Sanction[]     @relation("SanctionTargetTeam")
 
   @@index([franchiseId])
   @@map("teams")
@@ -189,6 +196,7 @@ model Tournament {
   categories     Category[]
   registrations  Registration[]
   registrationPricing TournamentRegistrationPricing[]
+  sanctions      Sanction[]
 
   @@index([status])
   @@index([sportId])
@@ -228,6 +236,7 @@ model Category {
   zones         Zone[]
   matches       Match[]
   registrations Registration[]
+  sanctions     Sanction[]
 
   @@index([tournamentId])
   @@index([status])
@@ -319,6 +328,7 @@ model Match {
   roster        MatchRoster[]
   payments      Payment[]
   announcements MatchAnnouncement[]
+  sanctions     Sanction[]
 
   @@index([homeTeamId])
   @@index([awayTeamId])
@@ -506,4 +516,95 @@ model Payment {
   @@index([status])
   @@index([providerPaymentId])
   @@map("payments")
+}
+
+enum BlacklistStatus {
+  ACTIVE
+  LIFTED
+}
+
+model BlacklistEntry {
+  id                  String          @id @default(uuid())
+  profileId           String?
+  profile             Profile?        @relation(fields: [profileId], references: [id])
+  documentNumber      String
+  profileNameSnapshot String
+  reason              String
+  attachmentUrls      String[]         @default([])
+  status              BlacklistStatus @default(ACTIVE)
+  blockedByProfileId  String
+  blockedBy           Profile         @relation("BlacklistBlockedBy", fields: [blockedByProfileId], references: [id])
+  blockedAt           DateTime        @default(now())
+  liftedByProfileId   String?
+  liftedBy            Profile?        @relation("BlacklistLiftedBy", fields: [liftedByProfileId], references: [id])
+  liftedAt            DateTime?
+  resolutionNotes     String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([documentNumber])
+  @@index([profileId])
+  @@index([status])
+  @@index([blockedByProfileId])
+  @@index([liftedByProfileId])
+  @@map("blacklist_entries")
+}
+
+enum SanctionTargetType {
+  PROFILE
+  TEAM
+}
+
+enum SanctionKind {
+  DISCIPLINARY
+  MONETARY
+}
+
+enum SanctionStatus {
+  ACTIVE
+  RESOLVED
+  EXPIRED
+  CANCELLED
+}
+
+model Sanction {
+  id                  String             @id @default(uuid())
+  targetType          SanctionTargetType
+  targetProfileId     String?
+  targetProfile       Profile?           @relation("SanctionTargetProfile", fields: [targetProfileId], references: [id])
+  targetTeamId        String?
+  targetTeam          Team?              @relation("SanctionTargetTeam", fields: [targetTeamId], references: [id])
+  kind                SanctionKind
+  status              SanctionStatus     @default(ACTIVE)
+  reason              String
+  notes               String?
+  attachmentUrls      String[]           @default([])
+  matchId             String?
+  match               Match?             @relation(fields: [matchId], references: [id])
+  tournamentId        String?
+  tournament          Tournament?        @relation(fields: [tournamentId], references: [id])
+  categoryId          String?
+  category            Category?          @relation(fields: [categoryId], references: [id])
+  startsAt            DateTime?
+  endsAt              DateTime?
+  amount              Float?
+  currency            String             @default("ARS")
+  createdByProfileId  String
+  createdBy           Profile            @relation("SanctionCreatedBy", fields: [createdByProfileId], references: [id])
+  resolvedByProfileId String?
+  resolvedBy          Profile?           @relation("SanctionResolvedBy", fields: [resolvedByProfileId], references: [id])
+  resolvedAt          DateTime?
+  resolutionNotes     String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([targetProfileId])
+  @@index([targetTeamId])
+  @@index([status])
+  @@index([tournamentId])
+  @@index([categoryId])
+  @@index([matchId])
+  @@index([createdByProfileId])
+  @@index([resolvedByProfileId])
+  @@map("sanctions")
 }

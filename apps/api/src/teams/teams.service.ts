@@ -14,12 +14,16 @@ import type {
   UpdateTeamSchemaDto,
 } from '@overtime-mono/shared';
 import { generateUniqueSlug } from '../common/utils/slug.util';
+import { EligibilityService } from '../eligibility/eligibility.service';
 
 @Injectable()
 export class TeamsService {
   private readonly logger = new Logger(TeamsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eligibilityService: EligibilityService,
+  ) {}
 
   private async generateTeamSlug(
     name: string,
@@ -444,6 +448,8 @@ export class TeamsService {
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
+
+    await this.eligibilityService.assertProfileNotBlacklisted(profile.id);
 
     const existingMembership = await this.prisma.profileTeam.findFirst({
       where: {

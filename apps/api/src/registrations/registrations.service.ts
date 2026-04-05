@@ -13,6 +13,7 @@ import type {
   RegistrationRosterPlayerDto,
 } from '@overtime-mono/shared';
 import { PrismaService } from '../database/prisma.service';
+import { EligibilityService } from '../eligibility/eligibility.service';
 import {
   ACTIVE_REGISTRATION_STATUSES,
   EDITABLE_REGISTRATION_STATUSES,
@@ -143,7 +144,10 @@ const registrationDetailInclude =
 export class RegistrationsService {
   private readonly logger = new Logger(RegistrationsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eligibilityService: EligibilityService,
+  ) {}
 
   private assertNoDuplicateProfileIds(profileIds: string[]): void {
     if (new Set(profileIds).size !== profileIds.length) {
@@ -480,6 +484,12 @@ export class RegistrationsService {
       throw new BadRequestException('Team sport must match category sport');
     }
 
+    await this.eligibilityService.assertTeamEligibleForRegistration({
+      teamId: createRegistrationDto.teamId,
+      tournamentId: createRegistrationDto.tournamentId,
+      categoryId: createRegistrationDto.categoryId,
+    });
+
     const existingRegistration = await this.prisma.registration.findFirst({
       where: {
         teamId: createRegistrationDto.teamId,
@@ -520,6 +530,17 @@ export class RegistrationsService {
         },
         tx,
       );
+
+      for (const player of resolvedPlayers) {
+        await this.eligibilityService.assertProfileEligibleForRegistration(
+          {
+            profileId: player.profileId,
+            tournamentId: createRegistrationDto.tournamentId,
+            categoryId: createRegistrationDto.categoryId,
+          },
+          tx,
+        );
+      }
 
       const createdRegistration = await tx.registration.create({
         data: {
@@ -763,6 +784,24 @@ export class RegistrationsService {
           categoryId: registration.categoryId,
           teamId: registration.teamId,
           excludeRegistrationId: registration.id,
+        },
+        tx,
+      );
+
+      await this.eligibilityService.assertTeamEligibleForRegistration(
+        {
+          teamId: registration.teamId,
+          tournamentId: registration.tournamentId,
+          categoryId: registration.categoryId,
+        },
+        tx,
+      );
+
+      await this.eligibilityService.assertProfileEligibleForRegistration(
+        {
+          profileId: resolved[0].profileId,
+          tournamentId: registration.tournamentId,
+          categoryId: registration.categoryId,
         },
         tx,
       );

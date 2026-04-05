@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { EligibilityService } from '../eligibility/eligibility.service';
 import { TeamsService } from './teams.service';
 
 describe('TeamsService', () => {
@@ -9,6 +10,9 @@ describe('TeamsService', () => {
   const createPrismaMock = () =>
     ({
       tournament: {
+        findUnique: jest.fn(),
+      },
+      profile: {
         findUnique: jest.fn(),
       },
       team: {
@@ -22,6 +26,11 @@ describe('TeamsService', () => {
       $transaction: jest.fn(),
     }) as unknown as PrismaService;
 
+  const createEligibilityMock = () =>
+    ({
+      assertProfileNotBlacklisted: jest.fn(),
+    }) as unknown as EligibilityService;
+
   it('rejects tournament-scoped team creation before the operational window opens', async () => {
     const prisma = createPrismaMock();
     prisma.tournament.findUnique = jest.fn().mockResolvedValue({
@@ -32,7 +41,7 @@ describe('TeamsService', () => {
       teamOperationsCloseAt: null,
     });
 
-    const service = new TeamsService(prisma);
+    const service = new TeamsService(prisma, createEligibilityMock());
 
     await expect(
       service.createForTournament(
@@ -57,7 +66,7 @@ describe('TeamsService', () => {
     });
     prisma.franchise.findFirst = jest.fn().mockResolvedValue(null);
 
-    const service = new TeamsService(prisma);
+    const service = new TeamsService(prisma, createEligibilityMock());
 
     await expect(
       service.promoteToFranchise(
@@ -67,6 +76,36 @@ describe('TeamsService', () => {
         },
         makeUuid(222),
       ),
+    ).rejects.toThrow(ConflictException);
+  });
+
+  it('rejects adding a blacklisted player to a team', async () => {
+    const prisma = createPrismaMock();
+    const eligibility = createEligibilityMock();
+    prisma.team.findUnique = jest.fn().mockResolvedValue({
+      id: makeUuid(1),
+      name: 'Team Overtime',
+      sport: {},
+      creator: null,
+      captain: null,
+      members: [],
+      teamZones: [],
+      registrations: [],
+    });
+    prisma.profile.findUnique = jest.fn().mockResolvedValue({
+      id: makeUuid(2),
+      name: 'Jugador Bloqueado',
+    });
+    (eligibility.assertProfileNotBlacklisted as jest.Mock).mockRejectedValue(
+      new ConflictException('blocked'),
+    );
+
+    const service = new TeamsService(prisma, eligibility);
+
+    await expect(
+      service.addPlayer(makeUuid(1), {
+        profileId: makeUuid(2),
+      }),
     ).rejects.toThrow(ConflictException);
   });
 });

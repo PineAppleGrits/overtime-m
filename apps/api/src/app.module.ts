@@ -18,6 +18,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
 import { UsersModule } from './users/users.module';
 import { FranchisesModule } from './franchises/franchises.module';
+import { EligibilityModule } from './eligibility/eligibility.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -62,6 +63,7 @@ import mercadopagoConfig from './config/mercadopago.config';
     VenuesModule, // Maneja Canchas y Locaciones
     MatchesModule, // Maneja Partidos y Comunicados
     RegistrationsModule, // Maneja Inscripciones de Equipos a Torneos
+    EligibilityModule,
     FixturesModule,
     StaffModule, // Maneja Personal (árbitros, oficiales, fotógrafos)
     NotificationsModule, // Maneja Sistema de Notificaciones
