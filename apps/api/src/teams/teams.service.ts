@@ -6,7 +6,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateTeamDto, UpdateTeamDto, AddPlayerDto, PaginationDto } from '@overtime-mono/shared';
+import type {
+  AddPlayerSchemaDto,
+  CreateTeamSchemaDto,
+  PaginationSchemaDto,
+  UpdateTeamSchemaDto,
+} from '@overtime-mono/shared';
 
 @Injectable()
 export class TeamsService {
@@ -14,7 +19,7 @@ export class TeamsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createTeamDto: CreateTeamDto, creatorId: string) {
+  async create(createTeamDto: CreateTeamSchemaDto, creatorId: string) {
     // Verificar que el deporte existe
     const sport = await this.prisma.sport.findUnique({
       where: { id: createTeamDto.sportId },
@@ -124,7 +129,7 @@ export class TeamsService {
     return teams;
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationSchemaDto) {
     const {
       page = 1,
       limit = 10,
@@ -240,7 +245,7 @@ export class TeamsService {
     return team;
   }
 
-  async update(id: string, updateTeamDto: UpdateTeamDto) {
+  async update(id: string, updateTeamDto: UpdateTeamSchemaDto) {
     await this.findOne(id);
 
     // Si se está actualizando el deporte, verificar que existe
@@ -324,7 +329,7 @@ export class TeamsService {
     return { message: 'Team deleted successfully' };
   }
 
-  async addPlayer(teamId: string, addPlayerDto: AddPlayerDto) {
+  async addPlayer(teamId: string, addPlayerDto: AddPlayerSchemaDto) {
     const team = await this.findOne(teamId);
 
     const profile = await this.prisma.profile.findUnique({

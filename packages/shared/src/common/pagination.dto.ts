@@ -1,6 +1,9 @@
 import { IsOptional, IsInt, Min, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 
+/**
+ * @deprecated Use `paginationSchema` from `packages/shared` instead.
+ */
 export class PaginationDto {
   @IsOptional()
   @Type(() => Number)

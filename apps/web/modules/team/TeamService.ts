@@ -1,29 +1,15 @@
 import { client } from "../common/client/baseClient"
+import type {
+  AddPlayerSchemaDto,
+  CreateTeamSchemaDto,
+  UpdateTeamSchemaDto,
+} from "@overtime-mono/shared/teams/contracts"
 import { Service } from "../common/services/Service"
 import { PaginationParams } from "../common/dto"
 
 interface CreateFranchiseDto {
   name: string
   logoUrl?: string
-}
-
-interface CreateTeamDto {
-  name: string
-  logoUrl?: string
-  sportId: string
-  captainId?: string
-  franchiseId?: string
-}
-
-interface UpdateTeamDto {
-  name?: string
-  logoUrl?: string
-  sportId?: string
-  captainId?: string
-}
-
-interface AddPlayerDto {
-  playerId: string
 }
 
 class TeamService extends Service {
@@ -47,12 +33,12 @@ class TeamService extends Service {
     return data
   }
 
-  async createTeam(createTeamDto: CreateTeamDto) {
+  async createTeam(createTeamDto: CreateTeamSchemaDto) {
     const { data } = await this.client.post("/teams", createTeamDto)
     return data
   }
 
-  async updateTeam(id: string, updateTeamDto: UpdateTeamDto) {
+  async updateTeam(id: string, updateTeamDto: UpdateTeamSchemaDto) {
     const { data } = await this.client.patch(`/teams/${id}`, updateTeamDto)
     return data
   }
@@ -62,7 +48,7 @@ class TeamService extends Service {
     return data
   }
 
-  async addPlayer(teamId: string, addPlayerDto: AddPlayerDto) {
+  async addPlayer(teamId: string, addPlayerDto: AddPlayerSchemaDto) {
     const { data } = await this.client.post(`/teams/${teamId}/players`, addPlayerDto)
     return data
   }

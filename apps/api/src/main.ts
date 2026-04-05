@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -36,18 +37,6 @@ async function bootstrap() {
 
   // Global exception filter - catches all unhandled exceptions
   app.useGlobalFilters(new AllExceptionsFilter());
-
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
 
   // CORS configuration
   const corsOrigin = configService.get<string>('app.corsOrigin');
@@ -113,7 +102,7 @@ Incluye el header: \`Authorization: Bearer <token>\`
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document, {
+  SwaggerModule.setup('api/docs', app, cleanupOpenApiDoc(document), {
     swaggerOptions: {
       persistAuthorization: true,
       tagsSorter: 'alpha',

@@ -8,13 +8,18 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { TeamsService } from './teams.service';
-import { CreateTeamDto, UpdateTeamDto, AddPlayerDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import {
+  AddPlayerBodyDto,
+  CreateTeamBodyDto,
+  UpdateTeamBodyDto,
+} from './dto/team-request.dto';
 
 @ApiTags('teams')
 @Controller('teams')
@@ -23,7 +28,7 @@ export class TeamsController {
 
   @Post()
   create(
-    @Body() createTeamDto: CreateTeamDto,
+    @Body() createTeamDto: CreateTeamBodyDto,
     @CurrentUser('id') userId: string,
   ) {
     return this.teamsService.create(createTeamDto, userId);
@@ -36,7 +41,7 @@ export class TeamsController {
 
   @Public()
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
+  findAll(@Query() paginationDto: PaginationQueryDto) {
     return this.teamsService.findAll(paginationDto);
   }
 
@@ -49,7 +54,7 @@ export class TeamsController {
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateTeamDto: UpdateTeamDto,
+    @Body() updateTeamDto: UpdateTeamBodyDto,
   ) {
     // TODO: Verificar que el usuario es el creador del equipo o admin
     return this.teamsService.update(id, updateTeamDto);
@@ -64,7 +69,7 @@ export class TeamsController {
   @Post(':id/players')
   addPlayer(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() addPlayerDto: AddPlayerDto,
+    @Body() addPlayerDto: AddPlayerBodyDto,
   ) {
     // TODO: Verificar que el usuario es el creador del equipo o admin
     return this.teamsService.addPlayer(id, addPlayerDto);

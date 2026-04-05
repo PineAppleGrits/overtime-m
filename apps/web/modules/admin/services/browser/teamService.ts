@@ -1,24 +1,11 @@
 import { browserClient } from "@/modules/common/client/browserClient"
+import type {
+  AddPlayerSchemaDto,
+  CreateTeamSchemaDto,
+  UpdateTeamSchemaDto,
+} from "@overtime-mono/shared/teams/contracts"
 import { BrowserService } from "@/modules/common/services/BrowserService"
 import { PaginationParams } from "@/modules/common/dto"
-
-interface CreateTeamDto {
-  name: string
-  logoUrl?: string
-  sportId: string
-  captainId?: string
-}
-
-interface UpdateTeamDto {
-  name?: string
-  logoUrl?: string
-  sportId?: string
-  captainId?: string
-}
-
-interface AddPlayerDto {
-  playerId: string
-}
 
 class TeamBrowserService extends BrowserService {
   async getTeams(params?: PaginationParams) {
@@ -31,12 +18,12 @@ class TeamBrowserService extends BrowserService {
     return data
   }
 
-  async createTeam(dto: CreateTeamDto) {
+  async createTeam(dto: CreateTeamSchemaDto) {
     const { data } = await this.client.post("/teams", dto)
     return data
   }
 
-  async updateTeam(id: string, dto: UpdateTeamDto) {
+  async updateTeam(id: string, dto: UpdateTeamSchemaDto) {
     const { data } = await this.client.patch(`/teams/${id}`, dto)
     return data
   }
@@ -46,7 +33,7 @@ class TeamBrowserService extends BrowserService {
     return data
   }
 
-  async addPlayer(teamId: string, dto: AddPlayerDto) {
+  async addPlayer(teamId: string, dto: AddPlayerSchemaDto) {
     const { data } = await this.client.post(`/teams/${teamId}/players`, dto)
     return data
   }
