@@ -137,6 +137,15 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
           <p className="text-xs text-white/30 uppercase tracking-widest mt-1">
             {team.sport.name}
           </p>
+          {(isAdmin || isCreator || isCaptain) && (
+            <Link
+              href={`/equipos/${id}/gestionar`}
+              className="inline-flex items-center gap-1.5 mt-3 rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              Gestionar equipo
+            </Link>
+          )}
         </div>
       </div>
 
@@ -198,18 +207,11 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
       )}
 
       {/* ── TEAM ACTIONS ── */}
-      <div className="flex justify-center gap-3 mt-6 px-4 flex-wrap">
-        {(isAdmin || isCreator || isCaptain) && (
-          <Link
-            href={`/equipos/${id}/gestionar`}
-            className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <Settings className="h-3.5 w-3.5" />
-            Gestionar equipo
-          </Link>
-        )}
-        {isMember && !isCreator && <LeaveTeamButton teamId={id} />}
-      </div>
+      {isMember && !isCreator && (
+        <div className="flex justify-center mt-6 px-4">
+          <LeaveTeamButton teamId={id} />
+        </div>
+      )}
 
       {/* ── PLAYERS LIST ── */}
       <div className="flex flex-col items-center gap-3 my-12 bg-ot-background">
