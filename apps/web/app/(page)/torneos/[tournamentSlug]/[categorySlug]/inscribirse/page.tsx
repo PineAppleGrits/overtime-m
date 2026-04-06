@@ -1,35 +1,60 @@
-import TournamentService from "@/modules/tournament/TournamentService";
-import { getProfile } from "@/lib/auth/session";
-import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
-import { InscribirseForm } from "./InscribirseForm";
-import { cn } from "@/lib/utils";
+import TournamentService from "@/modules/tournament/TournamentService"
+import teamService from "@/modules/team/TeamService"
+import { getProfile } from "@/lib/auth/session"
+import { redirect, notFound } from "next/navigation"
+import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
+import { InscribirseForm } from "./InscribirseForm"
+import { cn } from "@/lib/utils"
+
+type TeamMember = {
+  profile: { id: string; name: string; avatarUrl?: string }
+  isActive: boolean
+}
+
+type MyTeam = {
+  id: string
+  name: string
+  logoUrl?: string | null
+  sport: { name: string }
+  members: TeamMember[]
+}
+
+async function getMyTeams(): Promise<MyTeam[]> {
+  try {
+    const res = await teamService.getMyTeams()
+    return Array.isArray(res) ? res : (res?.data ?? [])
+  } catch {
+    return []
+  }
+}
 
 export default async function InscribirsePage({
   params,
 }: {
-  params: Promise<{ tournamentSlug: string; categorySlug: string }>;
+  params: Promise<{ tournamentSlug: string; categorySlug: string }>
 }) {
-  const { tournamentSlug, categorySlug } = await params;
-  const [tournament, profile] = await Promise.all([
+  const { tournamentSlug, categorySlug } = await params
+
+  const [tournament, profile, teams] = await Promise.all([
     TournamentService.getTournamentBySlug(tournamentSlug),
     getProfile(),
-  ]);
+    getMyTeams(),
+  ])
 
   if (!profile) {
     redirect(
       `/auth/login?redirect=${encodeURIComponent(`/torneos/${tournamentSlug}/${categorySlug}`)}`
-    );
+    )
   }
 
-  if (!tournament) notFound();
+  if (!tournament) notFound()
 
   const category = tournament.categories?.find(
     (c) => c.id === categorySlug || (c as { slug?: string }).slug === categorySlug
-  );
+  )
 
-  if (!category) notFound();
+  if (!category) notFound()
 
   return (
     <div className="min-h-screen bg-ot-background text-white">
@@ -61,8 +86,9 @@ export default async function InscribirsePage({
           categoryId={category.id}
           categorySlug={categorySlug}
           tournamentSlug={tournamentSlug}
+          initialTeams={teams}
         />
       </div>
     </div>
-  );
+  )
 }

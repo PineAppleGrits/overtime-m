@@ -1,78 +1,90 @@
-import TournamentService from "@/modules/tournament/TournamentService";
-import RegistrationService from "@/modules/registration/RegistrationService";
-import { getProfile } from "@/lib/auth/session";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ChevronLeft, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { CategoryRegistrationBlock } from "./CategoryRegistrationBlock";
+import TournamentService from "@/modules/tournament/TournamentService"
+import RegistrationService from "@/modules/registration/RegistrationService"
+import { getProfile } from "@/lib/auth/session"
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { ChevronLeft, Users, MapPin, ArrowRight, Upload } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { CategoryRegistrationBlock } from "./CategoryRegistrationBlock"
+import paymentConfigMock from "@/mock/registration-payment-config.json"
 
 function isRegistrationOpen(tournament: {
-  status?: string;
-  registrationStartDate?: string | null;
-  registrationEndDate?: string | null;
+  status?: string
+  registrationStartDate?: string | null
+  registrationEndDate?: string | null
 }): boolean {
-  const status = tournament.status;
-  if (status !== "visible" && status !== "invisible") return false;
-  const now = new Date();
+  const status = tournament.status
+  if (status !== "visible" && status !== "invisible") return false
+  const now = new Date()
   if (
     tournament.registrationStartDate &&
     new Date(tournament.registrationStartDate) > now
   )
-    return false;
+    return false
   if (
     tournament.registrationEndDate &&
     new Date(tournament.registrationEndDate) < now
   )
-    return false;
-  return true;
+    return false
+  return true
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: 0,
+  }).format(amount)
 }
 
 export default async function CategoryPage({
   params,
 }: {
-  params: Promise<{ tournamentSlug: string; categorySlug: string }>;
+  params: Promise<{ tournamentSlug: string; categorySlug: string }>
 }) {
-  const { tournamentSlug, categorySlug } = await params;
+  const { tournamentSlug, categorySlug } = await params
   const [tournament, profile] = await Promise.all([
     TournamentService.getTournamentBySlug(tournamentSlug),
     getProfile(),
-  ]);
+  ])
 
-  if (!tournament) notFound();
+  if (!tournament) notFound()
 
   const category = tournament.categories?.find(
     (c) => c.id === categorySlug || (c as { slug?: string }).slug === categorySlug
-  );
+  )
 
-  if (!category) notFound();
+  if (!category) notFound()
 
   const registrationsResponse = await RegistrationService.getRegistrations({
     categoryId: category.id,
     limit: 500,
-  });
-  const registrations = registrationsResponse?.data ?? [];
+  })
+  const registrations = registrationsResponse?.data ?? []
   const spotsTaken = registrations.filter(
     (r: { status?: string }) => r.status !== "rechazada"
-  ).length;
-  const zonesCount = category.zones?.length ?? 0;
-  const teamsPerZone = category.teamsPerZone ?? 0;
+  ).length
+  const zonesCount = category.zones?.length ?? 0
+  const teamsPerZone = category.teamsPerZone ?? 0
   const totalSpots =
-    zonesCount > 0 && teamsPerZone > 0 ? zonesCount * teamsPerZone : null;
+    zonesCount > 0 && teamsPerZone > 0 ? zonesCount * teamsPerZone : null
   const spotsLeft =
-    totalSpots !== null ? Math.max(0, totalSpots - spotsTaken) : null;
+    totalSpots !== null ? Math.max(0, totalSpots - spotsTaken) : null
 
   const myRegistration = profile
     ? registrations.find(
         (r: { requester?: { id?: string } }) => r.requester?.id === profile.id
       )
-    : null;
+    : null
 
-  const registrationOpen = isRegistrationOpen(tournament);
+  const registrationOpen = isRegistrationOpen(tournament)
   const canRegister =
     registrationOpen &&
     (totalSpots === null || (spotsLeft !== null && spotsLeft > 0)) &&
-    !myRegistration;
+    !myRegistration
+
+  // Payment config (TODO: fetch GET /tournaments/:id/payment-config when available)
+  const paymentConfig = (paymentConfigMock as Record<string, typeof paymentConfigMock["fallback"]>)["fallback"]
 
   return (
     <div className="min-h-screen bg-ot-background text-white">
@@ -94,9 +106,7 @@ export default async function CategoryPage({
           <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
             {category.name}
           </h1>
-          <p className="mt-2 text-white/70">
-            {tournament.name} · Categoría
-          </p>
+          <p className="mt-2 text-white/70">{tournament.name} · Categoría</p>
         </header>
 
         {/* Zonas */}
@@ -144,19 +154,112 @@ export default async function CategoryPage({
             </div>
           )}
 
+          {/* UC-REG-VIEW-01 — Vista de inscripción pendiente con info de pago */}
           {myRegistration && (
-            <div
-              role="status"
-              className={cn(
-                "rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-200"
-              )}
-            >
-              <p className="font-medium">
-                Su inscripción está siendo procesada.
-              </p>
-              <p className="mt-1 text-sm text-amber-200/80">
-                Recibirá una respuesta cuando sea revisada por el organizador.
-              </p>
+            <div className="space-y-4 max-w-2xl">
+              {/* Header */}
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                <p className="font-semibold text-amber-200">
+                  Tu inscripción está en revisión
+                </p>
+                <p className="mt-0.5 text-sm text-amber-200/70">
+                  El organizador revisará tu solicitud. Mientras tanto, podés abonar
+                  la inscripción con los métodos disponibles.
+                </p>
+              </div>
+
+              {/* Sección de pago */}
+              <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-5 space-y-4">
+                <h2 className="text-sm font-bold text-white/60 uppercase tracking-wider">
+                  Información de pago
+                </h2>
+
+                {/* Montos */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <p className="text-white/40 text-xs mb-0.5">Arancel de inscripción</p>
+                    <p className="text-white font-semibold">
+                      {formatCurrency(paymentConfig.inscriptionFee)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <p className="text-white/40 text-xs mb-0.5">Seguro por jugador</p>
+                    <p className="text-white font-semibold">
+                      {formatCurrency(paymentConfig.insuranceFeePerPlayer)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Métodos de pago */}
+                {paymentConfig.paymentMethods.cash.enabled && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                      Efectivo en sede
+                    </p>
+                    <ul className="space-y-1.5">
+                      {paymentConfig.paymentMethods.cash.venues.map((venue) => (
+                        <li
+                          key={venue.name}
+                          className="flex items-start gap-2 text-sm text-white/70"
+                        >
+                          <MapPin className="h-3.5 w-3.5 text-ot-orange shrink-0 mt-0.5" />
+                          <span>
+                            <span className="text-white">{venue.name}</span>
+                            <span className="text-white/40"> — {venue.address}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {paymentConfig.paymentMethods.transfer.enabled && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                      Transferencia bancaria
+                    </p>
+                    <div className="rounded-lg bg-white/5 p-3 space-y-1 text-sm">
+                      <div className="flex gap-2">
+                        <span className="text-white/40 w-16">Alias</span>
+                        <span className="text-white font-mono">
+                          {paymentConfig.paymentMethods.transfer.alias}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-white/40 w-16">CBU</span>
+                        <span className="text-white font-mono text-xs">
+                          {paymentConfig.paymentMethods.transfer.cbu}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-white/40 w-16">Banco</span>
+                        <span className="text-white/70">
+                          {paymentConfig.paymentMethods.transfer.bankName}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-white/40 w-16">Titular</span>
+                        <span className="text-white/70">
+                          {paymentConfig.paymentMethods.transfer.holder}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Subir comprobante */}
+                    <Link
+                      href={`/profile/equipos`}
+                      className="inline-flex items-center gap-2 rounded-lg border border-ot-orange/40 px-4 py-2 text-sm text-ot-orange hover:bg-ot-orange/10 transition-colors"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Subir comprobante
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                    <p className="text-xs text-white/30">
+                      Subí el comprobante desde el balance de tu equipo.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -173,5 +276,5 @@ export default async function CategoryPage({
         </div>
       </div>
     </div>
-  );
+  )
 }
