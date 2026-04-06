@@ -15,6 +15,7 @@ import {
   ChevronRight,
   ChevronDown,
   CalendarCheck,
+  CalendarRange,
   Camera,
   Briefcase,
   UsersRound,
@@ -64,6 +65,7 @@ const sidebarItems: SidebarSection[] = [
     items: [
       { label: 'Torneos', href: '/admin/torneos', icon: Trophy },
       { label: 'Equipos', href: '/admin/equipos', icon: Users },
+      { label: 'Partidos', href: '/admin/partidos', icon: CalendarRange, roles: ['admin', 'master'] },
       {
         label: 'Jugadores',
         icon: UserCog,

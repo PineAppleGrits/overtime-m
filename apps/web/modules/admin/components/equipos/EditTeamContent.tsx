@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { AlertCircle, Loader2, Trash2, UserPlus } from 'lucide-react'
+import { AlertCircle, CalendarDays, Loader2, Receipt, Trash2, Trophy, UserPlus } from 'lucide-react'
 import teamBrowserService from '@/modules/admin/services/browser/teamService'
 import playerBrowserService from '@/modules/admin/services/browser/playerService'
 import { updateTeamAction, addPlayerToTeamAction, removePlayerFromTeamAction } from '@/modules/admin/actions/teamActions'
@@ -106,6 +106,9 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="players">Jugadores ({team.players?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="torneos">Torneos</TabsTrigger>
+          <TabsTrigger value="deudas">Deudas</TabsTrigger>
+          <TabsTrigger value="partidos">Partidos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -208,6 +211,99 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        </TabsContent>
+
+        {/* ── Torneos ────────────────────────────────────────────────── */}
+        <TabsContent value="torneos">
+          <div className="max-w-2xl space-y-4">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {!((team as any).zones as unknown[])?.length ? (
+              <div className="rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
+                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f6f4]">
+                  <Trophy className="h-5 w-5 text-[#c4c2cc]" />
+                </div>
+                <p className="text-sm font-medium text-[#6b6a72]">Sin torneos registrados</p>
+                <p className="mt-1 text-xs text-[#c4c2cc]">Este equipo no está inscrito en ningún torneo.</p>
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="divide-y divide-[#e8e6e1]">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {((team as any).zones as Array<{ id: string; name: string; tournament?: { id: string; name: string }; category?: { id: string; name: string } }> ?? []).map((zone) => (
+                      <div key={zone.id} className="flex items-center gap-3 px-4 py-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7f6f4]">
+                          <Trophy className="h-4 w-4 text-[#ff3b2f]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-[#0f0e13] truncate">
+                            {zone.tournament?.name ?? 'Torneo desconocido'}
+                          </p>
+                          <p className="text-xs text-[#9b99a6]">
+                            {zone.category?.name ?? '—'} · Zona {zone.name}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* ── Deudas ─────────────────────────────────────────────────── */}
+        <TabsContent value="deudas">
+          <div className="max-w-2xl space-y-4">
+            {/* Summary */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Saldo pendiente', value: '—', accent: false },
+                { label: 'Total pagado', value: '—', accent: false },
+                { label: 'Última actividad', value: '—', accent: false },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-lg border border-[#e8e6e1] bg-white p-4">
+                  <p className="text-xs text-[#9b99a6]">{stat.label}</p>
+                  <p className="mt-1 text-lg font-semibold text-[#0f0e13]">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* History */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-[#0f0e13]">Historial de pagos</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="py-10 text-center">
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f6f4]">
+                    <Receipt className="h-5 w-5 text-[#c4c2cc]" />
+                  </div>
+                  <p className="text-sm font-medium text-[#6b6a72]">Sin movimientos registrados</p>
+                  <p className="mt-1 text-xs text-[#c4c2cc]">
+                    {/* TODO: conectar con API de balance del equipo */}
+                    El historial de pagos aparecerá acá cuando esté disponible.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ── Partidos ───────────────────────────────────────────────── */}
+        <TabsContent value="partidos">
+          <div className="max-w-3xl space-y-4">
+            <div className="rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
+              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f6f4]">
+                <CalendarDays className="h-5 w-5 text-[#c4c2cc]" />
+              </div>
+              <p className="text-sm font-medium text-[#6b6a72]">Sin partidos próximos</p>
+              <p className="mt-1 text-xs text-[#c4c2cc]">
+                {/* TODO: conectar con API de partidos filtrados por equipo */}
+                Los partidos de este equipo aparecerán acá.
+              </p>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
