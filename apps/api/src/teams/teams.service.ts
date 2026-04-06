@@ -300,6 +300,14 @@ export class TeamsService {
       where: { id, deletedAt: null },
       include: {
         sport: true,
+        franchise: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+          },
+        },
         creator: {
           select: {
             id: true,
