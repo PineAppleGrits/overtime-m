@@ -9,6 +9,9 @@
  * }
  */
 
+import teamStatsData from '../../../mock/team-stats.json'
+import playerStatsData from '../../../mock/player-stats.json'
+
 // ── Estadísticas de equipo ────────────────────────────────
 export interface TeamStats {
   playedMatches: number
@@ -29,7 +32,7 @@ export interface PlayerStats {
   steals: number   // Robos (total)
   rebounds: number // Rebotes (total)
   assists: number  // Asistencias (total)
-  picture?: string // URL de foto del media day
+  picture?: string | null // URL de foto del media day
 }
 
 export type TeamPlayerStatsMap = Record<string, PlayerStats>
@@ -37,21 +40,9 @@ export type TeamPlayerStatsMap = Record<string, PlayerStats>
 // ─────────────────────────────────────────────────────────
 // Mock data – reemplazar con respuesta real de la API
 // ─────────────────────────────────────────────────────────
-const MOCK_TEAM_STATS: Record<string, TeamStats> = {
-  // 'team-uuid': {
-  //   playedMatches: 10, won: 7, lost: 3,
-  //   pointsFor: 820, pointsAgainst: 710,
-  // }
-}
+const MOCK_TEAM_STATS = teamStatsData as Record<string, TeamStats>
 
-const MOCK_PLAYER_STATS: Record<string, TeamPlayerStatsMap> = {
-  // 'team-uuid': {
-  //   'profile-uuid': {
-  //     played: 8, points: 120, pt1: 18, pt2: 48, pt3: 24,
-  //     fouls: 20, steals: 12, rebounds: 35, assists: 28,
-  //   }
-  // }
-}
+const MOCK_PLAYER_STATS = playerStatsData as Record<string, TeamPlayerStatsMap>
 
 export function getMockTeamStats(teamId: string): TeamStats | null {
   return MOCK_TEAM_STATS[teamId] ?? null

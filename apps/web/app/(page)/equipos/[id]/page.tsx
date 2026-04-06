@@ -3,10 +3,13 @@ import { getProfile } from '@/lib/auth/session'
 import { getMockTeamMatches, MatchPreview } from '@/modules/common/components/MatchPreview'
 import { getMockPlayerStats, getMockTeamStats } from '@/modules/team/mock/playerStats.mock'
 import teamService from '@/modules/team/TeamService'
-import { Star, Trash2, UserPlus } from 'lucide-react'
+import { Settings, Star, UserPlus } from 'lucide-react'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { AddPlayerDialog } from './AddPlayerDialog'
 import { LeaveTeamButton } from './LeaveTeamButton'
 import { LogoEditButton } from './LogoEditButton'
+import { RemovePlayerButton } from './RemovePlayerButton'
 
 const DEFAULT_PLAYER_PHOTO = '/player-placeholder.png'
 
@@ -194,12 +197,19 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
         </div>
       )}
 
-      {/* ── LEAVE TEAM BUTTON ── */}
-      {isMember && !isCreator && (
-        <div className="flex justify-center mt-6 px-4">
-          <LeaveTeamButton teamId={id} />
-        </div>
-      )}
+      {/* ── TEAM ACTIONS ── */}
+      <div className="flex justify-center gap-3 mt-6 px-4 flex-wrap">
+        {(isAdmin || isCreator || isCaptain) && (
+          <Link
+            href={`/equipos/${id}/gestionar`}
+            className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <Settings className="h-3.5 w-3.5" />
+            Gestionar equipo
+          </Link>
+        )}
+        {isMember && !isCreator && <LeaveTeamButton teamId={id} />}
+      </div>
 
       {/* ── PLAYERS LIST ── */}
       <div className="flex flex-col items-center gap-3 my-12 bg-ot-background">
@@ -271,12 +281,11 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                             </div>
                             {/* Eliminar jugador: solo capitán y admin */}
                             {canRemovePlayers && !isMemberCreator && (
-                              <button
-                                title="Quitar del equipo"
-                                className="text-[#4E4585] hover:text-red-400 transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
+                              <RemovePlayerButton
+                                teamId={id}
+                                profileId={member.profile.id}
+                                playerName={member.profile.name}
+                              />
                             )}
                           </div>
                         </div>
@@ -338,17 +347,18 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
 
-          {/* Agregar / Eliminar – solo delegado y admin */}
+          {/* Agregar jugador – solo delegado y admin */}
           {(isAdmin || isCaptain) && (
-            <div className="flex flex-col gap-2 w-full max-w-sm">
-              <button className="flex items-center justify-center gap-1.5 w-full rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-blue-400 hover:bg-blue-500/20 transition-colors font-din-display cursor-pointer">
-                <UserPlus className="h-3.5 w-3.5" />
-                Agregar jugador
-              </button>
-              <button className="flex items-center justify-center gap-1.5 w-full rounded border border-red-500/30 bg-red-500/5 px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-red-400/60 hover:bg-red-500/10 hover:text-red-400 transition-colors font-din-display cursor-pointer">
-                <Trash2 className="h-3.5 w-3.5" />
-                Eliminar equipo
-              </button>
+            <div className="w-full max-w-sm">
+              <AddPlayerDialog
+                teamId={id}
+                trigger={
+                  <button className="flex items-center justify-center gap-1.5 w-full rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-blue-400 hover:bg-blue-500/20 transition-colors font-din-display cursor-pointer">
+                    <UserPlus className="h-3.5 w-3.5" />
+                    Agregar jugador
+                  </button>
+                }
+              />
             </div>
           )}
 

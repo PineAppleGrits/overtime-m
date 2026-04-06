@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Plus, Shield, Users, Star, Building2 } from 'lucide-react'
+import { Plus, Shield, Users, Star, Building2, Wallet, Settings } from 'lucide-react'
 import teamService from '@/modules/team/TeamService'
 import { getProfile } from '@/lib/auth/session'
 import { LeaveTeamButton } from '@/modules/team/components/LeaveTeamButton'
@@ -114,6 +114,25 @@ function TeamCard({
           </div>
         )}
       </Link>
+
+      {(isCreator || isCaptain) && (
+        <div className="px-4 pb-3 pt-0 flex items-center gap-4">
+          <Link
+            href={`/equipos/${team.id}/balance`}
+            className="text-xs text-amber-400/70 hover:text-amber-400 flex items-center gap-1 transition-colors"
+          >
+            <Wallet className="h-3 w-3" />
+            Balance →
+          </Link>
+          <Link
+            href={`/equipos/${team.id}/gestionar`}
+            className="text-xs text-white/40 hover:text-white/70 flex items-center gap-1 transition-colors"
+          >
+            <Settings className="h-3 w-3" />
+            Gestionar →
+          </Link>
+        </div>
+      )}
 
       {!isCreator && (
         <div className="px-4 pb-3 pt-0">
