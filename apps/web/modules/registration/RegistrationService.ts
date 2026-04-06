@@ -13,6 +13,7 @@ interface CreateRegistrationDto {
   teamId: string
   tournamentId: string
   categoryId: string
+  initialRoster: { documentNumber: string; name: string }[]
 }
 
 interface RejectRegistrationDto {

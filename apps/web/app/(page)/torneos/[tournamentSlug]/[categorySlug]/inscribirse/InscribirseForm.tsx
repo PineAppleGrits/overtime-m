@@ -50,9 +50,11 @@ export function InscribirseForm({
     )
   }
 
+  const MIN_PLAYERS = 8
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!selectedTeamId || selectedPlayerIds.length === 0) return
+    if (!selectedTeamId || selectedPlayerIds.length < MIN_PLAYERS) return
     startTransition(async () => {
       const result = await createRegistrationWithPlayersAction(
         { teamId: selectedTeamId, tournamentId, categoryId, playerIds: selectedPlayerIds },
@@ -178,7 +180,12 @@ export function InscribirseForm({
           <p className="text-xs text-white/40">
             {selectedPlayerIds.length}{" "}
             jugador{selectedPlayerIds.length !== 1 ? "es" : ""} seleccionado
-            {selectedPlayerIds.length !== 1 ? "s" : ""}
+            {selectedPlayerIds.length !== 1 ? "s" : ""}{" "}
+            {selectedPlayerIds.length < MIN_PLAYERS && (
+              <span className="text-amber-400">
+                (mínimo {MIN_PLAYERS} requeridos)
+              </span>
+            )}
           </p>
         </div>
       )}
@@ -187,7 +194,7 @@ export function InscribirseForm({
       <div className="flex flex-wrap gap-3">
         <button
           type="submit"
-          disabled={!selectedTeamId || selectedPlayerIds.length === 0 || isPending}
+          disabled={!selectedTeamId || selectedPlayerIds.length < MIN_PLAYERS || isPending}
           className="bg-ot-orange hover:bg-ot-orange/90 text-white font-semibold rounded-lg px-6 py-3 text-sm transition-colors disabled:opacity-50 cursor-pointer"
         >
           {isPending ? "Enviando..." : "Enviar inscripción"}

@@ -51,7 +51,7 @@ export default async function CategoryPage({
   if (!tournament) notFound()
 
   const category = tournament.categories?.find(
-    (c) => c.id === categorySlug || (c as { slug?: string }).slug === categorySlug
+    (c) => c.slug === categorySlug || c.id === categorySlug
   )
 
   if (!category) notFound()

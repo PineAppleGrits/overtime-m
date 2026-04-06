@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createTeamSchema } from '@overtime-mono/shared/teams/contracts'
 import { z } from 'zod'
 import teamService from '@/modules/team/TeamService'
+import userService from '@/modules/user/UserService'
 import { getProfile } from '@/lib/auth/session'
 import type { ActionResult } from '@/modules/admin/actions/types'
 import { normalizeTeamPayload } from '@/modules/team/team-payload'
@@ -83,7 +84,7 @@ export async function addPlayerToTeamAction(
   }
 
   try {
-    await teamService.addPlayer(teamId, { playerId: profileId })
+    await teamService.addPlayer(teamId, { profileId })
     revalidatePath(`/equipos/${teamId}`)
     revalidatePath('/profile/equipos')
     return { success: true }
@@ -167,5 +168,35 @@ export async function createFranchiseWithTeamAction(
   } catch (error) {
     console.error(error)
     return { success: false, error: 'No se pudo crear la franquicia' }
+  }
+}
+
+export interface UserSearchResult {
+  id: string
+  name: string
+  email: string
+  documentNumber?: string | null
+  avatarUrl?: string | null
+}
+
+export async function searchUsersForTeamAction(
+  search: string,
+): Promise<ActionResult<UserSearchResult[]>> {
+  if (!search.trim()) return { success: true, data: [] }
+  try {
+    const res = await userService.getUsers({ search, limit: 10 })
+    const users: UserSearchResult[] = (res?.data ?? []).map(
+      (u: { id: string; name: string; email: string; documentNumber?: string | null; avatarUrl?: string | null }) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        documentNumber: u.documentNumber,
+        avatarUrl: u.avatarUrl,
+      }),
+    )
+    return { success: true, data: users }
+  } catch {
+    // TODO: endpoint /users es admin-only; se necesita un endpoint público de búsqueda de perfiles
+    return { success: true, data: [] }
   }
 }

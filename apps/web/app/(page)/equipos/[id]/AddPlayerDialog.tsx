@@ -10,15 +10,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { addPlayerToTeamAction } from '@/modules/profile/actions/teamActions'
-import availablePlayers from '@/mock/available-players.json'
-
-interface AvailablePlayer {
-  id: string
-  name: string
-  email: string
-  documentNumber: string
-}
+import { addPlayerToTeamAction, searchUsersForTeamAction } from '@/modules/profile/actions/teamActions'
+import type { UserSearchResult } from '@/modules/profile/actions/teamActions'
 
 interface AddPlayerDialogProps {
   teamId: string
@@ -28,22 +21,29 @@ interface AddPlayerDialogProps {
 export function AddPlayerDialog({ teamId, trigger }: AddPlayerDialogProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [results, setResults] = useState<UserSearchResult[]>([])
+  const [isSearching, startSearch] = useTransition()
   const [isPending, startTransition] = useTransition()
 
-  const filtered: AvailablePlayer[] = search.trim().length > 0
-    ? (availablePlayers as AvailablePlayer[]).filter(
-        (p) =>
-          p.name.toLowerCase().includes(search.toLowerCase()) ||
-          p.email.toLowerCase().includes(search.toLowerCase()),
-      )
-    : []
+  function handleSearch(value: string) {
+    setSearch(value)
+    if (!value.trim()) {
+      setResults([])
+      return
+    }
+    startSearch(async () => {
+      const res = await searchUsersForTeamAction(value)
+      setResults(res.success ? (res.data ?? []) : [])
+    })
+  }
 
-  function handleAdd(player: AvailablePlayer) {
+  function handleAdd(player: UserSearchResult) {
     startTransition(async () => {
       const result = await addPlayerToTeamAction(teamId, player.id)
       if (result.success) {
         toast.success(`${player.name} fue agregado al equipo`)
         setSearch('')
+        setResults([])
         setOpen(false)
       } else {
         toast.error(result.error ?? 'No se pudo agregar al jugador')
@@ -65,14 +65,18 @@ export function AddPlayerDialog({ teamId, trigger }: AddPlayerDialogProps) {
             type="text"
             placeholder="Buscar por nombre o email"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="w-full rounded-lg border border-ot-light-blue/40 bg-white/5 pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-ot-orange/50"
           />
         </div>
 
-        {filtered.length > 0 && (
+        {isSearching && (
+          <p className="text-xs text-white/40 text-center py-2">Buscando...</p>
+        )}
+
+        {!isSearching && results.length > 0 && (
           <ul className="space-y-2 max-h-60 overflow-y-auto">
-            {filtered.map((player) => (
+            {results.map((player) => (
               <li
                 key={player.id}
                 className="flex items-center justify-between rounded-lg border border-ot-light-blue/30 bg-white/5 px-3 py-2"
@@ -94,7 +98,7 @@ export function AddPlayerDialog({ teamId, trigger }: AddPlayerDialogProps) {
           </ul>
         )}
 
-        {search.trim().length > 0 && filtered.length === 0 && (
+        {!isSearching && search.trim().length > 0 && results.length === 0 && (
           <p className="text-sm text-white/40 text-center py-4">
             No se encontraron jugadores
           </p>
