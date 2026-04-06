@@ -20,10 +20,10 @@ interface SettingsFormProps {
   teamId: string
   teamName: string
   sportName: string
-  captainName: string | null
+  franchiseName: string | null
 }
 
-export function SettingsForm({ teamId, teamName, sportName, captainName }: SettingsFormProps) {
+export function SettingsForm({ teamId, teamName, sportName, franchiseName }: SettingsFormProps) {
   const router = useRouter()
   const [isSaving, startSaveTransition] = useTransition()
   const [isDeleting, startDeleteTransition] = useTransition()
@@ -93,6 +93,15 @@ export function SettingsForm({ teamId, teamName, sportName, captainName }: Setti
               className="w-full rounded-lg border border-ot-light-blue/40 bg-white/5 px-3 py-2 text-sm text-white/50 cursor-not-allowed"
             />
           </div>
+          <div>
+            <label className="block text-sm text-white/70 mb-1">Franquicia</label>
+            <input
+              type="text"
+              value={franchiseName ?? 'Equipo independiente'}
+              readOnly
+              className="w-full rounded-lg border border-ot-light-blue/40 bg-white/5 px-3 py-2 text-sm text-white/50 cursor-not-allowed"
+            />
+          </div>
           <button
             type="submit"
             disabled={isSaving}
@@ -101,25 +110,6 @@ export function SettingsForm({ teamId, teamName, sportName, captainName }: Setti
             {isSaving ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </form>
-      </div>
-
-      {/* Capitán del equipo */}
-      <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-6">
-        <h2 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4">
-          Capitán del equipo
-        </h2>
-        <p className="text-sm text-white/70">
-          Actual:{' '}
-          <span className="text-white font-medium">
-            {captainName ?? 'Sin capitán asignado'}
-          </span>
-        </p>
-        <button
-          disabled
-          className="mt-3 border border-ot-light-blue/40 text-white/40 rounded-lg px-4 py-2 text-sm cursor-not-allowed"
-        >
-          Cambiar capitán (próximamente)
-        </button>
       </div>
 
       {/* Zona de peligro */}

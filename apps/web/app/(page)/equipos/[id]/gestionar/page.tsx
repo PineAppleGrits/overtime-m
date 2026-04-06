@@ -1,10 +1,11 @@
 import { getProfile } from '@/lib/auth/session'
 import { hasAdminRole } from '@/lib/auth/hasAdminRole'
 import teamService from '@/modules/team/TeamService'
+import { getTeamBalance } from '@/modules/team/TeamBalanceService'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, Settings } from 'lucide-react'
-import { SettingsForm } from './SettingsForm'
+import { ChevronLeft } from 'lucide-react'
+import { GestionarTabs } from './GestionarTabs'
 
 interface TeamDetail {
   id: string
@@ -13,6 +14,7 @@ interface TeamDetail {
   creatorId: string
   sport: { name: string }
   captain?: { id: string; name: string }
+  franchise?: { id: string; name: string; logoUrl?: string | null } | null
 }
 
 async function getTeam(id: string): Promise<TeamDetail | null> {
@@ -30,7 +32,11 @@ export default async function TeamSettingsPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [team, profile] = await Promise.all([getTeam(id), getProfile()])
+  const [team, profile, balance] = await Promise.all([
+    getTeam(id),
+    getProfile(),
+    getTeamBalance(id),
+  ])
 
   if (!team) notFound()
 
@@ -51,18 +57,14 @@ export default async function TeamSettingsPage({
           Volver al equipo
         </Link>
 
-        <div className="flex items-center gap-3">
-          <Settings className="h-6 w-6 text-ot-orange" />
-          <h1 className="text-xl font-bold font-din-display">
-            Configuración — {team.name}
-          </h1>
-        </div>
+        <h1 className="text-xl font-bold font-din-display">{team.name}</h1>
 
-        <SettingsForm
+        <GestionarTabs
           teamId={id}
           teamName={team.name}
           sportName={team.sport.name}
-          captainName={team.captain?.name ?? null}
+          franchise={team.franchise ?? null}
+          balance={balance}
         />
       </div>
     </div>
