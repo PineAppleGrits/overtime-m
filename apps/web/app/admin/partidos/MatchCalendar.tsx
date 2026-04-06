@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useTransition } from 'react'
+import { useState, useCallback, useTransition, useRef } from 'react'
 import {
   format,
   addMonths, subMonths,
@@ -10,9 +10,10 @@ import {
   startOfWeek, endOfWeek,
   eachDayOfInterval,
   isSameDay, isSameMonth, isToday,
+  parseISO,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Plus, MapPin, Clock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, MapPin, Clock, CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { rescheduleMatchAction } from '@/modules/admin/actions/matchActions'
@@ -84,7 +85,8 @@ export function MatchCalendar({ initialMatches }: MatchCalendarProps) {
   const [matches, setMatches]         = useState<AdminMatch[]>(initialMatches)
   const [draggedId, setDraggedId]     = useState<string | null>(null)
   const [dropTarget, setDropTarget]   = useState<string | null>(null)
-  const [, startTransition] = useTransition()
+  const [, startTransition]           = useTransition()
+  const dateInputRef                  = useRef<HTMLInputElement>(null)
 
   // ── Navigation ────────────────────────────────────────────────────────────
 
@@ -102,6 +104,11 @@ export function MatchCalendar({ initialMatches }: MatchCalendarProps) {
                          subDays(d, 1)
     )
 
+  const navigateToDay = useCallback((day: Date) => {
+    setCurrentDate(day)
+    setView('day')
+  }, [])
+
   const titleLabel = () => {
     if (view === 'month')
       return format(currentDate, 'MMMM yyyy', { locale: es })
@@ -111,6 +118,13 @@ export function MatchCalendar({ initialMatches }: MatchCalendarProps) {
       return `${format(ws, "d 'de' MMM", { locale: es })} – ${format(we, "d 'de' MMM yyyy", { locale: es })}`
     }
     return format(currentDate, "EEEE d 'de' MMMM yyyy", { locale: es })
+  }
+
+  // ── Date picker ───────────────────────────────────────────────────────────
+
+  const handleDatePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.value) return
+    setCurrentDate(parseISO(e.target.value))
   }
 
   // ── DnD ──────────────────────────────────────────────────────────────────
@@ -196,6 +210,25 @@ export function MatchCalendar({ initialMatches }: MatchCalendarProps) {
           <h2 className="ml-3 text-[15px] font-semibold text-[#0f0e13] capitalize truncate select-none">
             {titleLabel()}
           </h2>
+
+          {/* Date picker trigger */}
+          <div className="relative ml-1">
+            <button
+              onClick={() => dateInputRef.current?.showPicker()}
+              className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-[#f0eeeb] text-[#9b99a6] hover:text-[#0f0e13] transition-colors"
+              title="Ir a una fecha"
+            >
+              <CalendarDays className="h-4 w-4" />
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={format(currentDate, 'yyyy-MM-dd')}
+              onChange={handleDatePickerChange}
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              tabIndex={-1}
+            />
+          </div>
         </div>
 
         {/* Right: view switcher + new match */}
@@ -236,6 +269,7 @@ export function MatchCalendar({ initialMatches }: MatchCalendarProps) {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            onDayClick={navigateToDay}
           />
         )}
         {view === 'week' && (
@@ -249,6 +283,7 @@ export function MatchCalendar({ initialMatches }: MatchCalendarProps) {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            onDayClick={navigateToDay}
           />
         )}
         {view === 'day' && (
@@ -269,7 +304,7 @@ export function MatchCalendar({ initialMatches }: MatchCalendarProps) {
   )
 }
 
-// ─── Shared view props ─────────────────────────────────────────────────────���──
+// ─── Shared view props ────────────────────────────────────────────────────────
 
 interface ViewProps {
   currentDate: Date
@@ -281,6 +316,7 @@ interface ViewProps {
   onDragOver: (e: React.DragEvent, cellKey: string) => void
   onDragLeave: () => void
   onDrop: (e: React.DragEvent, date: Date) => void
+  onDayClick?: (day: Date) => void
 }
 
 // ─── Match Chip (compact — used in Month/Week views) ─────────────────────────
@@ -379,7 +415,7 @@ function MatchCardFull({
 
 function MonthView({
   currentDate, matchesForDay, draggedId, dropTarget,
-  onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop,
+  onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onDayClick,
 }: ViewProps) {
   const monthStart = startOfMonth(currentDate)
   const monthEnd   = endOfMonth(currentDate)
@@ -432,21 +468,25 @@ function MonthView({
               onDragLeave={onDragLeave}
               onDrop={e => onDrop(e, day)}
             >
-              {/* Day number */}
+              {/* Day number — clickable to drill into day view */}
               <div className="flex justify-end mb-0.5 shrink-0">
-                <span
+                <button
+                  onClick={() => onDayClick?.(day)}
                   className={cn(
                     'h-[20px] w-[20px] flex items-center justify-center rounded-full',
                     'text-[11px] font-medium leading-none select-none transition-colors',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff3b2f]/50',
                     today
                       ? 'bg-[#ff3b2f] text-white font-bold'
                       : inMonth
-                        ? isWeekend ? 'text-[#ff3b2f]/70' : 'text-[#3d3c44]'
-                        : 'text-[#c4c2cc]',
+                        ? isWeekend
+                          ? 'text-[#ff3b2f]/70 hover:bg-[#fff0ee]'
+                          : 'text-[#3d3c44] hover:bg-[#f0eeeb]'
+                        : 'text-[#c4c2cc] hover:bg-[#e8e6e1]',
                   )}
                 >
                   {format(day, 'd')}
-                </span>
+                </button>
               </div>
 
               {/* Match chips */}
@@ -461,9 +501,12 @@ function MonthView({
                   />
                 ))}
                 {dayMs.length > 3 && (
-                  <span className="text-[9px] text-[#9b99a6] pl-1.5 leading-snug select-none">
+                  <button
+                    onClick={() => onDayClick?.(day)}
+                    className="text-[9px] text-[#9b99a6] hover:text-[#ff3b2f] pl-1.5 leading-snug select-none text-left transition-colors"
+                  >
                     +{dayMs.length - 3} más
-                  </span>
+                  </button>
                 )}
               </div>
             </div>
@@ -478,14 +521,14 @@ function MonthView({
 
 function WeekView({
   currentDate, matchesForDay, draggedId, dropTarget,
-  onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop,
+  onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onDayClick,
 }: ViewProps) {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-      {/* Column headers */}
+      {/* Column headers — clickable to drill into day view */}
       <div
         className="grid shrink-0 border-b border-[#e8e6e1] bg-white"
         style={{ gridTemplateColumns: '3.5rem repeat(7, 1fr)' }}
@@ -495,25 +538,29 @@ function WeekView({
           const today      = isToday(day)
           const isWeekend  = i >= 5
           return (
-            <div
+            <button
               key={day.toISOString()}
-              className="py-2 text-center border-r border-[#e8e6e1] last:border-r-0 select-none"
+              onClick={() => onDayClick?.(day)}
+              className={cn(
+                'py-2 text-center border-r border-[#e8e6e1] last:border-r-0',
+                'transition-colors hover:bg-[#f7f6f4] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#ff3b2f]/40',
+              )}
             >
               <div className={cn(
-                'text-[10px] font-semibold uppercase tracking-wider',
+                'text-[10px] font-semibold uppercase tracking-wider select-none',
                 isWeekend ? 'text-[#ff3b2f]/60' : 'text-[#9b99a6]',
               )}>
                 {DAY_LABELS[i]}
               </div>
               <div className={cn(
-                'mx-auto mt-0.5 h-6 w-6 flex items-center justify-center rounded-full text-[12px] font-semibold leading-none',
+                'mx-auto mt-0.5 h-6 w-6 flex items-center justify-center rounded-full text-[12px] font-semibold leading-none select-none transition-colors',
                 today        ? 'bg-[#ff3b2f] text-white' :
-                isWeekend    ? 'text-[#ff3b2f]/80' :
+                isWeekend    ? 'text-[#ff3b2f]/80 group-hover:bg-[#fff0ee]' :
                                'text-[#3d3c44]',
               )}>
                 {format(day, 'd')}
               </div>
-            </div>
+            </button>
           )
         })}
       </div>
