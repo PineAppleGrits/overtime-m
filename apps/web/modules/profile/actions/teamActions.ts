@@ -1,13 +1,13 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { createTeamSchema } from '@overtime-mono/shared/teams/contracts'
-import { z } from 'zod'
-import teamService from '@/modules/team/TeamService'
-import userService from '@/modules/user/UserService'
 import { getProfile } from '@/lib/auth/session'
 import type { ActionResult } from '@/modules/admin/actions/types'
 import { normalizeTeamPayload } from '@/modules/team/team-payload'
+import teamService from '@/modules/team/TeamService'
+import userService from '@/modules/user/UserService'
+import { createTeamSchema } from '@overtime-mono/shared/teams/contracts'
+import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 
 const createFranchiseSchema = z.object({
   franchiseName: z.string().min(1, 'El nombre de la franquicia es obligatorio'),
@@ -174,9 +174,9 @@ export async function createFranchiseWithTeamAction(
 export interface UserSearchResult {
   id: string
   name: string
-  email: string
-  documentNumber?: string | null
-  avatarUrl?: string | null
+  email?: string
+  documentNumber?: string
+  avatarUrl?: string
 }
 
 export async function searchUsersForTeamAction(
@@ -186,12 +186,12 @@ export async function searchUsersForTeamAction(
   try {
     const res = await userService.getUsers({ search, limit: 10 })
     const users: UserSearchResult[] = (res?.data ?? []).map(
-      (u: { id: string; name: string; email: string; documentNumber?: string | null; avatarUrl?: string | null }) => ({
+      (u) => ({
         id: u.id,
         name: u.name,
         email: u.email,
         documentNumber: u.documentNumber,
-        avatarUrl: u.avatarUrl,
+        avatarUrl: "", // TODO - Revisar si devuelve avatarUrl
       }),
     )
     return { success: true, data: users }
