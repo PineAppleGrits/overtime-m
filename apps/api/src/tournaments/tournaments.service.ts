@@ -6,19 +6,39 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import {
-  CreateTournamentDto,
+  CreateTournamentSchemaDto,
   TournamentStatus,
-  UpdateTournamentDto,
+  UpdateTournamentSchemaDto,
   ChangeStatusDto,
   PaginationDto,
 } from '@overtime-mono/shared';
-import slugify from 'slugify';
+import { generateUniqueSlug } from '../common/utils/slug.util';
 
 @Injectable()
 export class TournamentsService {
   private readonly logger = new Logger(TournamentsService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  private async generateTournamentSlug(
+    name: string,
+    excludeId?: string,
+  ): Promise<string> {
+    return generateUniqueSlug({
+      value: name,
+      exists: async (slug) => {
+        const existingTournament = await this.prisma.tournament.findFirst({
+          where: {
+            slug,
+            ...(excludeId ? { id: { not: excludeId } } : {}),
+          },
+          select: { id: true },
+        });
+
+        return Boolean(existingTournament);
+      },
+    });
+  }
 
   /**
    * Validar transiciones de estado permitidas
@@ -28,11 +48,31 @@ export class TournamentsService {
     newStatus: TournamentStatus,
   ): void {
     const validTransitions: Record<string, TournamentStatus[]> = {
-      DRAFT: [TournamentStatus.OPEN, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
-      OPEN: [TournamentStatus.CLOSED, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
-      CLOSED: [TournamentStatus.READY_TO_SHIP, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
-      READY_TO_SHIP: [TournamentStatus.IN_PROGRESS, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
-      IN_PROGRESS: [TournamentStatus.FINISHED, TournamentStatus.ARCHIVED, TournamentStatus.CANCELLED],
+      DRAFT: [
+        TournamentStatus.OPEN,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
+      OPEN: [
+        TournamentStatus.CLOSED,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
+      CLOSED: [
+        TournamentStatus.READY_TO_SHIP,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
+      READY_TO_SHIP: [
+        TournamentStatus.IN_PROGRESS,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
+      IN_PROGRESS: [
+        TournamentStatus.FINISHED,
+        TournamentStatus.ARCHIVED,
+        TournamentStatus.CANCELLED,
+      ],
       FINISHED: [TournamentStatus.ARCHIVED],
       ARCHIVED: [],
       CANCELLED: [],
@@ -62,14 +102,16 @@ export class TournamentsService {
 
     await this.prisma.tournament.updateMany({
       where: {
-        status: { in: [TournamentStatus.CLOSED, TournamentStatus.READY_TO_SHIP] },
+        status: {
+          in: [TournamentStatus.CLOSED, TournamentStatus.READY_TO_SHIP],
+        },
         endDate: { lte: now },
       },
       data: { status: TournamentStatus.FINISHED },
     });
   }
 
-  async create(createTournamentDto: CreateTournamentDto) {
+  async create(createTournamentDto: CreateTournamentSchemaDto) {
     // Verificar que el deporte existe
     const sport = await this.prisma.sport.findUnique({
       where: { id: createTournamentDto.sportId },
@@ -100,10 +142,21 @@ export class TournamentsService {
       );
     }
 
+    if (
+      createTournamentDto.teamOperationsOpenAt &&
+      createTournamentDto.teamOperationsCloseAt &&
+      new Date(createTournamentDto.teamOperationsOpenAt) >
+        new Date(createTournamentDto.teamOperationsCloseAt)
+    ) {
+      throw new BadRequestException(
+        'Team operations open date must be before team operations close date',
+      );
+    }
+
     const tournament = await this.prisma.tournament.create({
       data: {
         name: createTournamentDto.name,
-        slug: slugify(createTournamentDto.name),
+        slug: await this.generateTournamentSlug(createTournamentDto.name),
         description: createTournamentDto.description ?? null,
         sportId: createTournamentDto.sportId,
         status: createTournamentDto.status ?? TournamentStatus.DRAFT,
@@ -118,6 +171,12 @@ export class TournamentsService {
           : null,
         registrationEndDate: createTournamentDto.registrationEndDate
           ? new Date(createTournamentDto.registrationEndDate)
+          : null,
+        teamOperationsOpenAt: createTournamentDto.teamOperationsOpenAt
+          ? new Date(createTournamentDto.teamOperationsOpenAt)
+          : null,
+        teamOperationsCloseAt: createTournamentDto.teamOperationsCloseAt
+          ? new Date(createTournamentDto.teamOperationsCloseAt)
           : null,
         insurancePerPlayer: createTournamentDto.insurancePerPlayer ?? null,
       },
@@ -224,6 +283,7 @@ export class TournamentsService {
                       select: {
                         id: true,
                         name: true,
+                        slug: true,
                         logoUrl: true,
                       },
                     },
@@ -252,6 +312,7 @@ export class TournamentsService {
               select: {
                 id: true,
                 name: true,
+                slug: true,
                 logoUrl: true,
               },
             },
@@ -292,6 +353,7 @@ export class TournamentsService {
                       select: {
                         id: true,
                         name: true,
+                        slug: true,
                         logoUrl: true,
                       },
                     },
@@ -320,6 +382,7 @@ export class TournamentsService {
               select: {
                 id: true,
                 name: true,
+                slug: true,
                 logoUrl: true,
               },
             },
@@ -342,7 +405,7 @@ export class TournamentsService {
     return tournament;
   }
 
-  async update(id: string, updateTournamentDto: UpdateTournamentDto) {
+  async update(id: string, updateTournamentDto: UpdateTournamentSchemaDto) {
     const tournament = await this.findOne(id);
 
     // Si se está actualizando el deporte, verificar que existe
@@ -385,6 +448,23 @@ export class TournamentsService {
       );
     }
 
+    const teamOperationsOpenAt = updateTournamentDto.teamOperationsOpenAt
+      ? new Date(updateTournamentDto.teamOperationsOpenAt)
+      : tournament.teamOperationsOpenAt;
+    const teamOperationsCloseAt = updateTournamentDto.teamOperationsCloseAt
+      ? new Date(updateTournamentDto.teamOperationsCloseAt)
+      : tournament.teamOperationsCloseAt;
+
+    if (
+      teamOperationsOpenAt &&
+      teamOperationsCloseAt &&
+      teamOperationsOpenAt > teamOperationsCloseAt
+    ) {
+      throw new BadRequestException(
+        'Team operations open date must be before team operations close date',
+      );
+    }
+
     // Si se está cambiando el estado, validar transición
     if (updateTournamentDto.status) {
       this.validateStatusTransition(
@@ -397,6 +477,9 @@ export class TournamentsService {
       where: { id },
       data: {
         ...updateTournamentDto,
+        slug: updateTournamentDto.name
+          ? await this.generateTournamentSlug(updateTournamentDto.name, id)
+          : undefined,
         startDate: updateTournamentDto.startDate
           ? new Date(updateTournamentDto.startDate)
           : undefined,
@@ -408,6 +491,12 @@ export class TournamentsService {
           : undefined,
         registrationEndDate: updateTournamentDto.registrationEndDate
           ? new Date(updateTournamentDto.registrationEndDate)
+          : undefined,
+        teamOperationsOpenAt: updateTournamentDto.teamOperationsOpenAt
+          ? new Date(updateTournamentDto.teamOperationsOpenAt)
+          : undefined,
+        teamOperationsCloseAt: updateTournamentDto.teamOperationsCloseAt
+          ? new Date(updateTournamentDto.teamOperationsCloseAt)
           : undefined,
       },
       include: {

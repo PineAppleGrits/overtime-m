@@ -1,24 +1,433 @@
 import {
-  Injectable,
-  NotFoundException,
   BadRequestException,
   ConflictException,
+  Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
+import { CategorySubstatus, Prisma } from '@prisma/client';
+import type {
+  AddRegistrationRosterEntryDto,
+  CreateRegistrationSchemaDto,
+  PaginationDto,
+  RegistrationRosterPlayerDto,
+} from '@overtime-mono/shared';
 import { PrismaService } from '../database/prisma.service';
-import { CreateRegistrationDto, ApproveRegistrationDto, PaginationDto } from '@overtime-mono/shared';
+import { EligibilityService } from '../eligibility/eligibility.service';
+import {
+  ACTIVE_REGISTRATION_STATUSES,
+  EDITABLE_REGISTRATION_STATUSES,
+  MAX_ADDITIONS,
+  MAX_TOTAL_ROSTER,
+  MIN_INITIAL_ROSTER,
+  NON_FINISHED_MATCH_STATUSES,
+  PLAYOFF_CUTOFF_REMAINING_MATCHES,
+} from './registrations.constants';
+
+type PrismaClientLike = PrismaService | Prisma.TransactionClient;
+
+const registrationDetailInclude =
+  Prisma.validator<Prisma.RegistrationInclude>()({
+    team: {
+      include: {
+        sport: true,
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        captain: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        members: {
+          where: { isActive: true },
+          include: {
+            profile: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatarUrl: true,
+                documentNumber: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    tournament: {
+      include: {
+        sport: true,
+        categories: {
+          select: {
+            id: true,
+            name: true,
+            substatus: true,
+          },
+        },
+      },
+    },
+    category: {
+      include: {
+        tournament: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        zones: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
+    requester: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    },
+    approver: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    },
+    payments: {
+      orderBy: {
+        createdAt: 'desc',
+      },
+    },
+    rosterEntries: {
+      orderBy: {
+        addedAt: 'asc',
+      },
+      include: {
+        profile: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            documentNumber: true,
+          },
+        },
+        addedByProfile: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    },
+    _count: {
+      select: {
+        payments: true,
+        rosterEntries: true,
+      },
+    },
+  });
 
 @Injectable()
 export class RegistrationsService {
   private readonly logger = new Logger(RegistrationsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eligibilityService: EligibilityService,
+  ) {}
+
+  private assertNoDuplicateProfileIds(profileIds: string[]): void {
+    if (new Set(profileIds).size !== profileIds.length) {
+      throw new BadRequestException('Roster cannot contain duplicated players');
+    }
+  }
+
+  private assertInitialRosterSize(players: Array<unknown>): void {
+    if (players.length < MIN_INITIAL_ROSTER) {
+      throw new BadRequestException(
+        `Initial roster must contain at least ${MIN_INITIAL_ROSTER} players`,
+      );
+    }
+
+    if (players.length > MAX_TOTAL_ROSTER) {
+      throw new BadRequestException(
+        `Initial roster cannot contain more than ${MAX_TOTAL_ROSTER} players`,
+      );
+    }
+  }
+
+  private normalizeDocumentNumber(documentNumber: string): string {
+    return documentNumber.trim();
+  }
+
+  private async ensureActiveTeamMembership(
+    prisma: PrismaClientLike,
+    teamId: string,
+    profileId: string,
+  ): Promise<void> {
+    const existingMembership = await prisma.profileTeam.findFirst({
+      where: {
+        teamId,
+        profileId,
+      },
+      select: {
+        id: true,
+        isActive: true,
+      },
+    });
+
+    if (!existingMembership) {
+      await prisma.profileTeam.create({
+        data: {
+          teamId,
+          profileId,
+        },
+      });
+      return;
+    }
+
+    if (!existingMembership.isActive) {
+      await prisma.profileTeam.update({
+        where: { id: existingMembership.id },
+        data: {
+          isActive: true,
+          joinedAt: new Date(),
+        },
+      });
+    }
+  }
+
+  private async resolveRosterPlayers(
+    prisma: PrismaClientLike,
+    teamId: string,
+    players: RegistrationRosterPlayerDto[],
+  ): Promise<
+    Array<{ profileId: string; name: string; documentNumber: string | null }>
+  > {
+    const resolvedPlayers: Array<{
+      profileId: string;
+      name: string;
+      documentNumber: string | null;
+    }> = [];
+
+    for (const player of players) {
+      if (!player.documentNumber || !player.name) {
+        throw new BadRequestException(
+          'Roster players must include documentNumber and name',
+        );
+      }
+
+      const documentNumber = this.normalizeDocumentNumber(player.documentNumber);
+
+      let profile = await prisma.profile.findFirst({
+        where: {
+          documentNumber,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          name: true,
+          documentNumber: true,
+        },
+      });
+
+      if (!profile) {
+        profile = await prisma.profile.create({
+          data: {
+            name: player.name,
+            documentNumber,
+            role: 'player',
+          },
+          select: {
+            id: true,
+            name: true,
+            documentNumber: true,
+          },
+        });
+      }
+
+      await this.ensureActiveTeamMembership(prisma, teamId, profile.id);
+
+      resolvedPlayers.push({
+        profileId: profile.id,
+        name: profile.name,
+        documentNumber: profile.documentNumber,
+      });
+    }
+
+    this.assertNoDuplicateProfileIds(
+      resolvedPlayers.map((player) => player.profileId),
+    );
+
+    return resolvedPlayers;
+  }
+
+  private async assertProfilesCanJoinTournamentRoster(
+    params: {
+      profileIds: string[];
+      tournamentId: string;
+      categoryId: string;
+      teamId: string;
+      excludeRegistrationId?: string;
+    },
+    prisma: PrismaClientLike = this.prisma,
+  ): Promise<void> {
+    const rosterEntries = await prisma.registrationRosterEntry.findMany({
+      where: {
+        profileId: { in: params.profileIds },
+        registration: {
+          tournamentId: params.tournamentId,
+          status: {
+            in: [...ACTIVE_REGISTRATION_STATUSES],
+          },
+          ...(params.excludeRegistrationId
+            ? {
+                id: {
+                  not: params.excludeRegistrationId,
+                },
+              }
+            : {}),
+        },
+      },
+      select: {
+        profileId: true,
+        registration: {
+          select: {
+            id: true,
+            teamId: true,
+            categoryId: true,
+          },
+        },
+      },
+    });
+
+    for (const profileId of params.profileIds) {
+      const profileEntries = rosterEntries.filter(
+        (entry) => entry.profileId === profileId,
+      );
+
+      const teamIds = new Set(
+        profileEntries.map((entry) => entry.registration.teamId),
+      );
+
+      if (teamIds.size >= 2) {
+        throw new ConflictException(
+          'A player cannot belong to more than 2 teams in the same tournament',
+        );
+      }
+
+      const sameCategoryConflict = profileEntries.some(
+        (entry) =>
+          entry.registration.categoryId === params.categoryId &&
+          entry.registration.teamId !== params.teamId,
+      );
+
+      if (sameCategoryConflict) {
+        throw new ConflictException(
+          'A player cannot belong to multiple teams in the same category of a tournament',
+        );
+      }
+    }
+  }
+
+  private async getRemainingRegularMatchesCount(registration: {
+    teamId: string;
+    categoryId: string;
+  }): Promise<number | null> {
+    const baseWhere: Prisma.MatchWhereInput = {
+      deletedAt: null,
+      categoryId: registration.categoryId,
+      matchType: 'regular',
+      OR: [
+        {
+          homeTeamId: registration.teamId,
+        },
+        {
+          awayTeamId: registration.teamId,
+        },
+      ],
+    };
+
+    const totalScheduledMatches = await this.prisma.match.count({
+      where: baseWhere,
+    });
+
+    if (totalScheduledMatches === 0) {
+      return null;
+    }
+
+    return this.prisma.match.count({
+      where: {
+        ...baseWhere,
+        status: {
+          in: [...NON_FINISHED_MATCH_STATUSES],
+        },
+      },
+    });
+  }
+
+  private async assertRosterAdditionWindow(registration: {
+    teamId: string;
+    categoryId: string;
+    category: {
+      substatus: CategorySubstatus | null;
+    };
+  }): Promise<void> {
+    if (registration.category.substatus === CategorySubstatus.PLAYOFFS_FASE) {
+      throw new BadRequestException(
+        'Roster additions are closed because the category is already in playoffs',
+      );
+    }
+
+    const remainingMatches =
+      await this.getRemainingRegularMatchesCount(registration);
+
+    if (remainingMatches === null) {
+      return;
+    }
+
+    if (remainingMatches <= PLAYOFF_CUTOFF_REMAINING_MATCHES) {
+      throw new BadRequestException(
+        `Roster additions are closed when the team has ${PLAYOFF_CUTOFF_REMAINING_MATCHES} or fewer regular matches remaining`,
+      );
+    }
+  }
+
+  private async getRegistrationDetailOrThrow(
+    id: string,
+    prisma: PrismaClientLike = this.prisma,
+  ) {
+    const registration = await prisma.registration.findUnique({
+      where: { id },
+      include: registrationDetailInclude,
+    });
+
+    if (!registration) {
+      throw new NotFoundException(`Registration with ID ${id} not found`);
+    }
+
+    return registration;
+  }
 
   async create(
-    createRegistrationDto: CreateRegistrationDto,
+    createRegistrationDto: CreateRegistrationSchemaDto,
     requestedBy: string,
   ) {
-    // Verificar que el equipo existe
+    this.assertInitialRosterSize(createRegistrationDto.initialRoster);
+
     const team = await this.prisma.team.findUnique({
       where: { id: createRegistrationDto.teamId, deletedAt: null },
     });
@@ -27,7 +436,6 @@ export class RegistrationsService {
       throw new NotFoundException('Team not found');
     }
 
-    // Verificar que el torneo existe y está en estado de inscripción
     const tournament = await this.prisma.tournament.findUnique({
       where: { id: createRegistrationDto.tournamentId, deletedAt: null },
     });
@@ -42,7 +450,6 @@ export class RegistrationsService {
       );
     }
 
-    // Verificar fechas de inscripción
     const now = new Date();
     if (
       tournament.registrationStartDate &&
@@ -77,7 +484,12 @@ export class RegistrationsService {
       throw new BadRequestException('Team sport must match category sport');
     }
 
-    // REGLA DE NEGOCIO: Un equipo solo puede estar en 1 categoría por torneo
+    await this.eligibilityService.assertTeamEligibleForRegistration({
+      teamId: createRegistrationDto.teamId,
+      tournamentId: createRegistrationDto.tournamentId,
+      categoryId: createRegistrationDto.categoryId,
+    });
+
     const existingRegistration = await this.prisma.registration.findFirst({
       where: {
         teamId: createRegistrationDto.teamId,
@@ -95,69 +507,64 @@ export class RegistrationsService {
         throw new ConflictException(
           'Team is already registered in this category',
         );
-      } else {
-        throw new ConflictException(
-          `Team is already registered in another category (${existingRegistration.categoryId}) of this tournament. A team can only be in one category per tournament.`,
-        );
       }
+
+      throw new ConflictException(
+        `Team is already registered in another category (${existingRegistration.categoryId}) of this tournament. A team can only be in one category per tournament.`,
+      );
     }
 
-    // Crear inscripción
-    const registration = await this.prisma.registration.create({
-      data: {
-        ...createRegistrationDto,
-        requestedBy,
-        status: 'pendiente',
-      },
-      include: {
-        team: {
-          include: {
-            sport: true,
-            creator: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            captain: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            _count: {
-              select: {
-                members: true,
-              },
-            },
-          },
+    const registration = await this.prisma.$transaction(async (tx) => {
+      const resolvedPlayers = await this.resolveRosterPlayers(
+        tx,
+        createRegistrationDto.teamId,
+        createRegistrationDto.initialRoster,
+      );
+
+      await this.assertProfilesCanJoinTournamentRoster(
+        {
+          profileIds: resolvedPlayers.map((player) => player.profileId),
+          tournamentId: createRegistrationDto.tournamentId,
+          categoryId: createRegistrationDto.categoryId,
+          teamId: createRegistrationDto.teamId,
         },
-        tournament: {
-          select: {
-            id: true,
-            name: true,
-            status: true,
+        tx,
+      );
+
+      for (const player of resolvedPlayers) {
+        await this.eligibilityService.assertProfileEligibleForRegistration(
+          {
+            profileId: player.profileId,
+            tournamentId: createRegistrationDto.tournamentId,
+            categoryId: createRegistrationDto.categoryId,
           },
+          tx,
+        );
+      }
+
+      const createdRegistration = await tx.registration.create({
+        data: {
+          teamId: createRegistrationDto.teamId,
+          tournamentId: createRegistrationDto.tournamentId,
+          categoryId: createRegistrationDto.categoryId,
+          requestedBy,
+          status: 'pendiente',
         },
-        category: {
-          include: {
-            tournament: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
+        select: {
+          id: true,
         },
-        requester: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      });
+
+      await tx.registrationRosterEntry.createMany({
+        data: resolvedPlayers.map((player) => ({
+          registrationId: createdRegistration.id,
+          profileId: player.profileId,
+          type: 'INITIAL',
+          addedByProfileId: requestedBy,
+        })),
+      });
+
+      return this.getRegistrationDetailOrThrow(createdRegistration.id, tx);
     });
 
     this.logger.log(
@@ -185,7 +592,7 @@ export class RegistrationsService {
 
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.RegistrationWhereInput = {};
 
     if (filters?.tournamentId) {
       where.tournamentId = filters.tournamentId;
@@ -234,6 +641,7 @@ export class RegistrationsService {
             select: {
               id: true,
               name: true,
+              substatus: true,
             },
           },
           requester: {
@@ -253,6 +661,7 @@ export class RegistrationsService {
           _count: {
             select: {
               payments: true,
+              rosterEntries: true,
             },
           },
         },
@@ -272,81 +681,45 @@ export class RegistrationsService {
   }
 
   async findOne(id: string) {
+    return this.getRegistrationDetailOrThrow(id);
+  }
+
+  async findRoster(id: string) {
+    const registration = await this.getRegistrationDetailOrThrow(id);
+
+    return {
+      data: registration.rosterEntries,
+      meta: {
+        total: registration.rosterEntries.length,
+        initialCount: registration.rosterEntries.filter(
+          (entry) => entry.type === 'INITIAL',
+        ).length,
+        additionsCount: registration.rosterEntries.filter(
+          (entry) => entry.type === 'ADDITION',
+        ).length,
+      },
+    };
+  }
+
+  async addRosterEntry(
+    id: string,
+    addRosterEntryDto: AddRegistrationRosterEntryDto,
+    addedBy: string,
+  ) {
     const registration = await this.prisma.registration.findUnique({
       where: { id },
       include: {
-        team: {
-          include: {
-            sport: true,
-            creator: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            captain: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            members: {
-              include: {
-                profile: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        tournament: {
-          include: {
-            sport: true,
-            categories: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
         category: {
-          include: {
-            tournament: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            zones: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        requester: {
           select: {
             id: true,
             name: true,
-            email: true,
+            substatus: true,
           },
         },
-        approver: {
+        rosterEntries: {
           select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        payments: {
-          orderBy: {
-            createdAt: 'desc',
+            profileId: true,
+            type: true,
           },
         },
       },
@@ -356,7 +729,100 @@ export class RegistrationsService {
       throw new NotFoundException(`Registration with ID ${id} not found`);
     }
 
-    return registration;
+    if (
+      !EDITABLE_REGISTRATION_STATUSES.includes(
+        registration.status as (typeof EDITABLE_REGISTRATION_STATUSES)[number],
+      )
+    ) {
+      throw new BadRequestException(
+        `Cannot edit roster for registration with status: ${registration.status}`,
+      );
+    }
+
+    const currentTotal = registration.rosterEntries.length;
+    const currentAdditions = registration.rosterEntries.filter(
+      (entry) => entry.type === 'ADDITION',
+    ).length;
+
+    if (currentTotal >= MAX_TOTAL_ROSTER) {
+      throw new BadRequestException(
+        `Roster cannot contain more than ${MAX_TOTAL_ROSTER} players`,
+      );
+    }
+
+    if (currentAdditions >= MAX_ADDITIONS) {
+      throw new BadRequestException(
+        `Roster cannot contain more than ${MAX_ADDITIONS} additions after registration`,
+      );
+    }
+
+    await this.assertRosterAdditionWindow({
+      teamId: registration.teamId,
+      categoryId: registration.categoryId,
+      category: registration.category,
+    });
+
+    const resolvedPlayers = await this.prisma.$transaction(async (tx) => {
+      const resolved = await this.resolveRosterPlayers(
+        tx,
+        registration.teamId,
+        [addRosterEntryDto],
+      );
+
+      if (
+        registration.rosterEntries.some(
+          (entry) => entry.profileId === resolved[0].profileId,
+        )
+      ) {
+        throw new ConflictException('Profile is already part of this roster');
+      }
+
+      await this.assertProfilesCanJoinTournamentRoster(
+        {
+          profileIds: [resolved[0].profileId],
+          tournamentId: registration.tournamentId,
+          categoryId: registration.categoryId,
+          teamId: registration.teamId,
+          excludeRegistrationId: registration.id,
+        },
+        tx,
+      );
+
+      await this.eligibilityService.assertTeamEligibleForRegistration(
+        {
+          teamId: registration.teamId,
+          tournamentId: registration.tournamentId,
+          categoryId: registration.categoryId,
+        },
+        tx,
+      );
+
+      await this.eligibilityService.assertProfileEligibleForRegistration(
+        {
+          profileId: resolved[0].profileId,
+          tournamentId: registration.tournamentId,
+          categoryId: registration.categoryId,
+        },
+        tx,
+      );
+
+      await tx.registrationRosterEntry.create({
+        data: {
+          registrationId: registration.id,
+          profileId: resolved[0].profileId,
+          type: 'ADDITION',
+          addedByProfileId: addedBy,
+        },
+      });
+
+      return resolved;
+    });
+
+    this.logger.log(
+      `Roster addition created for registration ${registration.id}: ${resolvedPlayers[0].profileId}`,
+    );
+
+    return this.getRegistrationDetailOrThrow(id);
   }
 
   async approve(id: string, approvedBy: string) {
@@ -375,42 +841,7 @@ export class RegistrationsService {
         approvedBy,
         approvedAt: new Date(),
       },
-      include: {
-        team: {
-          select: {
-            id: true,
-            name: true,
-            logoUrl: true,
-          },
-        },
-        tournament: {
-          select: {
-            id: true,
-            name: true,
-            status: true,
-          },
-        },
-        category: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        requester: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        approver: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: registrationDetailInclude,
     });
 
     this.logger.log(`Registration approved: ${id}`);
@@ -435,42 +866,7 @@ export class RegistrationsService {
         rejectedAt: new Date(),
         rejectionReason: rejectionReason || 'Rejected by administrator',
       },
-      include: {
-        team: {
-          select: {
-            id: true,
-            name: true,
-            logoUrl: true,
-          },
-        },
-        tournament: {
-          select: {
-            id: true,
-            name: true,
-            status: true,
-          },
-        },
-        category: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        requester: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        approver: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: registrationDetailInclude,
     });
 
     this.logger.log(`Registration rejected: ${id}`);
@@ -481,7 +877,6 @@ export class RegistrationsService {
   async remove(id: string) {
     const registration = await this.findOne(id);
 
-    // Solo permitir eliminar si está pendiente o rechazada
     if (
       registration.status === 'aprobada' ||
       registration.status === 'pagada'

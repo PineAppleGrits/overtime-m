@@ -16,6 +16,7 @@ import {
   PaginationDto,
 } from '@overtime-mono/shared';
 import { VenuesService } from '../venues/venues.service';
+import { EligibilityService } from '../eligibility/eligibility.service';
 
 @Injectable()
 export class MatchesService {
@@ -24,6 +25,7 @@ export class MatchesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly venuesService: VenuesService,
+    private readonly eligibilityService: EligibilityService,
   ) {}
 
   /**
@@ -631,6 +633,29 @@ export class MatchesService {
     const match = await this.findOne(id);
 
     this.validateStatusTransition(match.status, changeStatusDto.status);
+
+    if (changeStatusDto.status === MatchStatus.EN_CURSO) {
+      const tournamentId = match.category?.tournament?.id ?? undefined;
+      const categoryId = match.category?.id ?? undefined;
+
+      if (match.homeTeamId) {
+        await this.eligibilityService.assertTeamEligibleForMatch({
+          teamId: match.homeTeamId,
+          tournamentId,
+          categoryId,
+          matchId: match.id,
+        });
+      }
+
+      if (match.awayTeamId) {
+        await this.eligibilityService.assertTeamEligibleForMatch({
+          teamId: match.awayTeamId,
+          tournamentId,
+          categoryId,
+          matchId: match.id,
+        });
+      }
+    }
 
     const updatedMatch = await this.prisma.match.update({
       where: { id },

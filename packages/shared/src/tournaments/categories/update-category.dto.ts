@@ -1,11 +1,5 @@
-import {
-  IsString,
-  IsOptional,
-  IsInt,
-  Min,
-  IsEnum,
-} from 'class-validator';
-import { CategoryStatus, CategorySubstatus } from './enums';
+import { IsString, IsOptional, IsInt, Min, IsEnum } from "class-validator";
+import { CategoryStatus, CategorySubstatus } from "./enums";
 
 export class UpdateCategoryDto {
   @IsString()

@@ -1,1 +1,3 @@
-export * from './create-franchise.dto';
+export * from "./create-franchise.dto";
+export { createFranchiseSchema } from "./create-franchise.schema";
+export type { CreateFranchiseSchemaDto } from "./create-franchise.schema";

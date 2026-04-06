@@ -76,6 +76,8 @@ export class UsersService {
         phone: dto.phone ?? null,
         documentNumber: dto.documentNumber ?? null,
         dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
+        medicalCertificateUrl: dto.medicalCertificateUrl ?? null,
+        swornStatementUrl: dto.swornStatementUrl ?? null,
         role,
       },
     });
@@ -146,6 +148,8 @@ export class UsersService {
           phone: true,
           documentNumber: true,
           dateOfBirth: true,
+          medicalCertificateUrl: true,
+          swornStatementUrl: true,
           role: true,
           createdAt: true,
           updatedAt: true,
@@ -217,6 +221,8 @@ export class UsersService {
       phone?: string | null;
       documentNumber?: string | null;
       dateOfBirth?: Date | null;
+      medicalCertificateUrl?: string | null;
+      swornStatementUrl?: string | null;
       role?: ProfileRole;
     } = {};
     if (dto.email !== undefined) data.email = dto.email ?? null;
@@ -226,6 +232,10 @@ export class UsersService {
       data.documentNumber = dto.documentNumber ?? null;
     if (dto.dateOfBirth !== undefined)
       data.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
+    if (dto.medicalCertificateUrl !== undefined)
+      data.medicalCertificateUrl = dto.medicalCertificateUrl ?? null;
+    if (dto.swornStatementUrl !== undefined)
+      data.swornStatementUrl = dto.swornStatementUrl ?? null;
     if (dto.role !== undefined) data.role = dto.role as ProfileRole;
 
     return this.prisma.profile.update({

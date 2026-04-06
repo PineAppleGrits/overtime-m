@@ -10,3 +10,4 @@ export * from './sports';
 export * from './registrations';
 export * from './payments';
 export * from './fixtures';
+export * from './eligibility';

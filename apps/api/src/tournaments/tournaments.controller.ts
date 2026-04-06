@@ -10,10 +10,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TournamentsService } from './tournaments.service';
-import { CreateTournamentDto, UpdateTournamentDto, ChangeStatusDto, PaginationDto } from '@overtime-mono/shared';
+import { ChangeStatusDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
+import {
+  CreateTournamentBodyDto,
+  UpdateTournamentBodyDto,
+} from './dto/tournament-request.dto';
 
 @ApiTags('tournaments')
 @Controller('tournaments')
@@ -22,7 +26,7 @@ export class TournamentsController {
 
   @Post()
   @Roles('admin')
-  create(@Body() createTournamentDto: CreateTournamentDto) {
+  create(@Body() createTournamentDto: CreateTournamentBodyDto) {
     return this.tournamentsService.create(createTournamentDto);
   }
 
@@ -52,7 +56,7 @@ export class TournamentsController {
   @Roles('admin')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateTournamentDto: UpdateTournamentDto,
+    @Body() updateTournamentDto: UpdateTournamentBodyDto,
   ) {
     return this.tournamentsService.update(id, updateTournamentDto);
   }

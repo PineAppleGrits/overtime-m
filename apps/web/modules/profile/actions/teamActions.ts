@@ -1,17 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { createTeamSchema } from '@overtime-mono/shared/teams/contracts'
 import { z } from 'zod'
 import teamService from '@/modules/team/TeamService'
 import { getProfile } from '@/lib/auth/session'
 import type { ActionResult } from '@/modules/admin/actions/types'
-
-const createUserTeamSchema = z.object({
-  name: z.string().min(1, 'El nombre es obligatorio'),
-  logoUrl: z.string().url('URL inválida').optional().or(z.literal('')),
-  sportId: z.string().min(1, 'La disciplina es obligatoria'),
-  franchiseId: z.string().uuid().optional(),
-})
+import { normalizeTeamPayload } from '@/modules/team/team-payload'
 
 const createFranchiseSchema = z.object({
   franchiseName: z.string().min(1, 'El nombre de la franquicia es obligatorio'),
@@ -37,13 +32,12 @@ export async function leaveTeamAction(teamId: string): Promise<ActionResult<void
 export async function createUserTeamAction(
   input: unknown,
 ): Promise<ActionResult<{ id: string }>> {
-  const parsed = createUserTeamSchema.safeParse(input)
+  const parsed = createTeamSchema.safeParse(input)
   if (!parsed.success)
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos invÃ¡lidos' }
 
   try {
-    const dto = { ...parsed.data, logoUrl: parsed.data.logoUrl || undefined }
-    const team = await teamService.createTeam(dto)
+    const team = await teamService.createTeam(normalizeTeamPayload(parsed.data))
     const id: string = team?.id ?? team?.data?.id
     revalidatePath('/profile/equipos')
     return { success: true, data: { id } }
@@ -153,17 +147,19 @@ export async function createFranchiseWithTeamAction(
 ): Promise<ActionResult<{ teamId: string; franchiseId: string }>> {
   const parsed = createFranchiseSchema.safeParse(input)
   if (!parsed.success)
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos invÃ¡lidos' }
 
   try {
     const franchise = await teamService.createFranchise({ name: parsed.data.franchiseName })
     const franchiseId: string = franchise?.id ?? franchise?.data?.id
 
-    const team = await teamService.createTeam({
-      name: parsed.data.teamName,
-      sportId: parsed.data.sportId,
-      franchiseId,
-    })
+    const team = await teamService.createTeam(
+      normalizeTeamPayload({
+        name: parsed.data.teamName,
+        sportId: parsed.data.sportId,
+        franchiseId,
+      }),
+    )
     const teamId: string = team?.id ?? team?.data?.id
 
     revalidatePath('/profile/equipos')

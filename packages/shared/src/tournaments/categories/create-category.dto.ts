@@ -6,8 +6,8 @@ import {
   IsInt,
   Min,
   IsEnum,
-} from 'class-validator';
-import { CategoryStatus, CategorySubstatus } from './enums';
+} from "class-validator";
+import { CategoryStatus, CategorySubstatus } from "./enums";
 
 export class CreateCategoryDto {
   @IsUUID()

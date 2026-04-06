@@ -1,6 +1,9 @@
-import { IsOptional, IsInt, Min, IsIn } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsInt, Min, IsIn } from "class-validator";
+import { Type } from "class-transformer";
 
+/**
+ * @deprecated Use `paginationSchema` from `packages/shared` instead.
+ */
 export class PaginationDto {
   @IsOptional()
   @Type(() => Number)
@@ -18,6 +21,6 @@ export class PaginationDto {
   sortBy?: string;
 
   @IsOptional()
-  @IsIn(['asc', 'desc'])
-  sortOrder?: 'asc' | 'desc' = 'desc';
+  @IsIn(["asc", "desc"])
+  sortOrder?: "asc" | "desc" = "desc";
 }

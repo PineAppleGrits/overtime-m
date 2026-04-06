@@ -121,6 +121,8 @@ export class AuthService {
       documentNumber: profile.documentNumber,
       documentVerified: profile.documentVerified,
       dateOfBirth: profile.dateOfBirth,
+      medicalCertificateUrl: profile.medicalCertificateUrl,
+      swornStatementUrl: profile.swornStatementUrl,
       role: profile.role,
       hasPlayerProfile,
       profileId: profile.id,
