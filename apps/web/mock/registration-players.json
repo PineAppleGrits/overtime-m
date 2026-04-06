@@ -1,0 +1,7 @@
+{
+  "reg-pending-1": [
+    { "profileId": "mock-player-1", "name": "Rodrigo Martínez", "avatarUrl": null, "isSuspended": true },
+    { "profileId": "mock-player-2", "name": "Lucas Fernández", "avatarUrl": null, "isSuspended": false },
+    { "profileId": "mock-player-3", "name": "Sebastián López", "avatarUrl": null, "isSuspended": false }
+  ]
+}

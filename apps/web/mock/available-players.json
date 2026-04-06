@@ -1,0 +1,5 @@
+[
+  { "id": "ext-player-1", "name": "Carlos Rodríguez", "email": "carlos@example.com", "documentNumber": "28123456" },
+  { "id": "ext-player-2", "name": "Ana García", "email": "ana@example.com", "documentNumber": "32456789" },
+  { "id": "ext-player-3", "name": "Martín Pérez", "email": "martin@example.com", "documentNumber": "36789012" }
+]

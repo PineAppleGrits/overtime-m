@@ -1,0 +1,22 @@
+{
+  "fallback": {
+    "lastMatch": {
+      "id": "mock-last",
+      "date": "2026-03-10T20:00:00Z",
+      "location": "Estadio OT \u00b7 Cancha 1",
+      "matchType": "Zona Regular",
+      "team1": { "id": "mock-t1", "name": "Los Pumas" },
+      "team2": { "id": "mock-t2", "name": "Tigres FC" },
+      "team1Score": 78,
+      "team2Score": 65
+    },
+    "nextMatch": {
+      "id": "mock-next",
+      "date": "2026-04-14T20:00:00Z",
+      "location": "Estadio OT \u00b7 Cancha 2",
+      "matchType": "Zona Regular",
+      "team1": { "id": "mock-t3", "name": "C\u00f3ndores" },
+      "team2": { "id": "mock-t1", "name": "Los Pumas" }
+    }
+  }
+}

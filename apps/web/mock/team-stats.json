@@ -1,0 +1,9 @@
+{
+  "mock-team-1": {
+    "playedMatches": 12,
+    "won": 8,
+    "lost": 4,
+    "pointsFor": 984,
+    "pointsAgainst": 876
+  }
+}

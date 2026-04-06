@@ -1,0 +1,39 @@
+{
+  "mock-team-1": {
+    "totalDebt": 15000,
+    "totalPaid": 8000,
+    "pendingConfirmation": 5000,
+    "registrations": [
+      {
+        "id": "reg-1",
+        "tournamentName": "Liga Overtime 2026",
+        "categoryName": "Primera División",
+        "inscriptionAmount": 12000,
+        "insuranceAmount": 3000,
+        "playersCount": 3,
+        "totalAmount": 21000,
+        "paidAmount": 8000,
+        "status": "pending_payment",
+        "voucherUrl": null
+      }
+    ],
+    "suspensions": [
+      {
+        "profileId": "mock-player-1",
+        "playerName": "Rodrigo Martínez",
+        "reason": "Dos faltas técnicas acumuladas",
+        "totalGames": 2,
+        "remainingGames": 1,
+        "endDate": "2026-04-20",
+        "isActive": true
+      }
+    ]
+  },
+  "fallback": {
+    "totalDebt": 0,
+    "totalPaid": 0,
+    "pendingConfirmation": 0,
+    "registrations": [],
+    "suspensions": []
+  }
+}

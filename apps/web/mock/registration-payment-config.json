@@ -1,0 +1,22 @@
+{
+  "fallback": {
+    "inscriptionFee": 12000,
+    "insuranceFeePerPlayer": 1000,
+    "paymentMethods": {
+      "cash": {
+        "enabled": true,
+        "venues": [
+          { "name": "Sede Central Overtime", "address": "Av. Corrientes 1234, CABA" },
+          { "name": "Complejo Deportivo Norte", "address": "Av. Cabildo 5678, CABA" }
+        ]
+      },
+      "transfer": {
+        "enabled": true,
+        "alias": "overtime.deportes",
+        "cbu": "0000003100012345678901",
+        "bankName": "Banco Nación",
+        "holder": "Overtime Deportes SRL"
+      }
+    }
+  }
+}

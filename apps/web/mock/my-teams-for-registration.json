@@ -1,0 +1,17 @@
+[
+  {
+    "id": "mock-team-1",
+    "name": "Los Pumas",
+    "logoUrl": null,
+    "sport": { "name": "Básquet" },
+    "captainId": "mock-profile-1",
+    "creatorId": "mock-profile-1",
+    "members": [
+      { "profile": { "id": "mock-player-1", "name": "Rodrigo Martínez", "avatarUrl": null }, "isActive": true },
+      { "profile": { "id": "mock-player-2", "name": "Lucas Fernández", "avatarUrl": null }, "isActive": true },
+      { "profile": { "id": "mock-player-3", "name": "Sebastián López", "avatarUrl": null }, "isActive": true },
+      { "profile": { "id": "mock-player-4", "name": "Diego Torres", "avatarUrl": null }, "isActive": true },
+      { "profile": { "id": "mock-player-5", "name": "Alejandro Gómez", "avatarUrl": null }, "isActive": true }
+    ]
+  }
+]

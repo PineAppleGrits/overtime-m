@@ -1,0 +1,28 @@
+{
+  "mock-team-1": {
+    "mock-player-1": {
+      "played": 12,
+      "points": 187,
+      "pt1": 34,
+      "pt2": 82,
+      "pt3": 24,
+      "fouls": 28,
+      "steals": 19,
+      "rebounds": 67,
+      "assists": 43,
+      "picture": null
+    },
+    "mock-player-2": {
+      "played": 10,
+      "points": 142,
+      "pt1": 22,
+      "pt2": 54,
+      "pt3": 18,
+      "fouls": 31,
+      "steals": 14,
+      "rebounds": 48,
+      "assists": 37,
+      "picture": null
+    }
+  }
+}
