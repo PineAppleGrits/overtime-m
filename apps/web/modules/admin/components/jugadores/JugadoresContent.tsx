@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { DataTable, Column } from '@/modules/admin/components/DataTable'
+import { StatusBadge } from '@/modules/admin/components/StatusBadge'
 import { ConfirmDialog } from '@/modules/admin/components/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,6 +54,7 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
   })
 
   const players = data?.data ?? []
+  const total = data?.meta?.total
   const totalPages = data?.meta?.totalPages ?? 1
 
   const filteredPlayers = useMemo(
@@ -111,7 +113,7 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
       key: 'isBlacklisted', label: 'Estado',
       render: (p) => p.isBlacklisted
         ? <Badge variant="destructive">Lista negra</Badge>
-        : <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Activo</Badge>,
+        : <StatusBadge status="active" type="active" />,
     },
     {
       key: 'actions', label: '', className: 'w-10',
@@ -130,8 +132,8 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
   return (
     <div>
       <PageHeader title="Jugadores" description="Gestiona todos los jugadores registrados en la plataforma" onCreateClick={() => setDialog(true)} createLabel="Nuevo jugador" />
-      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar jugadores..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" /></div></div>
-      <DataTable columns={columns} data={filteredPlayers} loading={isPending} emptyMessage="No hay jugadores registrados" page={page} totalPages={totalPages} onPageChange={setPage} />
+      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar jugadores..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" /></div></div>
+      <DataTable columns={columns} data={filteredPlayers} loading={isPending} emptyMessage="No hay jugadores registrados" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
       <PlayerFormDialog open={dialog} onOpenChange={(open) => !open && closeDialog()} editingPlayer={editingPlayer} onSubmit={handleSubmit} isPending={createAction.isPending || updateAction.isPending} />
       <ConfirmDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)} title="Eliminar jugador" description="¿Estás seguro de eliminar este jugador?" variant="destructive" confirmLabel="Eliminar" onConfirm={() => deleteId && deleteAction.execute({ id: deleteId })} loading={deleteAction.isPending} />
     </div>

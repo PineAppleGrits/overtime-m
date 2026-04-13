@@ -44,6 +44,7 @@ export function InscripcionesContent({ initialData }: InscripcionesContentProps)
   })
 
   const registrations = data?.data ?? []
+  const total = data?.meta?.total
   const totalPages = data?.meta?.totalPages ?? 1
 
   const approveAction = useServerAction(approveRegistrationAction, { successMessage: 'Inscripción aprobada', onSuccess: invalidate })
@@ -83,8 +84,8 @@ export function InscripcionesContent({ initialData }: InscripcionesContentProps)
   return (
     <div>
       <PageHeader title="Inscripciones" description="Todas las inscripciones de todos los torneos" />
-      <div className="mb-4"><Select value={statusFilter} onValueChange={setStatusFilter}><SelectTrigger className="w-[180px]"><SelectValue placeholder="Estado" /></SelectTrigger><SelectContent><SelectItem value="all">Todas</SelectItem><SelectItem value="pending">Pendientes</SelectItem><SelectItem value="approved">Aprobadas</SelectItem><SelectItem value="rejected">Rechazadas</SelectItem></SelectContent></Select></div>
-      <DataTable columns={columns} data={registrations} loading={isPending} emptyMessage="No hay inscripciones" page={page} totalPages={totalPages} onPageChange={setPage} />
+      <div className="mb-4"><Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}><SelectTrigger className="w-[180px]"><SelectValue placeholder="Estado" /></SelectTrigger><SelectContent><SelectItem value="all">Todas</SelectItem><SelectItem value="pending">Pendientes</SelectItem><SelectItem value="approved">Aprobadas</SelectItem><SelectItem value="rejected">Rechazadas</SelectItem></SelectContent></Select></div>
+      <DataTable columns={columns} data={registrations} loading={isPending} emptyMessage="No hay inscripciones" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
     </div>
   )
 }

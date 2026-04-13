@@ -10,7 +10,6 @@ import { ConfirmDialog } from '@/modules/admin/components/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -55,6 +54,7 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
   })
 
   const employees = data?.data ?? []
+  const total = data?.meta?.total
   const totalPages = data?.meta?.totalPages ?? 1
   const filtered = useMemo(
     () => debouncedSearch
@@ -99,7 +99,7 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
     { key: 'name', label: 'Nombre', render: (e) => (<div><p className="font-medium">{e.firstName} {e.lastName}</p>{e.email && <p className="text-xs text-muted-foreground">{e.email}</p>}</div>) },
     { key: 'role', label: 'Rol', render: (e) => <StatusBadge status={e.role} type="employee" /> },
     { key: 'phone', label: 'Teléfono', render: (e) => <span className="text-sm">{e.phone ?? '-'}</span> },
-    { key: 'isActive', label: 'Estado', render: (e) => e.isActive ? <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Activo</Badge> : <Badge variant="outline">Inactivo</Badge> },
+    { key: 'isActive', label: 'Estado', render: (e) => <StatusBadge status={e.isActive ? 'active' : 'inactive'} type="active" /> },
     { key: 'assignedMatches', label: 'Partidos', render: (e) => <span className="text-sm">{e.assignedMatches?.length ?? 0} asignados</span> },
     {
       key: 'actions', label: '', className: 'w-10',
@@ -121,10 +121,10 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
     <div>
       <PageHeader title="Empleados" description="Gestiona árbitros, fotógrafos y agentes de mesa" onCreateClick={() => setDialog(true)} createLabel="Nuevo empleado" />
       <div className="mb-4 flex gap-3">
-        <div className="relative flex-1 max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar empleados..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" /></div>
-        <Select value={roleFilter} onValueChange={setRoleFilter}><SelectTrigger className="w-[180px]"><SelectValue placeholder="Rol" /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="arbitro">Árbitros</SelectItem><SelectItem value="fotografo">Fotógrafos</SelectItem><SelectItem value="agente_mesa">Agentes de mesa</SelectItem></SelectContent></Select>
+        <div className="relative flex-1 max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar empleados..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" /></div>
+        <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(1) }}><SelectTrigger className="w-[180px]"><SelectValue placeholder="Rol" /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="arbitro">Árbitros</SelectItem><SelectItem value="fotografo">Multimedia</SelectItem><SelectItem value="agente_mesa">Agentes de mesa</SelectItem></SelectContent></Select>
       </div>
-      <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay empleados registrados" page={page} totalPages={totalPages} onPageChange={setPage} />
+      <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay empleados registrados" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
 
       <Dialog open={dialog} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent>
@@ -134,7 +134,7 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
               <div className="space-y-2"><Label>Nombre *</Label><Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></div>
               <div className="space-y-2"><Label>Apellido *</Label><Input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></div>
             </div>
-            <div className="space-y-2"><Label>Rol *</Label><Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as EmployeeRole })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="arbitro">Árbitro</SelectItem><SelectItem value="fotografo">Fotógrafo</SelectItem><SelectItem value="agente_mesa">Agente de mesa</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Rol *</Label><Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as EmployeeRole })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="arbitro">Árbitro</SelectItem><SelectItem value="fotografo">Multimedia</SelectItem><SelectItem value="agente_mesa">Agente de mesa</SelectItem></SelectContent></Select></div>
             <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             <div className="space-y-2"><Label>Teléfono</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
           </div>

@@ -41,8 +41,13 @@ const matchStatusMap: Record<string, { label: string; variant: StatusVariant }> 
 
 const employeeRoleMap: Record<string, { label: string; variant: StatusVariant }> = {
   arbitro: { label: 'Árbitro', variant: 'info' },
-  fotografo: { label: 'Fotógrafo', variant: 'success' },
+  fotografo: { label: 'Multimedia', variant: 'success' },
   agente_mesa: { label: 'Agente de Mesa', variant: 'warning' },
+}
+
+const activeStatusMap: Record<string, { label: string; variant: StatusVariant }> = {
+  active: { label: 'Activo', variant: 'success' },
+  inactive: { label: 'Inactivo', variant: 'default' },
 }
 
 const TYPE_MAPS = {
@@ -51,6 +56,7 @@ const TYPE_MAPS = {
   payment: paymentStatusMap,
   match: matchStatusMap,
   employee: employeeRoleMap,
+  active: activeStatusMap,
 } as const
 
 interface StatusBadgeProps {

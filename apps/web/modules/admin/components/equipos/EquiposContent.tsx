@@ -48,6 +48,7 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
   })
 
   const teams = data?.data ?? []
+  const total = data?.meta?.total
   const totalPages = data?.meta?.totalPages ?? 1
   const filtered = useMemo(
     () => debouncedSearch
@@ -109,8 +110,8 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
   return (
     <div>
       <PageHeader title="Equipos" description="Gestiona los equipos. Los equipos pueden tener categorías (ej: Barcelona A, Barcelona B) y compartir logo." createHref="/admin/equipos/nuevo" createLabel="Nuevo equipo" />
-      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar equipos..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" /></div></div>
-      <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay equipos registrados" page={page} totalPages={totalPages} onPageChange={setPage} />
+      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar equipos..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" /></div></div>
+      <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay equipos registrados" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
       <ConfirmDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)} title="Eliminar equipo" description="¿Estás seguro de eliminar este equipo? Se eliminará toda la información asociada." variant="destructive" confirmLabel="Eliminar" onConfirm={() => deleteId && deleteAction.execute({ id: deleteId })} loading={deleteAction.isPending} />
     </div>
   )

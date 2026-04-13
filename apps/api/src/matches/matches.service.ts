@@ -14,6 +14,8 @@ import {
   ChangeMatchStatusDto,
   CreateAnnouncementDto,
   PaginationDto,
+  BatchCreateMatchesDto,
+  BatchChangeStatusDto,
 } from '@overtime-mono/shared';
 import { VenuesService } from '../venues/venues.service';
 import { EligibilityService } from '../eligibility/eligibility.service';
@@ -317,6 +319,54 @@ export class MatchesService {
     this.logger.log(`Match created: ${homeTeamName} vs ${awayTeamName}`);
 
     return match;
+  }
+
+  async createBatch(batchDto: BatchCreateMatchesDto) {
+    const results: Awaited<ReturnType<typeof this.create>>[] = [];
+    const errors: { index: number; error: string }[] = [];
+
+    for (let i = 0; i < batchDto.matches.length; i++) {
+      try {
+        const match = await this.create(batchDto.matches[i]);
+        results.push(match);
+      } catch (error) {
+        errors.push({
+          index: i,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    this.logger.log(
+      `Batch create: ${results.length} created, ${errors.length} failed`,
+    );
+
+    return { created: results, errors };
+  }
+
+  async batchChangeStatus(batchDto: BatchChangeStatusDto) {
+    const results: Awaited<ReturnType<typeof this.changeStatus>>[] = [];
+    const errors: { matchId: string; error: string }[] = [];
+
+    for (const matchId of batchDto.matchIds) {
+      try {
+        const match = await this.changeStatus(matchId, {
+          status: batchDto.status,
+        });
+        results.push(match);
+      } catch (error) {
+        errors.push({
+          matchId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    this.logger.log(
+      `Batch status change to ${batchDto.status}: ${results.length} updated, ${errors.length} failed`,
+    );
+
+    return { updated: results, errors };
   }
 
   async findAll(

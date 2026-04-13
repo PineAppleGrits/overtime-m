@@ -12,6 +12,7 @@ import {
   UpdateStaffDto,
   SetAvailabilityDto,
   AssignStaffToMatchDto,
+  BatchAssignStaffDto,
   PaginationDto,
 } from '@overtime-mono/shared';
 
@@ -282,6 +283,39 @@ export class StaffService {
   }
 
   /**
+   * Asignar staff a múltiples partidos en batch
+   */
+  async batchAssign(batchDto: BatchAssignStaffDto, assignedById: string) {
+    const results: Awaited<ReturnType<typeof this.assignToMatch>>[] = [];
+    const errors: { index: number; matchId: string; staffId: string; error: string }[] = [];
+
+    for (let i = 0; i < batchDto.assignments.length; i++) {
+      const item = batchDto.assignments[i];
+      try {
+        const assignment = await this.assignToMatch(
+          item.matchId,
+          { staffId: item.staffId, role: item.role },
+          assignedById,
+        );
+        results.push(assignment);
+      } catch (error) {
+        errors.push({
+          index: i,
+          matchId: item.matchId,
+          staffId: item.staffId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    this.logger.log(
+      `Batch assign: ${results.length} assigned, ${errors.length} failed`,
+    );
+
+    return { assigned: results, errors };
+  }
+
+  /**
    * Asignar staff a un partido
    */
   async assignToMatch(
@@ -308,17 +342,18 @@ export class StaffService {
       );
     }
 
-    // Verificar que no hay otro staff asignado a ese rol
+    // Verificar que este staff no está ya asignado al mismo partido con el mismo rol
     const existingAssignment = await this.prisma.matchStaff.findFirst({
       where: {
         matchId,
+        staffId: dto.staffId,
         role: dto.role,
         status: 'assigned',
       },
     });
 
     if (existingAssignment) {
-      throw new ConflictException(`A ${dto.role} is already assigned to this match`);
+      throw new ConflictException(`This staff member is already assigned to this match as ${dto.role}`);
     }
 
     // Verificar disponibilidad del staff para esa fecha

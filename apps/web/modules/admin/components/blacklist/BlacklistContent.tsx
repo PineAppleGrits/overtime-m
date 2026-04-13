@@ -49,6 +49,7 @@ export function BlacklistContent({ initialData }: BlacklistContentProps) {
   })
 
   const entries = data?.data ?? []
+  const total = data?.meta?.total
   const totalPages = data?.meta?.totalPages ?? 1
   const filtered = useMemo(
     () => debouncedSearch
@@ -99,8 +100,8 @@ export function BlacklistContent({ initialData }: BlacklistContentProps) {
     <div>
       <PageHeader title="Lista Negra" description="Personas que no pueden participar en ningún equipo ni torneo" backHref="/admin/jugadores" onCreateClick={() => setCreateDialog(true)} createLabel="Agregar a lista negra" />
       <Card className="mb-6 border-destructive/20 bg-destructive/5"><CardHeader className="pb-2"><div className="flex items-center gap-2"><ShieldBan className="h-5 w-5 text-destructive" /><CardTitle className="text-base">Información importante</CardTitle></div></CardHeader><CardContent><CardDescription>Las personas en esta lista están bloqueadas de participar en cualquier equipo. Al registrarse con su DNI, el sistema validará automáticamente si están en la lista negra e impedirá su inscripción.</CardDescription></CardContent></Card>
-      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar por nombre o DNI..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" /></div></div>
-      <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay personas en la lista negra" page={page} totalPages={totalPages} onPageChange={setPage} />
+      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar por nombre o DNI..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" /></div></div>
+      <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay personas en la lista negra" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
 
       <Dialog open={createDialog} onOpenChange={setCreateDialog}>
         <DialogContent>

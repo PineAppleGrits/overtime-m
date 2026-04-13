@@ -4,10 +4,10 @@ import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { DataTable, Column } from '@/modules/admin/components/DataTable'
+import { StatusBadge } from '@/modules/admin/components/StatusBadge'
 import { ConfirmDialog } from '@/modules/admin/components/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,6 +75,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
   })
 
   const venues = data?.data ?? []
+  const total = data?.meta?.total
   const totalPages = data?.meta?.totalPages ?? 1
 
   const filteredVenues = useMemo(
@@ -177,14 +178,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
     {
       key: 'isActive',
       label: 'Estado',
-      render: (v) =>
-        v.isActive ? (
-          <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
-            Activa
-          </Badge>
-        ) : (
-          <Badge variant="outline">Inactiva</Badge>
-        ),
+      render: (v) => <StatusBadge status={v.isActive ? 'active' : 'inactive'} type="active" />,
     },
     {
       key: 'googleMapsUrl',
@@ -248,7 +242,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
           <Input
             placeholder="Buscar canchas..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="pl-9"
           />
         </div>
@@ -260,6 +254,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
         loading={isPending}
         emptyMessage="No hay canchas registradas"
         page={page}
+        total={total}
         totalPages={totalPages}
         onPageChange={setPage}
       />

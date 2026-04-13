@@ -16,6 +16,8 @@ import {
   ChangeMatchStatusDto,
   CreateAnnouncementDto,
   PaginationDto,
+  BatchCreateMatchesDto,
+  BatchChangeStatusDto,
 } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -31,6 +33,20 @@ export class MatchesController {
   @Roles('admin')
   create(@Body() createMatchDto: CreateMatchDto) {
     return this.matchesService.create(createMatchDto);
+  }
+
+  @Post('batch')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Crear múltiples partidos en batch' })
+  createBatch(@Body() batchDto: BatchCreateMatchesDto) {
+    return this.matchesService.createBatch(batchDto);
+  }
+
+  @Patch('batch/status')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Cambiar estado de múltiples partidos' })
+  batchChangeStatus(@Body() batchDto: BatchChangeStatusDto) {
+    return this.matchesService.batchChangeStatus(batchDto);
   }
 
   @Public()

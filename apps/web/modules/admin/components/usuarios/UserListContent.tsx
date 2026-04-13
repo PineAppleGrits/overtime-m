@@ -131,6 +131,7 @@ export function UserListContent({
   })
 
   const users = data?.data ?? []
+  const total = data?.meta?.total
   const totalPages = data?.meta?.totalPages ?? 1
 
   const closeDialog = useCallback(() => {
@@ -288,6 +289,7 @@ export function UserListContent({
         loading={isPending}
         emptyMessage={`No hay ${title.toLowerCase()} registrados`}
         page={page}
+        total={total}
         totalPages={totalPages}
         onPageChange={setPage}
       />

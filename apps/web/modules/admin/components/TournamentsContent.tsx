@@ -109,6 +109,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
   })
 
   const tournaments = data?.data ?? []
+  const total = data?.meta?.total
   const totalPages = data?.meta?.totalPages ?? 1
 
   const handleDelete = () => {
@@ -239,16 +240,16 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
       />
 
       <div className="mb-4 flex gap-3">
-        <div className="relative flex-1">
+        <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar torneos..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
@@ -267,6 +268,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
         loading={isPending}
         emptyMessage="No hay torneos creados"
         page={page}
+        total={total}
         totalPages={totalPages}
         onPageChange={setPage}
       />

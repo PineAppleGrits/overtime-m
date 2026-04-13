@@ -16,6 +16,7 @@ import {
   UpdateStaffDto,
   SetAvailabilityDto,
   AssignStaffToMatchDto,
+  BatchAssignStaffDto,
   PaginationDto,
 } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -105,6 +106,16 @@ export class StaffController {
     @Query('status') status?: string,
   ) {
     return this.staffService.getAssignedMatches(id, status);
+  }
+
+  @Post('matches/batch-assign')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Asignar staff a múltiples partidos en batch' })
+  batchAssign(
+    @Body() batchDto: BatchAssignStaffDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.staffService.batchAssign(batchDto, userId);
   }
 
   @Post('matches/:matchId/assign')
