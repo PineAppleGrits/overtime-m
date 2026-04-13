@@ -1,24 +1,29 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { VenuesService } from './venues.service';
-import { CreateVenueDto, UpdateVenueDto, CheckAvailabilityDto, PaginationDto } from '@overtime-mono/shared';
-import { Roles } from '../common/decorators/roles.decorator';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  CheckAvailabilityDto,
+  CreateVenueDto,
+  PaginationDto,
+  UpdateVenueDto,
+} from '@overtime-mono/shared';
 import { Public } from '../common/decorators/public.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
+import { VenuesService } from './venues.service';
 
 @ApiTags('venues')
 @Controller('venues')
 export class VenuesController {
-  constructor(private readonly venuesService: VenuesService) {}
+  constructor(private readonly venuesService: VenuesService) { }
 
   @Post()
   @Roles('admin')

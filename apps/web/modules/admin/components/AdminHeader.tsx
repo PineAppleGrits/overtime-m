@@ -35,7 +35,7 @@ const PATH_LABELS: Record<string, string> = {
   '/admin/configuracion': 'Configuración',
   '/admin/perfil': 'Mi Perfil',
   '/admin/mis-partidos': 'Mis Partidos',
-  '/admin/partidos': 'Partidos',
+  '/admin/torneos/partidos': 'Partidos',
   '/admin/usuarios': 'Usuarios',
 }
 

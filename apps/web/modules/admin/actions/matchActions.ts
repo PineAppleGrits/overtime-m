@@ -17,7 +17,7 @@ export async function rescheduleMatchAction(
 
   try {
     await matchService.updateMatch(matchId, { matchDate: newDate })
-    revalidatePath('/admin/partidos')
+    revalidatePath('/admin/torneos')
     return { success: true }
   } catch {
     return { success: false, error: 'No se pudo reprogramar el partido' }
@@ -43,7 +43,7 @@ export async function createMatchAction(
 
   try {
     const match = await matchService.createMatch(parsed.data)
-    revalidatePath('/admin/partidos')
+    revalidatePath('/admin/torneos')
     return { success: true, data: { id: match?.id ?? match?.data?.id } }
   } catch {
     return { success: false, error: 'No se pudo crear el partido' }
@@ -58,7 +58,7 @@ export async function updateMatchStatusAction(
 
   try {
     await matchService.changeMatchStatus(matchId, { status })
-    revalidatePath('/admin/partidos')
+    revalidatePath('/admin/torneos')
     return { success: true }
   } catch {
     return { success: false, error: 'No se pudo cambiar el estado' }

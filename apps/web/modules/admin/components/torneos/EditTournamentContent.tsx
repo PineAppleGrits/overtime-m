@@ -194,6 +194,9 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
               <Button type="button" variant="outline" asChild>
                 <a href={`/admin/torneos/${tournamentId}/inscripciones`}>Ver inscripciones</a>
               </Button>
+              <Button type="button" variant="outline" asChild>
+                <a href={`/admin/torneos/${tournamentId}/partidos`}>Organizar partidos</a>
+              </Button>
             </div>
           </form>
         </TabsContent>

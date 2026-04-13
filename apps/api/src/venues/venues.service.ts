@@ -5,7 +5,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateVenueDto, UpdateVenueDto, CheckAvailabilityDto, PaginationDto } from '@overtime-mono/shared';
+import {
+  CreateVenueDto,
+  UpdateVenueDto,
+  CheckAvailabilityDto,
+  PaginationDto,
+} from '@overtime-mono/shared';
 
 @Injectable()
 export class VenuesService {
