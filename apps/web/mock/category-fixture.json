@@ -1,0 +1,34 @@
+{
+  "rounds": [
+    {
+      "name": "Fecha 1",
+      "date": "2025-10-05",
+      "matches": [
+        { "id": "m1", "homeTeam": { "name": "Los Tigres", "score": 78 }, "awayTeam": { "name": "Panthers", "score": 71 }, "status": "finalizado", "time": "19:00", "venue": "Polideportivo Sur" },
+        { "id": "m2", "homeTeam": { "name": "Halcones FC", "score": 85 }, "awayTeam": { "name": "Toros del Sur", "score": 64 }, "status": "finalizado", "time": "20:30", "venue": "Club Atlético Norte" },
+        { "id": "m3", "homeTeam": { "name": "Dragones Rojos", "score": 72 }, "awayTeam": { "name": "Lobos Blancos", "score": 68 }, "status": "finalizado", "time": "21:00", "venue": "Polideportivo Sur" },
+        { "id": "m4", "homeTeam": { "name": "Guerreros", "score": 66 }, "awayTeam": { "name": "Vikingos", "score": 70 }, "status": "finalizado", "time": "22:30", "venue": "Club Atlético Norte" }
+      ]
+    },
+    {
+      "name": "Fecha 2",
+      "date": "2025-10-12",
+      "matches": [
+        { "id": "m5", "homeTeam": { "name": "Los Tigres", "score": 82 }, "awayTeam": { "name": "Halcones FC", "score": 79 }, "status": "finalizado", "time": "19:00", "venue": "Polideportivo Sur" },
+        { "id": "m6", "homeTeam": { "name": "Panthers", "score": 75 }, "awayTeam": { "name": "Dragones Rojos", "score": 73 }, "status": "finalizado", "time": "20:30", "venue": "Club Atlético Norte" },
+        { "id": "m7", "homeTeam": { "name": "Lobos Blancos", "score": 60 }, "awayTeam": { "name": "Guerreros", "score": 77 }, "status": "finalizado", "time": "21:00", "venue": "Polideportivo Sur" },
+        { "id": "m8", "homeTeam": { "name": "Vikingos", "score": 58 }, "awayTeam": { "name": "Toros del Sur", "score": 55 }, "status": "finalizado", "time": "22:30", "venue": "Club Atlético Norte" }
+      ]
+    },
+    {
+      "name": "Fecha 3",
+      "date": "2025-10-19",
+      "matches": [
+        { "id": "m9", "homeTeam": { "name": "Los Tigres", "score": null }, "awayTeam": { "name": "Dragones Rojos", "score": null }, "status": "programado", "time": "19:00", "venue": "Polideportivo Sur" },
+        { "id": "m10", "homeTeam": { "name": "Halcones FC", "score": null }, "awayTeam": { "name": "Lobos Blancos", "score": null }, "status": "programado", "time": "20:30", "venue": "Club Atlético Norte" },
+        { "id": "m11", "homeTeam": { "name": "Panthers", "score": null }, "awayTeam": { "name": "Vikingos", "score": null }, "status": "programado", "time": "21:00", "venue": "Polideportivo Sur" },
+        { "id": "m12", "homeTeam": { "name": "Guerreros", "score": null }, "awayTeam": { "name": "Toros del Sur", "score": null }, "status": "programado", "time": "22:30", "venue": "Club Atlético Norte" }
+      ]
+    }
+  ]
+}
