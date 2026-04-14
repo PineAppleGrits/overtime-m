@@ -261,6 +261,47 @@ CTA primario: bg-ot-orange hover:bg-ot-orange/90 text-white font-semibold rounde
 CTA ghost:    border border-ot-orange/40 text-ot-orange hover:bg-ot-orange/10 rounded-lg px-4 py-2
 ```
 
+### Admin panel — sistema visual
+
+El admin usa un diseño minimalista sobre fondo `bg-[#f7f6f4]`. **No usar `<Card>` para todo** — preferir paneles blancos con sombra sutil.
+
+#### Paleta de colores del admin
+| Token | Valor | Uso |
+|-------|-------|-----|
+| Primary text | `#0f0e13` | Títulos, nombres, valores principales |
+| Secondary text | `#6b6a72` | Labels de formularios, texto secundario |
+| Muted text | `#9b99a6` | Subtítulos, contadores, hints |
+| Hint text | `#c4c2cc` | Placeholders, íconos inactivos |
+| Border | `#e8e6e1` | Bordes de inputs, botones outline |
+| Divider | `#f0efe9` | Separadores entre secciones y filas |
+| Row hover | `#fafaf8` | Hover en filas de listas |
+| Accent | `#ff3b2f` | CTAs, tabs activos, links de acción |
+| Accent hover | `#e5352a` | Hover del accent |
+
+#### Patrones de UI del admin
+```
+Panel:            bg-white rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+Section heading:  text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9b99a6]
+Section divider:  border-t border-[#f0efe9]  (dentro de paneles)
+Form label:       text-xs text-[#6b6a72]
+Input:            border-[#e8e6e1] h-9
+Btn primary:      bg-[#ff3b2f] hover:bg-[#e5352a] text-white
+Btn outline:      border-[#e8e6e1]
+Text action:      text-[#ff3b2f] hover:text-[#e5352a]  (ej: "+ Nueva")
+List row:         border-b border-[#f0efe9] hover:bg-[#fafaf8]
+Hover actions:    opacity-0 group-hover:opacity-100 transition-opacity
+Delete hover:     hover:bg-red-50 text-[#c4c2cc] hover:text-destructive
+Tabs:             underline style — border-b-2 border-[#ff3b2f] (activo)
+Empty state:      text-[13px] text-[#9b99a6] + text-[12px] text-[#c4c2cc]
+Skeleton:         bg-[#e8e6e1]
+```
+
+#### Reglas de layout del admin
+- **No envolver todo en `<Card>`** — usar `<section>` con las clases de panel.
+- **Secciones dentro de un panel** se separan con `border-t border-[#f0efe9]`, no con cards anidadas.
+- **Listas de ítems** son filas planas con hover y acciones que aparecen al hacer hover, no cards individuales.
+- **Tabs** usan estilo underline (borde inferior accent), no pills ni cajas.
+
 ---
 
 ## 9. Convenciones de componentes
