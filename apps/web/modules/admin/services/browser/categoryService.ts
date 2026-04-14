@@ -20,6 +20,11 @@ class CategoryBrowserService extends BrowserService {
     return data
   }
 
+  async getCategoryById(tournamentId: string, categoryId: string) {
+    const { data } = await this.client.get(`/tournaments/${tournamentId}/categories/${categoryId}`)
+    return data
+  }
+
   async createCategory(tournamentId: string, dto: CreateCategoryDto) {
     const { data } = await this.client.post(`/tournaments/${tournamentId}/categories`, {
       ...dto,

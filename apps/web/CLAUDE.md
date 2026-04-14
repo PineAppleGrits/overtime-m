@@ -359,3 +359,4 @@ const { profile } = useAuth()
 9. **Toda acción del admin pasa por `useServerAction`** — no llames Server Actions directamente sin el wrapper.
 10. **Los textos de la UI van en español rioplatense** (vos, hacé, inscribite, etc.).
 11. **Todos los botones y links deben tener `cursor: pointer`** — ya hay una regla global en `globals.css` para `.admin-panel`, pero si creás componentes custom interactivos, asegurate de que muestren pointer.
+12. **Todas las páginas deben ser responsive (mobile-first)** — usá las utilidades responsive de Tailwind (`sm:`, `md:`, `lg:`). Grids deben colapsar a una columna en mobile, tablas deben scrollear horizontalmente, y los headers/toolbars deben stackear en mobile. Testeá siempre en viewport chico.

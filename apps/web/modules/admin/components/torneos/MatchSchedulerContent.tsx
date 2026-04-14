@@ -161,9 +161,10 @@ function staffLabel(staff: StaffAssignment): string {
 
 interface MatchSchedulerContentProps {
   tournamentId: string
+  embedded?: boolean
 }
 
-export function MatchSchedulerContent({ tournamentId }: MatchSchedulerContentProps) {
+export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchSchedulerContentProps) {
   const [selectedFecha, setSelectedFecha] = useState<string>(MOCK_FECHAS[0].id)
   const [selectedCancha, setSelectedCancha] = useState<string>(MOCK_CANCHAS[0].id)
   const [scheduledMatches, setScheduledMatches] = useState<ScheduledMatch[]>([])
@@ -339,16 +340,40 @@ export function MatchSchedulerContent({ tournamentId }: MatchSchedulerContentPro
 
   return (
     <div className="space-y-0">
-      <PageHeader
-        title="Partidos"
-        description="Organizá los partidos del torneo y asigná árbitros, oficiales y multimedia"
-        backHref={`/admin/torneos/${tournamentId}`}
-        actions={
+      {!embedded ? (
+        <PageHeader
+          title="Partidos"
+          description="Organizá los partidos del torneo y asigná árbitros, oficiales y multimedia"
+          backHref={`/admin/torneos/${tournamentId}`}
+          actions={
+            <div className="flex items-center gap-2">
+              {isDirty && (
+                <span className="text-[12px] text-amber-600 font-medium mr-1">Cambios sin guardar</span>
+              )}
+              <Button variant="outline" size="sm" onClick={handleSave} disabled={!isDirty || isSaving}>
+                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Guardar borrador
+              </Button>
+              <Button
+                size="sm"
+                onClick={handlePublish}
+                disabled={isPublishing || scheduledMatches.length === 0}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                Publicar fecha
+              </Button>
+            </div>
+          }
+        />
+      ) : (
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-[13px] text-[#9b99a6]">Organizá los partidos del torneo y asigná árbitros, oficiales y multimedia</p>
           <div className="flex items-center gap-2">
             {isDirty && (
               <span className="text-[12px] text-amber-600 font-medium mr-1">Cambios sin guardar</span>
             )}
-            <Button variant="outline" size="sm" onClick={handleSave} disabled={!isDirty || isSaving}>
+            <Button variant="outline" size="sm" onClick={handleSave} disabled={!isDirty || isSaving} className="border-[#e8e6e1]">
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Guardar borrador
             </Button>
@@ -362,8 +387,8 @@ export function MatchSchedulerContent({ tournamentId }: MatchSchedulerContentPro
               Publicar fecha
             </Button>
           </div>
-        }
-      />
+        </div>
+      )}
 
       <ConfirmDialog
         open={showUnsavedDialog}

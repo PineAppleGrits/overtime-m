@@ -20,7 +20,8 @@ export interface TournamentPricing {
   tournamentId: string
   validFrom: string
   validTo: string
-  entryFeeAmount: number
+  cashAmount: number
+  transferAmount: number
   currency: string
 }
 
