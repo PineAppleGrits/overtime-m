@@ -6,7 +6,7 @@ export default function DisciplinasLoading() {
       title="Disciplinas"
       description="Gestiona los deportes disponibles en la plataforma"
       rows={4}
-      columns={3}
+      columns={4}
     />
   )
 }

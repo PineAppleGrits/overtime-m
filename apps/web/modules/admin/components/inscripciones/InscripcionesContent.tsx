@@ -8,7 +8,7 @@ import { StatusBadge } from '@/modules/admin/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Check, X, AlertCircle } from 'lucide-react'
+import { MoreHorizontal, Check, X, AlertCircle, Info } from 'lucide-react'
 import registrationBrowserService from '@/modules/admin/services/browser/registrationService'
 import { approveRegistrationAction, rejectRegistrationAction } from '@/modules/admin/actions/registrationActions'
 import { useServerAction } from '@/modules/admin/hooks/useServerAction'
@@ -72,7 +72,7 @@ export function InscripcionesContent({ initialData }: InscripcionesContentProps)
       key: 'actions', label: '', className: 'w-10',
       render: (r) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {r.status === 'pending' && (<><DropdownMenuItem onClick={() => approveAction.execute({ id: r.id })}><Check className="mr-2 h-4 w-4" />Aprobar</DropdownMenuItem><DropdownMenuItem onClick={() => rejectAction.execute({ id: r.id })}><X className="mr-2 h-4 w-4" />Rechazar</DropdownMenuItem></>)}
           </DropdownMenuContent>
@@ -84,7 +84,11 @@ export function InscripcionesContent({ initialData }: InscripcionesContentProps)
   return (
     <div>
       <PageHeader title="Inscripciones" description="Todas las inscripciones de todos los torneos" />
-      <div className="mb-4"><Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}><SelectTrigger className="w-[180px]"><SelectValue placeholder="Estado" /></SelectTrigger><SelectContent><SelectItem value="all">Todas</SelectItem><SelectItem value="pending">Pendientes</SelectItem><SelectItem value="approved">Aprobadas</SelectItem><SelectItem value="rejected">Rechazadas</SelectItem></SelectContent></Select></div>
+      <div className="mb-4 flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3">
+        <Info className="h-4 w-4 text-blue-500 shrink-0" />
+        <p className="text-sm text-blue-700">Las inscripciones pasan por un proceso de revision. Cuando un equipo se inscribe, el estado es &quot;Pendiente&quot;. Podes aprobar o rechazar cada solicitud desde el menu de acciones.</p>
+      </div>
+      <div className="mb-4"><Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}><SelectTrigger className="w-[180px]" aria-label="Filtrar por estado"><SelectValue placeholder="Estado" /></SelectTrigger><SelectContent><SelectItem value="all">Todas</SelectItem><SelectItem value="pending">Pendientes</SelectItem><SelectItem value="approved">Aprobadas</SelectItem><SelectItem value="rejected">Rechazadas</SelectItem></SelectContent></Select></div>
       <DataTable columns={columns} data={registrations} loading={isPending} emptyMessage="No hay inscripciones" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
     </div>
   )

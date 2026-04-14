@@ -22,10 +22,10 @@ export function PageHeader({
   actions,
 }: PageHeaderProps) {
   return (
-    <div className="mb-6 flex items-start justify-between">
+    <header className="mb-6 flex items-start justify-between">
       <div className="flex items-start gap-3">
         {backHref && (
-          <Button variant="ghost" size="icon" asChild className="mt-0.5">
+          <Button variant="ghost" size="icon" asChild className="mt-0.5" aria-label="Volver">
             <Link href={backHref}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -55,6 +55,6 @@ export function PageHeader({
           </Button>
         )}
       </div>
-    </div>
+    </header>
   )
 }

@@ -6,7 +6,7 @@ export default function TorneosLoading() {
       title="Torneos"
       description="Gestiona todos los torneos de la plataforma"
       rows={5}
-      columns={5}
+      columns={7}
       showSearch
     />
   )

@@ -119,7 +119,7 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
       key: 'actions', label: '', className: 'w-10',
       render: (p) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => { setEditingPlayer(p); setDialog(true) }}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
             <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(p.id)}><Trash2 className="mr-2 h-4 w-4" />Eliminar</DropdownMenuItem>
@@ -132,7 +132,7 @@ export function JugadoresContent({ initialData }: JugadoresContentProps) {
   return (
     <div>
       <PageHeader title="Jugadores" description="Gestiona todos los jugadores registrados en la plataforma" onCreateClick={() => setDialog(true)} createLabel="Nuevo jugador" />
-      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar jugadores..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" /></div></div>
+      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar jugadores..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" aria-label="Buscar jugadores" /></div></div>
       <DataTable columns={columns} data={filteredPlayers} loading={isPending} emptyMessage="No hay jugadores registrados" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
       <PlayerFormDialog open={dialog} onOpenChange={(open) => !open && closeDialog()} editingPlayer={editingPlayer} onSubmit={handleSubmit} isPending={createAction.isPending || updateAction.isPending} />
       <ConfirmDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)} title="Eliminar jugador" description="¿Estás seguro de eliminar este jugador?" variant="destructive" confirmLabel="Eliminar" onConfirm={() => deleteId && deleteAction.execute({ id: deleteId })} loading={deleteAction.isPending} />

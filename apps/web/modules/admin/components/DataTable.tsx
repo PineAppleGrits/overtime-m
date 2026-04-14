@@ -29,6 +29,8 @@ interface DataTableProps<T> {
   totalPages?: number
   onPageChange?: (page: number) => void
   onRowClick?: (item: T) => void
+  /** Accessible label for the table */
+  'aria-label'?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,6 +45,7 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
   totalPages = 1,
   onPageChange,
   onRowClick,
+  'aria-label': ariaLabel = 'Tabla de datos',
 }: DataTableProps<T>) {
   const limit = 10
   const startRow = (page - 1) * limit + 1
@@ -50,12 +53,14 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
 
   return (
     <div className="rounded-xl border border-[#e8e6e1] bg-white overflow-hidden">
-      <Table>
+      <div className="overflow-x-auto">
+      <Table aria-label={ariaLabel}>
         <TableHeader>
           <TableRow className="bg-[#f7f6f4] hover:bg-[#f7f6f4]">
             {columns.map((col) => (
               <TableHead
                 key={col.key}
+                scope="col"
                 className={`text-[11px] font-semibold uppercase tracking-wider text-[#6b6a72] h-10 ${col.className ?? ''}`}
               >
                 {col.label}
@@ -101,6 +106,16 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
                     : 'transition-colors hover:bg-[#fafaf8]'
                 }
                 onClick={() => onRowClick?.(item)}
+                {...(onRowClick ? {
+                  role: 'button' as const,
+                  tabIndex: 0,
+                  onKeyDown: (e: React.KeyboardEvent<HTMLTableRowElement>) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+                      e.preventDefault()
+                      onRowClick(item)
+                    }
+                  },
+                } : {})}
               >
                 {columns.map((col) => (
                   <TableCell key={col.key} className={`text-[13px] ${col.className ?? ''}`}>
@@ -112,6 +127,7 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
           )}
         </TableBody>
       </Table>
+      </div>
 
       {totalPages > 1 && onPageChange && (
         <div className="flex items-center justify-between border-t border-[#e8e6e1] px-4 py-3 bg-[#fafaf8]">
@@ -129,6 +145,7 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
               className="h-8 w-8 p-0 border-[#e8e6e1]"
+              aria-label="Pagina anterior"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -150,6 +167,7 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
                   variant={pageNum === page ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => onPageChange(pageNum)}
+                  aria-label={`Ir a pagina ${pageNum}`}
                   className={`h-8 w-8 p-0 text-[12px] ${
                     pageNum === page
                       ? 'bg-[#0f0e13] text-white hover:bg-[#0f0e13]/90'
@@ -166,6 +184,7 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
               className="h-8 w-8 p-0 border-[#e8e6e1]"
+              aria-label="Pagina siguiente"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

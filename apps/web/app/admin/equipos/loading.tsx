@@ -6,7 +6,7 @@ export default function EquiposLoading() {
       title="Equipos"
       description="Gestiona los equipos"
       showSearch
-      columns={6}
+      columns={5}
       rows={5}
     />
   )

@@ -51,6 +51,27 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
   const socialAction = useServerAction(updateSocialConfigAction, { successMessage: 'Redes sociales guardadas' })
   const paymentAction = useServerAction(updatePaymentConfigAction, { successMessage: 'Configuración de pagos guardada' })
 
+  if (!initialData.error && !config) {
+    return (
+      <div>
+        <PageHeader title="Configuracion del sitio" description="Personaliza la apariencia, datos de contacto y metodos de pago" />
+        <div className="max-w-2xl space-y-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-[#e8e6e1] bg-white p-6 space-y-4">
+              <div className="animate-pulse rounded bg-muted h-6 w-48" />
+              <div className="animate-pulse rounded bg-muted h-4 w-72" />
+              <div className="animate-pulse rounded bg-muted h-10 w-full" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="animate-pulse rounded bg-muted h-10 w-full" />
+                <div className="animate-pulse rounded bg-muted h-10 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   if (initialData.error) {
     return (
       <div>
@@ -82,9 +103,9 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
                 <CardDescription>Nombre, descripción y aspecto del sitio</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2"><Label>Nombre del sitio</Label><Input value={generalForm.siteName} onChange={(e) => setGeneralForm({ ...generalForm, siteName: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Descripción</Label><Textarea value={generalForm.siteDescription} onChange={(e) => setGeneralForm({ ...generalForm, siteDescription: e.target.value })} /></div>
-                <div className="space-y-2"><Label>URL del logo</Label><Input value={generalForm.logoUrl} onChange={(e) => setGeneralForm({ ...generalForm, logoUrl: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-siteName">Nombre del sitio</Label><Input id="cfg-siteName" value={generalForm.siteName} onChange={(e) => setGeneralForm({ ...generalForm, siteName: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-siteDescription">Descripción</Label><Textarea id="cfg-siteDescription" value={generalForm.siteDescription} onChange={(e) => setGeneralForm({ ...generalForm, siteDescription: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-logoUrl">URL del logo</Label><Input id="cfg-logoUrl" value={generalForm.logoUrl} onChange={(e) => setGeneralForm({ ...generalForm, logoUrl: e.target.value })} /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Color primario</Label>
@@ -103,8 +124,8 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
                 </div>
                 <Separator />
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>Email de contacto</Label><Input type="email" value={generalForm.contactEmail} onChange={(e) => setGeneralForm({ ...generalForm, contactEmail: e.target.value })} /></div>
-                  <div className="space-y-2"><Label>Teléfono de contacto</Label><Input value={generalForm.contactPhone} onChange={(e) => setGeneralForm({ ...generalForm, contactPhone: e.target.value })} /></div>
+                  <div className="space-y-2"><Label htmlFor="cfg-contactEmail">Email de contacto</Label><Input id="cfg-contactEmail" type="email" value={generalForm.contactEmail} onChange={(e) => setGeneralForm({ ...generalForm, contactEmail: e.target.value })} /></div>
+                  <div className="space-y-2"><Label htmlFor="cfg-contactPhone">Teléfono de contacto</Label><Input id="cfg-contactPhone" value={generalForm.contactPhone} onChange={(e) => setGeneralForm({ ...generalForm, contactPhone: e.target.value })} /></div>
                 </div>
               </CardContent>
             </Card>
@@ -120,10 +141,10 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
             <Card>
               <CardHeader><CardTitle>Redes sociales</CardTitle><CardDescription>Links a las redes sociales que se muestran en el sitio</CardDescription></CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2"><Label>Instagram</Label><Input placeholder="https://instagram.com/..." value={socialForm.instagram} onChange={(e) => setSocialForm({ ...socialForm, instagram: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Facebook</Label><Input placeholder="https://facebook.com/..." value={socialForm.facebook} onChange={(e) => setSocialForm({ ...socialForm, facebook: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Twitter / X</Label><Input placeholder="https://twitter.com/..." value={socialForm.twitter} onChange={(e) => setSocialForm({ ...socialForm, twitter: e.target.value })} /></div>
-                <div className="space-y-2"><Label>YouTube</Label><Input placeholder="https://youtube.com/..." value={socialForm.youtube} onChange={(e) => setSocialForm({ ...socialForm, youtube: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-instagram">Instagram</Label><Input id="cfg-instagram" placeholder="https://instagram.com/..." value={socialForm.instagram} onChange={(e) => setSocialForm({ ...socialForm, instagram: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-facebook">Facebook</Label><Input id="cfg-facebook" placeholder="https://facebook.com/..." value={socialForm.facebook} onChange={(e) => setSocialForm({ ...socialForm, facebook: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-twitter">Twitter / X</Label><Input id="cfg-twitter" placeholder="https://twitter.com/..." value={socialForm.twitter} onChange={(e) => setSocialForm({ ...socialForm, twitter: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-youtube">YouTube</Label><Input id="cfg-youtube" placeholder="https://youtube.com/..." value={socialForm.youtube} onChange={(e) => setSocialForm({ ...socialForm, youtube: e.target.value })} /></div>
               </CardContent>
             </Card>
             <Button onClick={() => socialAction.execute({ socialMedia: socialForm })} disabled={socialAction.isPending}>

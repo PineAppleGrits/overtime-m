@@ -104,7 +104,7 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
       key: 'actions', label: '', className: 'w-10',
       render: (t) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => router.push(`/admin/equipos/${t.id}`)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push(`/admin/equipos/${t.id}?tab=players`)}><Users className="mr-2 h-4 w-4" />Jugadores</DropdownMenuItem>
@@ -118,7 +118,8 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
   return (
     <div>
       <PageHeader title="Equipos" description="Gestiona los equipos. Los equipos pueden tener categorías (ej: Barcelona A, Barcelona B) y compartir logo." createHref="/admin/equipos/nuevo" createLabel="Nuevo equipo" />
-      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar equipos..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" /></div></div>
+      <p className="mb-4 text-sm text-muted-foreground">Los equipos los crean los usuarios desde la plataforma. Desde aca podes editar datos, gestionar jugadores, o eliminar equipos.</p>
+      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar equipos..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" aria-label="Buscar equipos" /></div></div>
       <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay equipos registrados" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
       <ConfirmDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)} title="Eliminar equipo" description="¿Estás seguro de eliminar este equipo? Se eliminará toda la información asociada." variant="destructive" confirmLabel="Eliminar" onConfirm={() => deleteId && deleteAction.execute({ id: deleteId })} loading={deleteAction.isPending} />
     </div>

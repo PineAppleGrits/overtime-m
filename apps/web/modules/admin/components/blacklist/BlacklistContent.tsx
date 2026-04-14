@@ -86,7 +86,7 @@ export function BlacklistContent({ initialData }: BlacklistContentProps) {
       key: 'actions', label: '', className: 'w-10',
       render: (e) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => toggleAction.execute({ id: e.id, isActive: !e.isActive })}><ToggleLeft className="mr-2 h-4 w-4" />{e.isActive ? 'Desactivar' : 'Activar'}</DropdownMenuItem>
             <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(e.id)}><Trash2 className="mr-2 h-4 w-4" />Eliminar</DropdownMenuItem>
@@ -100,7 +100,7 @@ export function BlacklistContent({ initialData }: BlacklistContentProps) {
     <div>
       <PageHeader title="Lista Negra" description="Personas que no pueden participar en ningún equipo ni torneo" backHref="/admin/jugadores" onCreateClick={() => setCreateDialog(true)} createLabel="Agregar a lista negra" />
       <Card className="mb-6 border-destructive/20 bg-destructive/5"><CardHeader className="pb-2"><div className="flex items-center gap-2"><ShieldBan className="h-5 w-5 text-destructive" /><CardTitle className="text-base">Información importante</CardTitle></div></CardHeader><CardContent><CardDescription>Las personas en esta lista están bloqueadas de participar en cualquier equipo. Al registrarse con su DNI, el sistema validará automáticamente si están en la lista negra e impedirá su inscripción.</CardDescription></CardContent></Card>
-      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar por nombre o DNI..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" /></div></div>
+      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar por nombre o DNI..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" aria-label="Buscar en lista negra" /></div></div>
       <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay personas en la lista negra" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
 
       <Dialog open={createDialog} onOpenChange={setCreateDialog}>
@@ -108,11 +108,11 @@ export function BlacklistContent({ initialData }: BlacklistContentProps) {
           <DialogHeader><DialogTitle>Agregar a lista negra</DialogTitle><DialogDescription>Esta persona no podrá participar en ningún equipo ni torneo</DialogDescription></DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Nombre *</Label><Input value={createForm.firstName} onChange={(e) => setCreateForm({ ...createForm, firstName: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Apellido *</Label><Input value={createForm.lastName} onChange={(e) => setCreateForm({ ...createForm, lastName: e.target.value })} /></div>
+              <div className="space-y-2"><Label htmlFor="bl-firstName">Nombre *</Label><Input id="bl-firstName" value={createForm.firstName} onChange={(e) => setCreateForm({ ...createForm, firstName: e.target.value })} /></div>
+              <div className="space-y-2"><Label htmlFor="bl-lastName">Apellido *</Label><Input id="bl-lastName" value={createForm.lastName} onChange={(e) => setCreateForm({ ...createForm, lastName: e.target.value })} /></div>
             </div>
-            <div className="space-y-2"><Label>DNI *</Label><Input placeholder="12345678" value={createForm.documentNumber} onChange={(e) => setCreateForm({ ...createForm, documentNumber: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Motivo *</Label><Textarea placeholder="Razón por la que se agrega..." value={createForm.reason} onChange={(e) => setCreateForm({ ...createForm, reason: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="bl-documentNumber">DNI *</Label><Input id="bl-documentNumber" placeholder="12345678" value={createForm.documentNumber} onChange={(e) => setCreateForm({ ...createForm, documentNumber: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="bl-reason">Motivo *</Label><Textarea id="bl-reason" placeholder="Razón por la que se agrega..." value={createForm.reason} onChange={(e) => setCreateForm({ ...createForm, reason: e.target.value })} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateDialog(false)}>Cancelar</Button>

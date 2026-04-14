@@ -205,7 +205,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
       render: (v) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -244,6 +244,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="pl-9"
+            aria-label="Buscar canchas"
           />
         </div>
       </div>

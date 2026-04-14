@@ -232,7 +232,7 @@ export function UserListContent({
       render: (u) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -266,13 +266,14 @@ export function UserListContent({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="pl-9"
+            aria-label="Buscar usuarios"
           />
         </div>
 
         {/* Role filter — only shown when there are multiple roles to choose from */}
         {!fixedRole && availableRoles && availableRoles.length > 1 && (
           <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(1) }}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Rol" /></SelectTrigger>
+            <SelectTrigger className="w-[200px]" aria-label="Filtrar por rol"><SelectValue placeholder="Rol" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               {availableRoles.map((r) => (
@@ -302,8 +303,9 @@ export function UserListContent({
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Nombre completo *</Label>
+              <Label htmlFor="user-name">Nombre completo *</Label>
               <Input
+                id="user-name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Ej: Juan Pérez"
@@ -330,16 +332,18 @@ export function UserListContent({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label htmlFor="user-email">Email</Label>
                 <Input
+                  id="user-email"
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Teléfono</Label>
+                <Label htmlFor="user-phone">Teléfono</Label>
                 <Input
+                  id="user-phone"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
@@ -348,15 +352,17 @@ export function UserListContent({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Nro. documento</Label>
+                <Label htmlFor="user-documentNumber">Nro. documento</Label>
                 <Input
+                  id="user-documentNumber"
                   value={form.documentNumber}
                   onChange={(e) => setForm({ ...form, documentNumber: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Fecha de nacimiento</Label>
+                <Label htmlFor="user-dateOfBirth">Fecha de nacimiento</Label>
                 <Input
+                  id="user-dateOfBirth"
                   type="date"
                   value={form.dateOfBirth}
                   onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}

@@ -6,7 +6,7 @@ export default function CanchasLoading() {
       title="Canchas"
       description="Gestiona las canchas y lugares donde se juegan los partidos"
       rows={5}
-      columns={5}
+      columns={6}
       showSearch
     />
   )

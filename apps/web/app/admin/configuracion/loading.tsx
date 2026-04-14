@@ -3,8 +3,8 @@ import { AdminDetailSkeleton } from '@/modules/admin/components/AdminTableSkelet
 export default function ConfiguracionLoading() {
   return (
     <AdminDetailSkeleton
-      title="Configuración"
-      description="Configuración general del sitio"
+      title="Configuración del sitio"
+      description="Personaliza la apariencia, datos de contacto y métodos de pago"
       showBack={false}
       cards={2}
     />

@@ -30,6 +30,7 @@ import {
   Trash2,
   Eye,
   Search,
+  AlertCircle,
 } from 'lucide-react'
 import adminTournamentService, {
   type GetTournamentsParams,
@@ -104,7 +105,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const debouncedSearch = useDebouncedValue(search, 300)
 
-  const { data, isPending } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: [...TOURNAMENTS_QUERY_KEY, page, statusFilter, debouncedSearch],
     queryFn: async ({ signal }) => {
       const params: GetTournamentsParams = {
@@ -146,6 +147,24 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
 
   const handleStatusChange = (id: string, status: TournamentStatus) => {
     statusAction.execute({ id, status })
+  }
+
+  if (isError) {
+    return (
+      <div>
+        <PageHeader
+          title="Torneos"
+          description="Gestiona todos los torneos de la plataforma"
+          createHref="/admin/torneos/nuevo"
+          createLabel="Nuevo torneo"
+        />
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
+          <AlertCircle className="h-8 w-8 text-destructive" />
+          <p className="text-muted-foreground">Error al cargar los torneos</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
+        </div>
+      </div>
+    )
   }
 
   const columns: Column<AdminTournament>[] = [
@@ -216,7 +235,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
             </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones del torneo">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -278,10 +297,11 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="pl-9"
+            aria-label="Buscar torneos"
           />
         </div>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-[200px]" aria-label="Filtrar por estado">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>

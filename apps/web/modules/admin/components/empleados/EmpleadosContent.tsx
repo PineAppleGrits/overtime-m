@@ -105,7 +105,7 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
       key: 'actions', label: '', className: 'w-10',
       render: (e) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => openEdit(e)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push(`/admin/empleados/${e.id}`)}><Eye className="mr-2 h-4 w-4" />Ver partidos</DropdownMenuItem>
@@ -121,8 +121,8 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
     <div>
       <PageHeader title="Empleados" description="Gestiona árbitros, fotógrafos y agentes de mesa" onCreateClick={() => setDialog(true)} createLabel="Nuevo empleado" />
       <div className="mb-4 flex gap-3">
-        <div className="relative flex-1 max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar empleados..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" /></div>
-        <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(1) }}><SelectTrigger className="w-[180px]"><SelectValue placeholder="Rol" /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="arbitro">Árbitros</SelectItem><SelectItem value="fotografo">Multimedia</SelectItem><SelectItem value="agente_mesa">Agentes de mesa</SelectItem></SelectContent></Select>
+        <div className="relative flex-1 max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar empleados..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" aria-label="Buscar empleados" /></div>
+        <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(1) }}><SelectTrigger className="w-[180px]" aria-label="Filtrar por rol"><SelectValue placeholder="Rol" /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="arbitro">Árbitros</SelectItem><SelectItem value="fotografo">Multimedia</SelectItem><SelectItem value="agente_mesa">Agentes de mesa</SelectItem></SelectContent></Select>
       </div>
       <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay empleados registrados" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
 
@@ -131,12 +131,12 @@ export function EmpleadosContent({ initialData }: EmpleadosContentProps) {
           <DialogHeader><DialogTitle>{editingEmployee ? 'Editar empleado' : 'Nuevo empleado'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Nombre *</Label><Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Apellido *</Label><Input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></div>
+              <div className="space-y-2"><Label htmlFor="emp-firstName">Nombre *</Label><Input id="emp-firstName" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></div>
+              <div className="space-y-2"><Label htmlFor="emp-lastName">Apellido *</Label><Input id="emp-lastName" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></div>
             </div>
-            <div className="space-y-2"><Label>Rol *</Label><Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as EmployeeRole })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="arbitro">Árbitro</SelectItem><SelectItem value="fotografo">Multimedia</SelectItem><SelectItem value="agente_mesa">Agente de mesa</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Teléfono</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="emp-role">Rol *</Label><Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as EmployeeRole })}><SelectTrigger id="emp-role"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="arbitro">Árbitro</SelectItem><SelectItem value="fotografo">Multimedia</SelectItem><SelectItem value="agente_mesa">Agente de mesa</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="emp-email">Email</Label><Input id="emp-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="emp-phone">Teléfono</Label><Input id="emp-phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
