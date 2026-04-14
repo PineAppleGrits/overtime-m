@@ -19,7 +19,16 @@ import { useDebouncedValue } from '@/modules/admin/hooks/useDebouncedValue'
 const TEAM_KEY = ['admin', 'teams'] as const
 
 interface TeamRow {
-  id: string; name: string; slug: string; logoUrl?: string; sportName?: string; category?: string; parentTeamName?: string; playersCount?: number; ownerName?: string; createdAt: string
+  id: string
+  name: string
+  slug: string
+  logoUrl?: string
+  sport?: { id: string; name: string }
+  creator?: { id: string; name: string; email?: string }
+  captain?: { id: string; name: string } | null
+  members?: { id: string; isActive: boolean }[]
+  franchise?: { id: string; name: string } | null
+  createdAt: string
 }
 
 interface EquiposContentProps {
@@ -83,15 +92,14 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
           </Avatar>
           <div>
             <p className="font-medium">{t.name}</p>
-            {t.category && <p className="text-xs text-muted-foreground">Categoría: {t.category}</p>}
+            {t.franchise && <p className="text-xs text-muted-foreground">{t.franchise.name}</p>}
           </div>
         </div>
       ),
     },
-    { key: 'parentTeamName', label: 'Equipo padre', render: (t) => <span className="text-sm">{t.parentTeamName ?? '-'}</span> },
-    { key: 'sportName', label: 'Disciplina' },
-    { key: 'ownerName', label: 'Dueño', render: (t) => <span className="text-sm">{t.ownerName ?? '-'}</span> },
-    { key: 'playersCount', label: 'Jugadores', render: (t) => <span className="text-sm">{t.playersCount ?? 0}</span> },
+    { key: 'sport', label: 'Disciplina', render: (t) => <span className="text-sm">{t.sport?.name ?? '-'}</span> },
+    { key: 'creator', label: 'Creador', render: (t) => <span className="text-sm">{t.creator?.name ?? '-'}</span> },
+    { key: 'members', label: 'Jugadores', render: (t) => <span className="text-sm">{t.members?.filter(m => m.isActive).length ?? 0}</span> },
     {
       key: 'actions', label: '', className: 'w-10',
       render: (t) => (

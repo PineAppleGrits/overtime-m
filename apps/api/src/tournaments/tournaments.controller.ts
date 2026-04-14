@@ -11,7 +11,7 @@ import {
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TournamentsService } from './tournaments.service';
 import { ChangeStatusDto, PaginationDto } from '@overtime-mono/shared';
-import { Roles } from '../common/decorators/roles.decorator';
+import { Admin } from '../common/decorators/admin.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
 import {
@@ -25,7 +25,7 @@ export class TournamentsController {
   constructor(private readonly tournamentsService: TournamentsService) {}
 
   @Post()
-  @Roles('admin')
+  @Admin()
   create(@Body() createTournamentDto: CreateTournamentBodyDto) {
     return this.tournamentsService.create(createTournamentDto);
   }
@@ -53,7 +53,7 @@ export class TournamentsController {
   }
 
   @Patch(':id')
-  @Roles('admin')
+  @Admin()
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateTournamentDto: UpdateTournamentBodyDto,
@@ -62,7 +62,7 @@ export class TournamentsController {
   }
 
   @Patch(':id/status')
-  @Roles('admin')
+  @Admin()
   changeStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() changeStatusDto: ChangeStatusDto,
@@ -71,7 +71,7 @@ export class TournamentsController {
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Admin()
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.tournamentsService.remove(id);
   }

@@ -12,9 +12,14 @@ const statusColors: Record<StatusVariant, string> = {
 }
 
 const tournamentStatusMap: Record<string, { label: string; variant: StatusVariant }> = {
-  draft: { label: 'Borrador', variant: 'default' },
-  published: { label: 'Publicado', variant: 'success' },
-  archived: { label: 'Archivado', variant: 'warning' },
+  DRAFT: { label: 'Borrador', variant: 'default' },
+  OPEN: { label: 'Abierto', variant: 'success' },
+  CLOSED: { label: 'Cerrado', variant: 'warning' },
+  READY_TO_SHIP: { label: 'Listo para arrancar', variant: 'info' },
+  IN_PROGRESS: { label: 'En curso', variant: 'info' },
+  FINISHED: { label: 'Finalizado', variant: 'default' },
+  ARCHIVED: { label: 'Archivado', variant: 'default' },
+  CANCELLED: { label: 'Cancelado', variant: 'danger' },
 }
 
 const registrationStatusMap: Record<string, { label: string; variant: StatusVariant }> = {

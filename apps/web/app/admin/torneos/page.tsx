@@ -1,6 +1,5 @@
-
 import { TournamentsContent } from '@/modules/admin/components/TournamentsContent'
-import { AdminTournament } from '@/modules/admin/types'
+import type { AdminTournament } from '@/modules/admin/types'
 import TournamentService from '@/modules/tournament/TournamentService'
 
 export default async function TournamentsPage() {
@@ -9,7 +8,7 @@ export default async function TournamentsPage() {
   return (
     <TournamentsContent
       initialData={{
-        data: initialData.data as unknown as AdminTournament[], // TODO: Fix this
+        data: (initialData.data ?? []) as unknown as AdminTournament[],
         meta: initialData.meta,
       }}
     />

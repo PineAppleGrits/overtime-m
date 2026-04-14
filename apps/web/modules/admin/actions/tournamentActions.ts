@@ -5,27 +5,26 @@ import adminTournamentServerService from '@/modules/admin-tournament/AdminTourna
 import categoryService from '@/modules/tournament/CategoryService'
 import zoneService from '@/modules/tournament/ZoneService'
 import {
-  createTournamentSchema, updateTournamentSchema, changeStatusSchema, closeRegistrationsSchema,
-  createPricingSchema, deletePricingSchema, deleteTournamentSchema,
-  createCategorySchema, deleteCategorySchema,
+  createTournamentSchema, updateTournamentSchema, changeStatusSchema,
+  deleteTournamentSchema,
+  createCategorySchema, updateCategorySchema, deleteCategorySchema,
   createZoneSchema, deleteZoneSchema,
-  approveRegistrationTournamentSchema, rejectRegistrationTournamentSchema, confirmPaymentSchema,
-  manualRegistrationSchema,
+  approveRegistrationTournamentSchema, rejectRegistrationTournamentSchema,
 } from '../schemas/tournamentSchemas'
 import type { ActionResult } from './types'
 
-export async function createTournamentAction(input: unknown): Promise<ActionResult> {
+export async function createTournamentAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = createTournamentSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   try {
-    await adminTournamentServerService.createTournament({
+    const result = await adminTournamentServerService.createTournament({
       ...parsed.data,
       description: parsed.data.description || undefined,
       registrationStartDate: parsed.data.registrationStartDate || undefined,
       registrationEndDate: parsed.data.registrationEndDate || undefined,
     })
     revalidatePath('/admin/torneos')
-    return { success: true }
+    return { success: true, data: { id: result.id } }
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo crear el torneo' } }
 }
 
@@ -57,37 +56,6 @@ export async function changeStatusAction(input: unknown): Promise<ActionResult> 
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo cambiar el estado' } }
 }
 
-export async function closeRegistrationsAction(input: unknown): Promise<ActionResult> {
-  const parsed = closeRegistrationsSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
-  try {
-    await adminTournamentServerService.closeRegistrations(parsed.data.id)
-    revalidatePath(`/admin/torneos/${parsed.data.id}`)
-    return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo cerrar las inscripciones' } }
-}
-
-export async function createPricingAction(input: unknown): Promise<ActionResult> {
-  const parsed = createPricingSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
-  const { tournamentId, ...dto } = parsed.data
-  try {
-    await adminTournamentServerService.createPricing(tournamentId, dto)
-    revalidatePath(`/admin/torneos/${tournamentId}`)
-    return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo agregar el precio' } }
-}
-
-export async function deletePricingAction(input: unknown): Promise<ActionResult> {
-  const parsed = deletePricingSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
-  try {
-    await adminTournamentServerService.deletePricing(parsed.data.tournamentId, parsed.data.pricingId)
-    revalidatePath(`/admin/torneos/${parsed.data.tournamentId}`)
-    return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo eliminar el precio' } }
-}
-
 export async function deleteTournamentAction(input: unknown): Promise<ActionResult> {
   const parsed = deleteTournamentSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
@@ -107,6 +75,21 @@ export async function createCategoryAction(input: unknown): Promise<ActionResult
     revalidatePath(`/admin/torneos/${tournamentId}/categorias`)
     return { success: true }
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo crear la categoría' } }
+}
+
+export async function updateCategoryAction(input: unknown): Promise<ActionResult> {
+  const parsed = updateCategorySchema.safeParse(input)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  const { tournamentId, categoryId, ...dto } = parsed.data
+  try {
+    await categoryService.updateCategory(tournamentId, categoryId, {
+      name: dto.name,
+      maxTeams: dto.maxTeams ?? undefined,
+      teamsPerZone: dto.teamsPerZone ?? undefined,
+    })
+    revalidatePath(`/admin/torneos/${tournamentId}/categorias`)
+    return { success: true }
+  } catch (error) { console.error(error); return { success: false, error: 'No se pudo actualizar la categoría' } }
 }
 
 export async function deleteCategoryAction(input: unknown): Promise<ActionResult> {
@@ -157,25 +140,4 @@ export async function rejectRegistrationTournamentAction(input: unknown): Promis
     revalidatePath(`/admin/torneos/${parsed.data.tournamentId}/inscripciones`)
     return { success: true }
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo rechazar la inscripción' } }
-}
-
-export async function confirmPaymentAction(input: unknown): Promise<ActionResult> {
-  const parsed = confirmPaymentSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
-  try {
-    await adminTournamentServerService.confirmPayment(parsed.data.tournamentId, parsed.data.registrationId)
-    revalidatePath(`/admin/torneos/${parsed.data.tournamentId}/inscripciones`)
-    return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo confirmar el pago' } }
-}
-
-export async function manualRegistrationAction(input: unknown): Promise<ActionResult> {
-  const parsed = manualRegistrationSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
-  const { tournamentId, ...dto } = parsed.data
-  try {
-    await adminTournamentServerService.manualRegistration(tournamentId, dto)
-    revalidatePath(`/admin/torneos/${tournamentId}/inscripciones`)
-    return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo registrar la inscripción manual' } }
 }

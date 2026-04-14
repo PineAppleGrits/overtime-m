@@ -3,35 +3,45 @@
  */
 
 // ============ Tournament Types ============
-export type TournamentStatus = 'draft' | 'published' | 'archived'
+export type TournamentStatus =
+  | 'DRAFT'
+  | 'OPEN'
+  | 'CLOSED'
+  | 'READY_TO_SHIP'
+  | 'IN_PROGRESS'
+  | 'FINISHED'
+  | 'ARCHIVED'
+  | 'CANCELLED'
 
 export type PaymentMethod = 'transferencia' | 'efectivo' | 'configurado'
 
 export interface TournamentPricing {
   id: string
   tournamentId: string
-  paymentMethod: PaymentMethod
-  amount: number
-  dateFrom: string
-  dateTo: string
-  isActive: boolean
+  validFrom: string
+  validTo: string
+  entryFeeAmount: number
+  currency: string
 }
 
 export interface AdminTournament {
   id: string
   name: string
   slug: string
-  description?: string
+  description?: string | null
   sportId: string
-  sportName?: string
+  sport: { id: string; name: string; code: string }
   status: TournamentStatus
-  startDate: string
-  endDate: string
-  registrationStartDate?: string
-  registrationEndDate?: string
-  registrationOpen: boolean
-  pricing: TournamentPricing[]
+  startDate: string | null
+  endDate: string | null
+  registrationStartDate?: string | null
+  registrationEndDate?: string | null
+  teamOperationsOpenAt?: string | null
+  teamOperationsCloseAt?: string | null
+  insurancePerPlayer?: number | null
+  registrationPricing: TournamentPricing[]
   categories: AdminCategory[]
+  _count?: { categories: number; registrations: number }
   createdAt: string
   updatedAt: string
 }
@@ -71,27 +81,52 @@ export interface AdminTeam {
   slug: string
   logoUrl?: string
   sportId: string
-  sportName?: string
-  captainId?: string
-  captainName?: string
-  ownerId?: string
-  ownerName?: string
-  category?: string
-  parentTeamId?: string
-  parentTeamName?: string
-  players: AdminPlayerInTeam[]
+  sport: { id: string; name: string; code?: string }
+  captainId?: string | null
+  captain?: { id: string; name: string; avatarUrl?: string | null } | null
+  creatorId?: string
+  creator?: { id: string; name: string; email?: string }
+  franchiseId?: string | null
+  franchise?: { id: string; name: string; slug: string; logoUrl?: string | null } | null
+  members: AdminMember[]
+  teamZones?: AdminTeamZone[]
+  registrations?: AdminTeamRegistration[]
   createdAt: string
   updatedAt: string
 }
 
-export interface AdminPlayerInTeam {
+export interface AdminMember {
   id: string
-  playerId: string
-  firstName: string
-  lastName: string
-  jerseyNumber?: number
-  position?: string
-  photoUrl?: string
+  profileId: string
+  isActive: boolean
+  position?: string | null
+  profile: {
+    id: string
+    name: string
+    email?: string | null
+    avatarUrl?: string | null
+    documentNumber?: string | null
+  }
+}
+
+export interface AdminTeamZone {
+  id: string
+  zone: {
+    id: string
+    name: string
+    category: {
+      id: string
+      name: string
+      tournament: { id: string; name: string }
+    }
+  }
+}
+
+export interface AdminTeamRegistration {
+  id: string
+  status: string
+  tournament: { id: string; name: string }
+  category: { id: string; name: string }
 }
 
 // ============ Player Types ============

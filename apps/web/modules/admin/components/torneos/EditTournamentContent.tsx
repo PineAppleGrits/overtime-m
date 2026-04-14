@@ -1,24 +1,27 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import Link from 'next/link'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { StatusBadge } from '@/modules/admin/components/StatusBadge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { AlertCircle, Archive, DraftingCompass, Loader2, Plus, Send, Trash2 } from 'lucide-react'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { AlertCircle, CalendarIcon, FolderOpen, Loader2, ListChecks, Swords } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import adminTournamentBrowserService from '@/modules/admin/services/AdminTournamentService'
-import { updateTournamentAction, changeStatusAction, closeRegistrationsAction, createPricingAction, deletePricingAction } from '@/modules/admin/actions/tournamentActions'
+import { updateTournamentAction, changeStatusAction } from '@/modules/admin/actions/tournamentActions'
 import { useServerAction } from '@/modules/admin/hooks/useServerAction'
-import { AdminTournament, TournamentPricing, TournamentStatus, PaymentMethod } from '@/modules/admin/types'
+import { AdminTournament, TournamentStatus } from '@/modules/admin/types'
 
 interface Sport { id: string; name: string; code: string }
 
@@ -26,6 +29,75 @@ interface EditTournamentContentProps {
   tournamentId: string
   initialData: { data: AdminTournament | null; error: string | null }
   sports: Sport[]
+}
+
+const STATUS_TRANSITIONS: Record<TournamentStatus, { status: TournamentStatus; label: string }[]> = {
+  DRAFT: [{ status: 'OPEN', label: 'Abrir inscripciones' }],
+  OPEN: [{ status: 'CLOSED', label: 'Cerrar inscripciones' }],
+  CLOSED: [{ status: 'READY_TO_SHIP', label: 'Marcar listo para arrancar' }],
+  READY_TO_SHIP: [{ status: 'IN_PROGRESS', label: 'Iniciar torneo' }],
+  IN_PROGRESS: [{ status: 'FINISHED', label: 'Finalizar torneo' }],
+  FINISHED: [{ status: 'ARCHIVED', label: 'Archivar' }],
+  ARCHIVED: [],
+  CANCELLED: [],
+}
+
+const CANCELLABLE: TournamentStatus[] = ['DRAFT', 'OPEN', 'CLOSED', 'READY_TO_SHIP', 'IN_PROGRESS']
+
+function parseDate(val: string | null | undefined): Date | undefined {
+  if (!val) return undefined
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? undefined : d
+}
+
+function DateField({
+  label,
+  value,
+  onChange,
+  minDate,
+}: {
+  label: string
+  value: Date | undefined
+  onChange: (d: Date | undefined) => void
+  minDate?: Date
+}) {
+  const [open, setOpen] = useState(false)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const fromDate = minDate ?? today
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              'w-full justify-start text-left font-normal cursor-pointer',
+              !value && 'text-muted-foreground',
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {value ? format(value, 'PPP', { locale: es }) : 'Sin definir'}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-fit p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={value}
+            onSelect={(d) => { onChange(d); setOpen(false) }}
+            defaultMonth={value ?? fromDate}
+            disabled={{ before: fromDate }}
+            startMonth={fromDate}
+            endMonth={new Date(today.getFullYear() + 3, 11)}
+            captionLayout="dropdown"
+            locale={es}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
 }
 
 export function EditTournamentContent({ tournamentId, initialData, sports }: EditTournamentContentProps) {
@@ -41,31 +113,32 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
     initialData: !initialData.error && initialData.data ? initialData.data : undefined,
   })
 
+  const initial = initialData.data
   const [form, setForm] = useState({
-    name: initialData.data?.name ?? '',
-    description: initialData.data?.description ?? '',
-    sportId: initialData.data?.sportId ?? '',
-    startDate: initialData.data?.startDate?.split('T')[0] ?? '',
-    endDate: initialData.data?.endDate?.split('T')[0] ?? '',
-    registrationStartDate: initialData.data?.registrationStartDate?.split('T')[0] ?? '',
-    registrationEndDate: initialData.data?.registrationEndDate?.split('T')[0] ?? '',
-    registrationOpen: initialData.data?.registrationOpen ?? false,
+    name: initial?.name ?? '',
+    description: initial?.description ?? '',
+    sportId: initial?.sportId ?? '',
+    startDate: parseDate(initial?.startDate),
+    endDate: parseDate(initial?.endDate),
+    registrationStartDate: parseDate(initial?.registrationStartDate),
+    registrationEndDate: parseDate(initial?.registrationEndDate),
   })
 
-  const [pricingDialog, setPricingDialog] = useState(false)
-  const [pricingForm, setPricingForm] = useState({
-    paymentMethod: 'transferencia' as PaymentMethod,
-    amount: '', dateFrom: '', dateTo: '',
-  })
+  const isDirty = useMemo(() => {
+    if (!initial) return false
+    return (
+      form.name !== (initial.name ?? '') ||
+      form.description !== (initial.description ?? '') ||
+      form.sportId !== (initial.sportId ?? '') ||
+      form.startDate?.toISOString() !== parseDate(initial.startDate)?.toISOString() ||
+      form.endDate?.toISOString() !== parseDate(initial.endDate)?.toISOString() ||
+      form.registrationStartDate?.toISOString() !== parseDate(initial.registrationStartDate)?.toISOString() ||
+      form.registrationEndDate?.toISOString() !== parseDate(initial.registrationEndDate)?.toISOString()
+    )
+  }, [form, initial])
 
   const updateAction = useServerAction(updateTournamentAction, { successMessage: 'Torneo actualizado', onSuccess: invalidate })
   const changeStatusAct = useServerAction(changeStatusAction, { successMessage: 'Estado actualizado', onSuccess: invalidate })
-  const closeRegAct = useServerAction(closeRegistrationsAction, { successMessage: 'Inscripciones cerradas', onSuccess: invalidate })
-  const createPricingAct = useServerAction(createPricingAction, {
-    successMessage: 'Precio agregado',
-    onSuccess: () => { invalidate(); setPricingDialog(false); setPricingForm({ paymentMethod: 'transferencia', amount: '', dateFrom: '', dateTo: '' }) },
-  })
-  const deletePricingAct = useServerAction(deletePricingAction, { successMessage: 'Precio eliminado', onSuccess: invalidate })
 
   if (initialData.error && isError) {
     return (
@@ -96,178 +169,162 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
       name: form.name,
       description: form.description || undefined,
       sportId: form.sportId,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      registrationStartDate: form.registrationStartDate || undefined,
-      registrationEndDate: form.registrationEndDate || undefined,
-      registrationOpen: form.registrationOpen,
+      startDate: form.startDate?.toISOString(),
+      endDate: form.endDate?.toISOString(),
+      registrationStartDate: form.registrationStartDate?.toISOString() || undefined,
+      registrationEndDate: form.registrationEndDate?.toISOString() || undefined,
     })
   }
 
-  const pricing: TournamentPricing[] = tournament.pricing ?? []
+  const transitions = STATUS_TRANSITIONS[tournament.status] ?? []
+  const canCancel = CANCELLABLE.includes(tournament.status)
 
   return (
     <div>
       <PageHeader
         title={tournament.name}
-        description="Edita la información del torneo, precios y configuración de inscripciones"
+        description="Edita la información del torneo"
         backHref="/admin/torneos"
         actions={
-          <div className="flex gap-2">
-            {tournament.status === 'draft' && (
-              <Button variant="outline" onClick={() => changeStatusAct.execute({ id: tournamentId, status: 'published' })}>
-                <Send className="mr-2 h-4 w-4" />Publicar
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              disabled={!isDirty || updateAction.isPending}
+              onClick={handleSave}
+            >
+              {updateAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Guardar cambios
+            </Button>
+            {transitions.map((tr) => (
+              <Button key={tr.status} variant="outline" onClick={() => changeStatusAct.execute({ id: tournamentId, status: tr.status })}>
+                {tr.label}
               </Button>
-            )}
-            {tournament.status === 'published' && (
-              <>
-                <Button variant="outline" onClick={() => closeRegAct.execute({ id: tournamentId })}>Cerrar inscripciones web</Button>
-                <Button variant="outline" onClick={() => changeStatusAct.execute({ id: tournamentId, status: 'archived' })}>
-                  <Archive className="mr-2 h-4 w-4" />Archivar
-                </Button>
-              </>
-            )}
-            {tournament.status === 'archived' && (
-              <Button variant="outline" onClick={() => changeStatusAct.execute({ id: tournamentId, status: 'draft' })}>
-                <DraftingCompass className="mr-2 h-4 w-4" />Volver a borrador
+            ))}
+            {canCancel && (
+              <Button variant="outline" className="text-amber-600 border-amber-300 hover:bg-amber-50" onClick={() => changeStatusAct.execute({ id: tournamentId, status: 'CANCELLED' })}>
+                Cancelar torneo
               </Button>
             )}
           </div>
         }
       />
 
-      <div className="mb-4 flex items-center gap-3">
+      {/* Status + stats + quick links */}
+      <div className="mb-6 flex items-center gap-3">
         <StatusBadge status={tournament.status} type="tournament" />
-        <span className="text-sm text-muted-foreground">Inscripciones: {form.registrationOpen ? 'Abiertas' : 'Cerradas'}</span>
+        <span className="text-sm text-muted-foreground">
+          {tournament._count?.categories ?? 0} categorías · {tournament._count?.registrations ?? 0} inscripciones
+        </span>
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/admin/torneos/${tournamentId}/categorias`}>
+              <FolderOpen className="mr-1.5 h-3.5 w-3.5" />
+              Categorías
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/admin/torneos/${tournamentId}/inscripciones`}>
+              <ListChecks className="mr-1.5 h-3.5 w-3.5" />
+              Inscripciones
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/admin/torneos/${tournamentId}/partidos`}>
+              <Swords className="mr-1.5 h-3.5 w-3.5" />
+              Partidos
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="pricing">Precios de inscripción</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general">
-          <form onSubmit={handleSave} className="max-w-2xl space-y-6">
-            <Card>
-              <CardHeader><CardTitle>Información general</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2"><Label htmlFor="name">Nombre</Label><Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div className="space-y-2"><Label htmlFor="description">Descripción</Label><Textarea id="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-                <div className="space-y-2">
-                  <Label>Disciplina</Label>
-                  <Select value={form.sportId} onValueChange={(v) => setForm({ ...form, sportId: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{sports.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle>Fechas</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>Fecha inicio</Label><Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
-                  <div className="space-y-2"><Label>Fecha fin</Label><Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>Inicio inscripciones</Label><Input type="date" value={form.registrationStartDate} onChange={(e) => setForm({ ...form, registrationStartDate: e.target.value })} /></div>
-                  <div className="space-y-2"><Label>Cierre inscripciones</Label><Input type="date" value={form.registrationEndDate} onChange={(e) => setForm({ ...form, registrationEndDate: e.target.value })} /></div>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div><Label>Inscripciones abiertas (web)</Label><p className="text-xs text-muted-foreground">Permite inscripciones desde la página</p></div>
-                  <Switch checked={form.registrationOpen} onCheckedChange={(checked) => setForm({ ...form, registrationOpen: checked })} />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex gap-3">
-              <Button type="submit" disabled={updateAction.isPending}>
-                {updateAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Guardar cambios
-              </Button>
-              <Button type="button" variant="outline" asChild>
-                <a href={`/admin/torneos/${tournamentId}/categorias`}>Gestionar categorías</a>
-              </Button>
-              <Button type="button" variant="outline" asChild>
-                <a href={`/admin/torneos/${tournamentId}/inscripciones`}>Ver inscripciones</a>
-              </Button>
-              <Button type="button" variant="outline" asChild>
-                <a href={`/admin/torneos/${tournamentId}/partidos`}>Organizar partidos</a>
-              </Button>
+      {/* Form */}
+      <form onSubmit={handleSave} className="max-w-2xl space-y-6">
+        <Card>
+          <CardHeader><CardTitle>Información general</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre</Label>
+              <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
-          </form>
-        </TabsContent>
+            <div className="space-y-2">
+              <Label htmlFor="description">Descripción</Label>
+              <Textarea id="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Disciplina</Label>
+              <Select value={form.sportId} onValueChange={(v) => setForm({ ...form, sportId: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{sports.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="pricing">
-          <div className="max-w-2xl space-y-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Precios de inscripción</CardTitle>
-                  <CardDescription>Configura diferentes precios por rango de fecha y método de pago.</CardDescription>
-                </div>
-                <Dialog open={pricingDialog} onOpenChange={setPricingDialog}>
-                  <DialogTrigger asChild>
-                    <Button size="sm"><Plus className="mr-2 h-4 w-4" />Agregar precio</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Agregar precio</DialogTitle><DialogDescription>Define un precio para un rango de fechas y método de pago</DialogDescription></DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Método de pago</Label>
-                        <Select value={pricingForm.paymentMethod} onValueChange={(v) => setPricingForm({ ...pricingForm, paymentMethod: v as PaymentMethod })}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="transferencia">Transferencia</SelectItem>
-                            <SelectItem value="efectivo">Efectivo</SelectItem>
-                            <SelectItem value="configurado">Método configurado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Monto ($)</Label>
-                        <Input type="number" placeholder="0.00" value={pricingForm.amount} onChange={(e) => setPricingForm({ ...pricingForm, amount: e.target.value })} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label>Desde</Label><Input type="date" value={pricingForm.dateFrom} onChange={(e) => setPricingForm({ ...pricingForm, dateFrom: e.target.value })} /></div>
-                        <div className="space-y-2"><Label>Hasta</Label><Input type="date" value={pricingForm.dateTo} onChange={(e) => setPricingForm({ ...pricingForm, dateTo: e.target.value })} /></div>
-                      </div>
+        <Card>
+          <CardHeader><CardTitle>Fechas del torneo</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <DateField
+                label="Fecha de inicio"
+                value={form.startDate}
+                onChange={(d) => {
+                  setForm((prev) => ({
+                    ...prev,
+                    startDate: d,
+                    endDate: d && prev.endDate && prev.endDate < d ? undefined : prev.endDate,
+                  }))
+                }}
+              />
+              <DateField
+                label="Fecha de fin"
+                value={form.endDate}
+                onChange={(d) => setForm({ ...form, endDate: d })}
+                minDate={form.startDate}
+              />
+            </div>
+            <Separator />
+            <div className="grid grid-cols-2 gap-4">
+              <DateField
+                label="Apertura de inscripciones"
+                value={form.registrationStartDate}
+                onChange={(d) => {
+                  setForm((prev) => ({
+                    ...prev,
+                    registrationStartDate: d,
+                    registrationEndDate: d && prev.registrationEndDate && prev.registrationEndDate < d ? undefined : prev.registrationEndDate,
+                  }))
+                }}
+              />
+              <DateField
+                label="Cierre de inscripciones"
+                value={form.registrationEndDate}
+                onChange={(d) => setForm({ ...form, registrationEndDate: d })}
+                minDate={form.registrationStartDate}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {(tournament.registrationPricing ?? []).length > 0 && (
+          <Card>
+            <CardHeader><CardTitle>Precios de inscripción</CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {tournament.registrationPricing.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <p className="font-medium">${p.entryFeeAmount.toLocaleString('es-AR')} {p.currency}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(p.validFrom).toLocaleDateString('es-AR')} - {new Date(p.validTo).toLocaleDateString('es-AR')}
+                      </p>
                     </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setPricingDialog(false)}>Cancelar</Button>
-                      <Button onClick={() => createPricingAct.execute({ tournamentId, paymentMethod: pricingForm.paymentMethod, amount: parseFloat(pricingForm.amount), dateFrom: pricingForm.dateFrom, dateTo: pricingForm.dateTo })} disabled={createPricingAct.isPending}>
-                        {createPricingAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Agregar
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                {pricing.length === 0 ? (
-                  <p className="py-6 text-center text-sm text-muted-foreground">No hay precios configurados</p>
-                ) : (
-                  <div className="space-y-3">
-                    {pricing.map((p) => (
-                      <div key={p.id} className="flex items-center justify-between rounded-lg border p-3">
-                        <div>
-                          <p className="font-medium">${p.amount.toLocaleString('es-AR')} - {p.paymentMethod === 'transferencia' ? 'Transferencia' : p.paymentMethod === 'efectivo' ? 'Efectivo' : 'Método configurado'}</p>
-                          <p className="text-sm text-muted-foreground">{new Date(p.dateFrom).toLocaleDateString('es-AR')} - {new Date(p.dateTo).toLocaleDateString('es-AR')}</p>
-                        </div>
-                        <Button variant="ghost" size="icon" onClick={() => deletePricingAct.execute({ tournamentId, pricingId: p.id })}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </form>
     </div>
   )
 }

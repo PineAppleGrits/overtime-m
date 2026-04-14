@@ -5,20 +5,17 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { DataTable, Column } from '@/modules/admin/components/DataTable'
 import { StatusBadge } from '@/modules/admin/components/StatusBadge'
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { AlertCircle, Check, CreditCard, Loader2, MoreHorizontal, Plus, X } from 'lucide-react'
+import { AlertCircle, Check, MoreHorizontal, X } from 'lucide-react'
 import adminTournamentBrowserService from '@/modules/admin/services/AdminTournamentService'
-import teamBrowserService from '@/modules/admin/services/browser/teamService'
-import categoryBrowserService from '@/modules/admin/services/browser/categoryService'
-import { approveRegistrationTournamentAction, rejectRegistrationTournamentAction, confirmPaymentAction, manualRegistrationAction } from '@/modules/admin/actions/tournamentActions'
+import { approveRegistrationTournamentAction, rejectRegistrationTournamentAction } from '@/modules/admin/actions/tournamentActions'
 import { useServerAction } from '@/modules/admin/hooks/useServerAction'
-import { AdminRegistration, PaymentMethod } from '@/modules/admin/types'
+import { AdminRegistration } from '@/modules/admin/types'
 
 interface TournamentRegistrationsContentProps {
   tournamentId: string
@@ -31,16 +28,11 @@ export function TournamentRegistrationsContent({ tournamentId, initialData }: To
   const [statusFilter, setStatusFilter] = useState('all')
   const [rejectId, setRejectId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
-  const [manualDialog, setManualDialog] = useState(false)
-  const [teams, setTeams] = useState<{ id: string; name: string }[]>([])
-  const [cats, setCats] = useState<{ id: string; name: string }[]>([])
-  const [manualForm, setManualForm] = useState({ teamId: '', categoryId: '', paymentMethod: 'efectivo' as PaymentMethod, paymentAmount: '' })
 
-  const QUERY_KEY = ['admin', 'tournament-registrations', tournamentId, page, statusFilter] as const
   const invalidate = useCallback(() => qc.invalidateQueries({ queryKey: ['admin', 'tournament-registrations', tournamentId] }), [qc, tournamentId])
 
   const { data, isPending, isError } = useQuery({
-    queryKey: QUERY_KEY,
+    queryKey: ['admin', 'tournament-registrations', tournamentId, page, statusFilter],
     queryFn: async () => {
       const params: Record<string, unknown> = { page, limit: 10 }
       if (statusFilter !== 'all') params.status = statusFilter
@@ -57,22 +49,6 @@ export function TournamentRegistrationsContent({ tournamentId, initialData }: To
     successMessage: 'Inscripción rechazada',
     onSuccess: () => { invalidate(); setRejectId(null); setRejectReason('') },
   })
-  const confirmPayAct = useServerAction(confirmPaymentAction, { successMessage: 'Pago confirmado', onSuccess: invalidate })
-  const manualAct = useServerAction(manualRegistrationAction, {
-    successMessage: 'Inscripción manual registrada y aprobada',
-    onSuccess: () => { invalidate(); setManualDialog(false); setManualForm({ teamId: '', categoryId: '', paymentMethod: 'efectivo', paymentAmount: '' }) },
-  })
-
-  const fetchTeamsAndCats = async () => {
-    try {
-      const [teamsRes, catsRes] = await Promise.all([
-        teamBrowserService.getTeams({ limit: 100 }),
-        categoryBrowserService.getCategories(tournamentId),
-      ])
-      setTeams(teamsRes.data?.data ?? teamsRes.data ?? [])
-      setCats(catsRes.data ?? catsRes ?? [])
-    } catch { /* ignored */ }
-  }
 
   if (initialData.error && isError) {
     return (
@@ -94,9 +70,6 @@ export function TournamentRegistrationsContent({ tournamentId, initialData }: To
     { key: 'teamName', label: 'Equipo', render: (r) => <span className="font-medium">{r.teamName}</span> },
     { key: 'categoryName', label: 'Categoría' },
     { key: 'status', label: 'Estado', render: (r) => <StatusBadge status={r.status} type="registration" /> },
-    { key: 'paymentStatus', label: 'Pago', render: (r) => <StatusBadge status={r.paymentStatus} type="payment" /> },
-    { key: 'paymentMethod', label: 'Método', render: (r) => <span className="text-sm capitalize">{r.paymentMethod ?? '-'}</span> },
-    { key: 'isManual', label: 'Tipo', render: (r) => <span className="text-xs text-muted-foreground">{r.isManual ? 'Manual' : 'Web'}</span> },
     { key: 'createdAt', label: 'Fecha', render: (r) => <span className="text-sm">{new Date(r.createdAt).toLocaleDateString('es-AR')}</span> },
     {
       key: 'actions', label: '', className: 'w-10',
@@ -110,9 +83,6 @@ export function TournamentRegistrationsContent({ tournamentId, initialData }: To
                 <DropdownMenuItem onClick={() => setRejectId(r.id)}><X className="mr-2 h-4 w-4" />Rechazar</DropdownMenuItem>
               </>
             )}
-            {r.paymentStatus === 'pending' && (
-              <DropdownMenuItem onClick={() => confirmPayAct.execute({ tournamentId, registrationId: r.id })}><CreditCard className="mr-2 h-4 w-4" />Confirmar pago</DropdownMenuItem>
-            )}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -123,10 +93,8 @@ export function TournamentRegistrationsContent({ tournamentId, initialData }: To
     <div>
       <PageHeader
         title="Inscripciones"
-        description="Gestiona las inscripciones del torneo. Aprueba, rechaza o registra inscripciones manuales."
+        description="Gestiona las inscripciones del torneo. Aprueba o rechaza solicitudes."
         backHref={`/admin/torneos/${tournamentId}`}
-        onCreateClick={() => { fetchTeamsAndCats(); setManualDialog(true) }}
-        createLabel="Inscripción manual"
       />
 
       <div className="mb-4">
@@ -142,54 +110,6 @@ export function TournamentRegistrationsContent({ tournamentId, initialData }: To
       </div>
 
       <DataTable columns={columns} data={registrations} loading={isPending} emptyMessage="No hay inscripciones" page={page} totalPages={totalPages} onPageChange={setPage} />
-
-      {/* Manual Registration Dialog */}
-      <Dialog open={manualDialog} onOpenChange={setManualDialog}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Inscripción manual</DialogTitle></DialogHeader>
-          <Card className="border-0 shadow-none">
-            <CardHeader className="px-0 pt-0"><CardDescription>Registra un equipo manualmente. Se aprueba automáticamente y se emite el pago de inscripción.</CardDescription></CardHeader>
-            <CardContent className="space-y-4 px-0">
-              <div className="space-y-2">
-                <Label>Equipo *</Label>
-                <Select value={manualForm.teamId} onValueChange={(v) => setManualForm({ ...manualForm, teamId: v })}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar equipo" /></SelectTrigger>
-                  <SelectContent>{teams.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Categoría *</Label>
-                <Select value={manualForm.categoryId} onValueChange={(v) => setManualForm({ ...manualForm, categoryId: v })}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
-                  <SelectContent>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Método de pago</Label>
-                <Select value={manualForm.paymentMethod} onValueChange={(v) => setManualForm({ ...manualForm, paymentMethod: v as PaymentMethod })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="efectivo">Efectivo</SelectItem>
-                    <SelectItem value="transferencia">Transferencia</SelectItem>
-                    <SelectItem value="configurado">Método configurado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Monto ($)</Label>
-                <Input type="number" placeholder="0.00" value={manualForm.paymentAmount} onChange={(e) => setManualForm({ ...manualForm, paymentAmount: e.target.value })} />
-              </div>
-            </CardContent>
-          </Card>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setManualDialog(false)}>Cancelar</Button>
-            <Button onClick={() => manualAct.execute({ tournamentId, teamId: manualForm.teamId, categoryId: manualForm.categoryId, paymentMethod: manualForm.paymentMethod, paymentAmount: manualForm.paymentAmount ? parseFloat(manualForm.paymentAmount) : undefined, autoApprove: true })} disabled={manualAct.isPending}>
-              {manualAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Registrar e inscribir
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Reject Dialog */}
       <Dialog open={!!rejectId} onOpenChange={(open) => !open && setRejectId(null)}>

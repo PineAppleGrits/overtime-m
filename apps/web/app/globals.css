@@ -164,8 +164,12 @@ body {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/* Admin panel: force light-mode variables regardless of .dark on <html> */
-.admin-panel {
+/* Admin panel: force light-mode variables regardless of .dark on <html>.
+   The :has() selector also covers Radix portals that render at <body> level,
+   outside the .admin-panel container. */
+.admin-panel,
+body:has(.admin-panel) [data-radix-popper-content-wrapper],
+body:has(.admin-panel) [data-radix-portal] {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -186,6 +190,19 @@ body {
   --ring: oklch(0.708 0 0);
   /* Re-apply color so plain text elements don't inherit near-white from body */
   color: var(--foreground);
+}
+
+/* Ensure all interactive elements show pointer cursor */
+.admin-panel button:not(:disabled),
+.admin-panel a,
+.admin-panel [role="button"]:not(:disabled),
+.admin-panel [role="menuitem"],
+.admin-panel [role="option"],
+body:has(.admin-panel) [data-radix-portal] button:not(:disabled),
+body:has(.admin-panel) [data-radix-portal] a,
+body:has(.admin-panel) [data-radix-portal] [role="menuitem"],
+body:has(.admin-panel) [data-radix-portal] [role="option"] {
+  cursor: pointer;
 }
 
 .dark {

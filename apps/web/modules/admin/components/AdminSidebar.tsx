@@ -184,8 +184,10 @@ export function AdminSidebar() {
           <button
             onClick={() => setCollapsed(!collapsed)}
             className={cn(
-              'h-7 w-7 rounded-lg flex items-center justify-center text-white/25 hover:text-white/60 hover:bg-white/[0.08] transition-all shrink-0',
-              collapsed && 'absolute -right-3.5 top-[22px] bg-[#1a1730] border border-white/[0.12] rounded-full shadow-lg z-10'
+              'h-7 w-7 rounded-lg flex items-center justify-center text-white/25 hover:text-white/60 transition-all shrink-0',
+              collapsed
+                ? 'absolute -right-3.5 top-[22px] bg-[#1a1730] hover:bg-[#252140] border border-white/[0.12] rounded-full shadow-lg z-10'
+                : 'hover:bg-white/[0.08]'
             )}
           >
             {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}

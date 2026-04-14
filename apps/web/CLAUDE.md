@@ -358,3 +358,4 @@ const { profile } = useAuth()
 8. **No usar `useEffect` para fetch de datos** — usar React Query o Server Components.
 9. **Toda acción del admin pasa por `useServerAction`** — no llames Server Actions directamente sin el wrapper.
 10. **Los textos de la UI van en español rioplatense** (vos, hacé, inscribite, etc.).
+11. **Todos los botones y links deben tener `cursor: pointer`** — ya hay una regla global en `globals.css` para `.admin-panel`, pero si creás componentes custom interactivos, asegurate de que muestren pointer.

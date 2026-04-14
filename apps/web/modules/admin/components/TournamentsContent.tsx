@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { DataTable, Column } from '@/modules/admin/components/DataTable'
@@ -20,6 +21,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -27,8 +29,6 @@ import {
   Pencil,
   Trash2,
   Eye,
-  Archive,
-  Send,
   Search,
 } from 'lucide-react'
 import adminTournamentService, {
@@ -41,6 +41,35 @@ import { deleteTournamentAction, changeStatusAction } from '@/modules/admin/acti
 import { useServerAction } from '@/modules/admin/hooks/useServerAction'
 
 const TOURNAMENTS_QUERY_KEY = ['admin', 'tournaments'] as const
+
+/**
+ * Valid status transitions as defined by the backend state machine.
+ */
+const STATUS_TRANSITIONS: Record<TournamentStatus, { status: TournamentStatus; label: string }[]> = {
+  DRAFT: [
+    { status: 'OPEN', label: 'Abrir inscripciones' },
+  ],
+  OPEN: [
+    { status: 'CLOSED', label: 'Cerrar inscripciones' },
+  ],
+  CLOSED: [
+    { status: 'READY_TO_SHIP', label: 'Marcar listo para arrancar' },
+  ],
+  READY_TO_SHIP: [
+    { status: 'IN_PROGRESS', label: 'Iniciar torneo' },
+  ],
+  IN_PROGRESS: [
+    { status: 'FINISHED', label: 'Finalizar torneo' },
+  ],
+  FINISHED: [
+    { status: 'ARCHIVED', label: 'Archivar' },
+  ],
+  ARCHIVED: [],
+  CANCELLED: [],
+}
+
+/** Statuses that can be cancelled from. */
+const CANCELLABLE: TournamentStatus[] = ['DRAFT', 'OPEN', 'CLOSED', 'READY_TO_SHIP', 'IN_PROGRESS']
 
 function normaliseTournamentsResponse(raw: unknown): {
   data: AdminTournament[]
@@ -84,9 +113,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
         ...(statusFilter !== 'all' && { status: statusFilter as TournamentStatus }),
         ...(debouncedSearch && { search: debouncedSearch }),
       }
-      const raw = await adminTournamentService.getTournaments(params, {
-        signal,
-      })
+      const raw = await adminTournamentService.getTournaments(params, { signal })
       return normaliseTournamentsResponse(raw)
     },
     initialData:
@@ -128,7 +155,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
       render: (t) => (
         <div>
           <p className="font-medium">{t.name}</p>
-          <p className="text-xs text-muted-foreground">{t.sportName}</p>
+          <p className="text-xs text-muted-foreground">{t.sport?.name ?? '-'}</p>
         </div>
       ),
     },
@@ -136,6 +163,20 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
       key: 'status',
       label: 'Estado',
       render: (t) => <StatusBadge status={t.status} type="tournament" />,
+    },
+    {
+      key: 'categories',
+      label: 'Categorías',
+      render: (t) => (
+        <span className="text-sm">{t._count?.categories ?? t.categories?.length ?? 0}</span>
+      ),
+    },
+    {
+      key: 'registrations',
+      label: 'Inscripciones',
+      render: (t) => (
+        <span className="text-sm">{t._count?.registrations ?? 0}</span>
+      ),
     },
     {
       key: 'startDate',
@@ -158,75 +199,65 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
       ),
     },
     {
-      key: 'registrationOpen',
-      label: 'Inscripciones',
-      render: (t) => (
-        <StatusBadge
-          status={t.registrationOpen ? 'approved' : 'rejected'}
-          type="registration"
-        />
-      ),
-    },
-    {
       key: 'actions',
       label: '',
-      className: 'w-10',
-      render: (t) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
+      className: 'w-auto',
+      render: (t) => {
+        const transitions = STATUS_TRANSITIONS[t.status] ?? []
+        const canCancel = CANCELLABLE.includes(t.status)
+
+        return (
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="sm" className="h-8" asChild>
+              <Link href={`/admin/torneos/${t.id}`}>
+                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                Ver
+              </Link>
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => router.push(`/admin/torneos/${t.id}`)}
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                router.push(`/admin/torneos/${t.id}/categorias`)
-              }
-            >
-              <Eye className="mr-2 h-4 w-4" />
-              Categorías / Zonas
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                router.push(`/admin/torneos/${t.id}/inscripciones`)
-              }
-            >
-              <Eye className="mr-2 h-4 w-4" />
-              Inscripciones
-            </DropdownMenuItem>
-            {t.status === 'draft' && (
-              <DropdownMenuItem
-                onClick={() => handleStatusChange(t.id, 'published')}
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Publicar
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => router.push(`/admin/torneos/${t.id}`)}>
+                <Pencil className="mr-2 h-4 w-4" />Editar
               </DropdownMenuItem>
-            )}
-            {t.status === 'published' && (
-              <DropdownMenuItem
-                onClick={() => handleStatusChange(t.id, 'archived')}
-              >
-                <Archive className="mr-2 h-4 w-4" />
-                Archivar
+              <DropdownMenuItem onClick={() => router.push(`/admin/torneos/${t.id}/categorias`)}>
+                <Eye className="mr-2 h-4 w-4" />Categorías / Zonas
               </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={() => setDeleteId(t.id)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+              <DropdownMenuItem onClick={() => router.push(`/admin/torneos/${t.id}/inscripciones`)}>
+                <Eye className="mr-2 h-4 w-4" />Inscripciones
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/admin/torneos/${t.id}/partidos`)}>
+                <Eye className="mr-2 h-4 w-4" />Partidos
+              </DropdownMenuItem>
+
+              {transitions.length > 0 && <DropdownMenuSeparator />}
+              {transitions.map((tr) => (
+                <DropdownMenuItem key={tr.status} onClick={() => handleStatusChange(t.id, tr.status)}>
+                  {tr.label}
+                </DropdownMenuItem>
+              ))}
+              {canCancel && (
+                <DropdownMenuItem className="text-amber-600" onClick={() => handleStatusChange(t.id, 'CANCELLED')}>
+                  Cancelar torneo
+                </DropdownMenuItem>
+              )}
+
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => setDeleteId(t.id)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />Eliminar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          </div>
+        )
+      },
     },
   ]
 
@@ -250,14 +281,19 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
           />
         </div>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="draft">Borrador</SelectItem>
-            <SelectItem value="published">Publicado</SelectItem>
-            <SelectItem value="archived">Archivado</SelectItem>
+            <SelectItem value="DRAFT">Borrador</SelectItem>
+            <SelectItem value="OPEN">Abierto</SelectItem>
+            <SelectItem value="CLOSED">Cerrado</SelectItem>
+            <SelectItem value="READY_TO_SHIP">Listo para arrancar</SelectItem>
+            <SelectItem value="IN_PROGRESS">En curso</SelectItem>
+            <SelectItem value="FINISHED">Finalizado</SelectItem>
+            <SelectItem value="ARCHIVED">Archivado</SelectItem>
+            <SelectItem value="CANCELLED">Cancelado</SelectItem>
           </SelectContent>
         </Select>
       </div>

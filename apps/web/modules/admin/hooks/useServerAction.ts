@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import type { ActionResult } from '../actions/types'
 
-interface UseServerActionOptions {
+interface UseServerActionOptions<TData = void> {
   successMessage?: string
-  onSuccess?: () => void
+  onSuccess?: (data?: TData) => void
 }
 
 /**
@@ -17,7 +17,7 @@ interface UseServerActionOptions {
  */
 export function useServerAction<TInput, TData = void>(
   action: (input: TInput) => Promise<ActionResult<TData>>,
-  options: UseServerActionOptions = {}
+  options: UseServerActionOptions<TData> = {}
 ) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -33,7 +33,7 @@ export function useServerAction<TInput, TData = void>(
         const result = await action(input)
         if (result.success) {
           if (optionsRef.current.successMessage) toast.success(optionsRef.current.successMessage)
-          optionsRef.current.onSuccess?.()
+          optionsRef.current.onSuccess?.(result.data)
           // Bust the Next.js router cache so navigating back shows fresh data.
           router.refresh()
         } else {

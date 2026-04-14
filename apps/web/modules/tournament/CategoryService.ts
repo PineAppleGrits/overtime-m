@@ -4,13 +4,14 @@ import { PaginationParams } from "../common/dto"
 
 interface CreateCategoryDto {
   name: string
-  sportId: string
+  maxTeams?: number
   teamsPerZone?: number
 }
 
 interface UpdateCategoryDto {
   name?: string
   sportId?: string
+  maxTeams?: number
   teamsPerZone?: number
 }
 

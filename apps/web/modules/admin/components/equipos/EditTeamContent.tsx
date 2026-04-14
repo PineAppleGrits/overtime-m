@@ -98,6 +98,9 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
     updateAction.execute({ id: teamId, name: form.name, logoUrl: form.logoUrl || undefined, sportId: form.sportId })
   }
 
+  const activeMembers = (team.members ?? []).filter((m) => m.isActive)
+  const teamZones = team.teamZones ?? []
+
   return (
     <div>
       <PageHeader title={team.name} description="Edita la información del equipo y gestiona sus jugadores" backHref="/admin/equipos" />
@@ -105,7 +108,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
       <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="players">Jugadores ({team.players?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="players">Jugadores ({activeMembers.length})</TabsTrigger>
           <TabsTrigger value="torneos">Torneos</TabsTrigger>
           <TabsTrigger value="deudas">Deudas</TabsTrigger>
           <TabsTrigger value="partidos">Partidos</TabsTrigger>
@@ -141,6 +144,24 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
                     </SelectContent>
                   </Select>
                 </div>
+                {team.captain && (
+                  <div className="space-y-2">
+                    <Label>Capitán</Label>
+                    <div className="flex items-center gap-2 rounded-lg border p-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={team.captain.avatarUrl ?? undefined} />
+                        <AvatarFallback className="text-xs">{team.captain.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">{team.captain.name}</span>
+                    </div>
+                  </div>
+                )}
+                {team.creator && (
+                  <div className="space-y-2">
+                    <Label>Creador</Label>
+                    <p className="text-sm text-muted-foreground">{team.creator.name} ({team.creator.email})</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
             <Button type="submit" disabled={updateAction.isPending}>
@@ -159,23 +180,26 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
             </div>
             <Card>
               <CardContent className="p-0">
-                {!team.players || team.players.length === 0 ? (
+                {activeMembers.length === 0 ? (
                   <p className="py-8 text-center text-sm text-muted-foreground">No hay jugadores en este equipo</p>
                 ) : (
                   <div className="divide-y">
-                    {team.players.map((player) => (
-                      <div key={player.id} className="flex items-center justify-between px-4 py-3">
+                    {activeMembers.map((member) => (
+                      <div key={member.id} className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={player.photoUrl} />
-                            <AvatarFallback className="text-xs">{player.firstName?.charAt(0)}{player.lastName?.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={member.profile.avatarUrl ?? undefined} />
+                            <AvatarFallback className="text-xs">{member.profile.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="text-sm font-medium">{player.firstName} {player.lastName}</p>
-                            <p className="text-xs text-muted-foreground">{player.position ?? 'Sin posición'} {player.jerseyNumber ? `#${player.jerseyNumber}` : ''}</p>
+                            <p className="text-sm font-medium">{member.profile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {member.position ?? 'Sin posición'}
+                              {member.profile.documentNumber ? ` · DNI ${member.profile.documentNumber}` : ''}
+                            </p>
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removePlayerAction.execute({ teamId, playerId: player.playerId })}>
+                        <Button variant="ghost" size="icon" onClick={() => removePlayerAction.execute({ teamId, playerId: member.profileId })}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
@@ -216,8 +240,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
         {/* ── Torneos ────────────────────────────────────────────────── */}
         <TabsContent value="torneos">
           <div className="max-w-2xl space-y-4">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {!((team as any).zones as unknown[])?.length ? (
+            {teamZones.length === 0 ? (
               <div className="rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
                 <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f6f4]">
                   <Trophy className="h-5 w-5 text-[#c4c2cc]" />
@@ -229,18 +252,17 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
               <Card>
                 <CardContent className="p-0">
                   <div className="divide-y divide-[#e8e6e1]">
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {((team as any).zones as Array<{ id: string; name: string; tournament?: { id: string; name: string }; category?: { id: string; name: string } }> ?? []).map((zone) => (
-                      <div key={zone.id} className="flex items-center gap-3 px-4 py-3">
+                    {teamZones.map((tz) => (
+                      <div key={tz.id} className="flex items-center gap-3 px-4 py-3">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7f6f4]">
                           <Trophy className="h-4 w-4 text-[#ff3b2f]" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-[#0f0e13] truncate">
-                            {zone.tournament?.name ?? 'Torneo desconocido'}
+                            {tz.zone.category.tournament.name}
                           </p>
                           <p className="text-xs text-[#9b99a6]">
-                            {zone.category?.name ?? '—'} · Zona {zone.name}
+                            {tz.zone.category.name} · Zona {tz.zone.name}
                           </p>
                         </div>
                       </div>
@@ -255,12 +277,11 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
         {/* ── Deudas ─────────────────────────────────────────────────── */}
         <TabsContent value="deudas">
           <div className="max-w-2xl space-y-4">
-            {/* Summary */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Saldo pendiente', value: '—', accent: false },
-                { label: 'Total pagado', value: '—', accent: false },
-                { label: 'Última actividad', value: '—', accent: false },
+                { label: 'Saldo pendiente', value: '—' },
+                { label: 'Total pagado', value: '—' },
+                { label: 'Última actividad', value: '—' },
               ].map((stat) => (
                 <div key={stat.label} className="rounded-lg border border-[#e8e6e1] bg-white p-4">
                   <p className="text-xs text-[#9b99a6]">{stat.label}</p>
@@ -269,7 +290,6 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
               ))}
             </div>
 
-            {/* History */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold text-[#0f0e13]">Historial de pagos</CardTitle>
