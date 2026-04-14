@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import { ChevronLeft, Users, MapPin, ArrowRight, Upload } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { CategoryRegistrationBlock } from "./CategoryRegistrationBlock"
+import { CategoryDetailContent } from "@/modules/tournament/components/CategoryDetailContent"
 import paymentConfigMock from "@/mock/registration-payment-config.json"
 
 function isRegistrationOpen(tournament: {
@@ -274,6 +275,17 @@ export default async function CategoryPage({
             hasMyRegistration={!!myRegistration}
           />
         </div>
+
+        {/* Tabs: Posiciones, Fixture, Mi Equipo */}
+        <CategoryDetailContent
+          categoryName={category.name}
+          tournamentSlug={tournamentSlug}
+          categorySlug={categorySlug}
+          // TODO: conectar con API — usar estado real de inscripción aprobada
+          isMyTeamPlaying={!!myRegistration && myRegistration.status === 'approved'}
+          myTeamId={myRegistration?.team?.id}
+          categoryId={category.id}
+        />
       </div>
     </div>
   )
