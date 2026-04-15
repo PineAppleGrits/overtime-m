@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TournamentsService } from './tournaments.service';
+import { CategoriesService } from './categories/categories.service';
 import { ChangeStatusDto, PaginationDto } from '@overtime-mono/shared';
 import { Admin } from '../common/decorators/admin.decorator';
 import { Public } from '../common/decorators/public.decorator';
@@ -22,7 +23,10 @@ import {
 @ApiTags('tournaments')
 @Controller('tournaments')
 export class TournamentsController {
-  constructor(private readonly tournamentsService: TournamentsService) {}
+  constructor(
+    private readonly tournamentsService: TournamentsService,
+    private readonly categoriesService: CategoriesService,
+  ) {}
 
   @Post()
   @Admin()
@@ -44,6 +48,19 @@ export class TournamentsController {
   @ApiOperation({ summary: 'Get tournament by slug' })
   findBySlug(@Param('slug') slug: string) {
     return this.tournamentsService.findBySlug(slug);
+  }
+
+  @Public()
+  @Get('by-slug/:tournamentSlug/categories/:categorySlug')
+  @ApiOperation({ summary: 'Get category by tournament slug and category slug' })
+  findCategoryBySlug(
+    @Param('tournamentSlug') tournamentSlug: string,
+    @Param('categorySlug') categorySlug: string,
+  ) {
+    return this.categoriesService.findByTournamentSlugAndCategorySlug(
+      tournamentSlug,
+      categorySlug,
+    );
   }
 
   @Public()

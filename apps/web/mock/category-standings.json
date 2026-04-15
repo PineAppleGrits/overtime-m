@@ -1,10 +1,22 @@
-[
-  { "position": 1, "teamName": "Los Tigres", "teamLogo": null, "teamId": "t1", "played": 8, "won": 7, "lost": 1, "pointsFor": 648, "pointsAgainst": 512, "diff": 136, "points": 22 },
-  { "position": 2, "teamName": "Halcones FC", "teamLogo": null, "teamId": "t2", "played": 8, "won": 6, "lost": 2, "pointsFor": 601, "pointsAgainst": 540, "diff": 61, "points": 20 },
-  { "position": 3, "teamName": "Panthers", "teamLogo": null, "teamId": "t3", "played": 8, "won": 5, "lost": 3, "pointsFor": 580, "pointsAgainst": 565, "diff": 15, "points": 18 },
-  { "position": 4, "teamName": "Dragones Rojos", "teamLogo": null, "teamId": "t4", "played": 8, "won": 4, "lost": 4, "pointsFor": 555, "pointsAgainst": 560, "diff": -5, "points": 16 },
-  { "position": 5, "teamName": "Guerreros", "teamLogo": null, "teamId": "t5", "played": 8, "won": 3, "lost": 5, "pointsFor": 530, "pointsAgainst": 570, "diff": -40, "points": 14 },
-  { "position": 6, "teamName": "Lobos Blancos", "teamLogo": null, "teamId": "t6", "played": 8, "won": 2, "lost": 6, "pointsFor": 498, "pointsAgainst": 590, "diff": -92, "points": 12 },
-  { "position": 7, "teamName": "Vikingos", "teamLogo": null, "teamId": "t7", "played": 8, "won": 2, "lost": 6, "pointsFor": 485, "pointsAgainst": 610, "diff": -125, "points": 12 },
-  { "position": 8, "teamName": "Toros del Sur", "teamLogo": null, "teamId": "t8", "played": 8, "won": 1, "lost": 7, "pointsFor": 460, "pointsAgainst": 640, "diff": -180, "points": 10 }
-]
+{
+  "zones": [
+    {
+      "name": "Zona Azul",
+      "standings": [
+        { "position": 1, "teamName": "Los Tigres", "teamLogo": null, "teamId": "t1", "played": 8, "won": 7, "lost": 1, "pointsFor": 648, "pointsAgainst": 512, "diff": 136, "points": 22 },
+        { "position": 2, "teamName": "Halcones FC", "teamLogo": null, "teamId": "t2", "played": 8, "won": 6, "lost": 2, "pointsFor": 601, "pointsAgainst": 540, "diff": 61, "points": 20 },
+        { "position": 3, "teamName": "Panthers", "teamLogo": null, "teamId": "t3", "played": 8, "won": 5, "lost": 3, "pointsFor": 580, "pointsAgainst": 565, "diff": 15, "points": 18 },
+        { "position": 4, "teamName": "Dragones Rojos", "teamLogo": null, "teamId": "t4", "played": 8, "won": 4, "lost": 4, "pointsFor": 555, "pointsAgainst": 560, "diff": -5, "points": 16 }
+      ]
+    },
+    {
+      "name": "Zona Roja",
+      "standings": [
+        { "position": 1, "teamName": "Guerreros", "teamLogo": null, "teamId": "t5", "played": 8, "won": 3, "lost": 5, "pointsFor": 530, "pointsAgainst": 570, "diff": -40, "points": 14 },
+        { "position": 2, "teamName": "Lobos Blancos", "teamLogo": null, "teamId": "t6", "played": 8, "won": 2, "lost": 6, "pointsFor": 498, "pointsAgainst": 590, "diff": -92, "points": 12 },
+        { "position": 3, "teamName": "Vikingos", "teamLogo": null, "teamId": "t7", "played": 8, "won": 2, "lost": 6, "pointsFor": 485, "pointsAgainst": 610, "diff": -125, "points": 12 },
+        { "position": 4, "teamName": "Toros del Sur", "teamLogo": null, "teamId": "t8", "played": 8, "won": 1, "lost": 7, "pointsFor": 460, "pointsAgainst": 640, "diff": -180, "points": 10 }
+      ]
+    }
+  ]
+}

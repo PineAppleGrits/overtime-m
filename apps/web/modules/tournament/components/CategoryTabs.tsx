@@ -18,22 +18,28 @@ export function CategoryTabs({
   const visibleTabs = tabs.filter((t) => !t.hidden)
 
   return (
-    <div className="border-b border-ot-light-blue/30 mb-6">
-      <div className="overflow-x-auto flex gap-0">
-        {visibleTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => onChange(tab.key)}
-            className={`px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap border-b-2 ${
-              activeTab === tab.key
-                ? 'text-ot-orange border-ot-orange'
-                : 'text-white/50 hover:text-white/70 border-transparent'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <div className="flex w-full h-[50px] bg-[#181525] items-center justify-center">
+      {visibleTabs.map((tab) => (
+        <button
+          key={tab.key}
+          onClick={() => onChange(tab.key)}
+          className={`h-full px-6 sm:px-10 uppercase font-din-display text-sm sm:text-base font-bold cursor-pointer pt-1 transition-colors ${
+            activeTab === tab.key
+              ? 'text-ot-orange'
+              : 'text-[#aa2c28] hover:text-ot-orange'
+          }`}
+          style={
+            activeTab === tab.key
+              ? {
+                  background:
+                    'linear-gradient(180deg, rgba(255, 59, 47, 0) 0%, rgba(255, 59, 47, 0.2) 100%)',
+                }
+              : undefined
+          }
+        >
+          {tab.label}
+        </button>
+      ))}
     </div>
   )
 }

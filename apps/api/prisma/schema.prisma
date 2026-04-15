@@ -225,6 +225,7 @@ model Category {
   tournamentId String
   tournament   Tournament        @relation(fields: [tournamentId], references: [id])
   name         String
+  slug         String?
   maxTeams     Int?
   teamsPerZone Int?
   status       CategoryStatus    @default(OPEN)
@@ -238,6 +239,7 @@ model Category {
   registrations Registration[]
   sanctions     Sanction[]
 
+  @@unique([tournamentId, slug])
   @@index([tournamentId])
   @@index([status])
   @@map("categories")
