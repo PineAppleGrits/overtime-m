@@ -8,3 +8,4 @@ dist
 .claude/worktrees
 .claude/settings.*.json
 .vscode/
+__pycache__/
