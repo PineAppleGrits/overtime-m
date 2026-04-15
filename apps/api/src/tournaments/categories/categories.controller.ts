@@ -14,7 +14,7 @@ import {
   UpdateCategoryDto,
   PaginationDto,
 } from '@overtime-mono/shared';
-import { Roles } from '../../common/decorators/roles.decorator';
+import { Admin } from '../../common/decorators/admin.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 
@@ -23,7 +23,7 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  @Roles('admin')
+  @Admin()
   create(
     @Param('tournamentId', ParseUUIDPipe) tournamentId: string,
     @Body() createCategoryDto: CreateCategoryDto,
@@ -50,7 +50,7 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-  @Roles('admin')
+  @Admin()
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -59,7 +59,7 @@ export class CategoriesController {
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Admin()
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.categoriesService.remove(id);
   }

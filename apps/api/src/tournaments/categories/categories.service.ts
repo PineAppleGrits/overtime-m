@@ -10,12 +10,79 @@ import {
   UpdateCategoryDto,
   PaginationDto,
 } from '@overtime-mono/shared';
+import { generateUniqueSlug } from '../../common/utils/slug.util';
 
 @Injectable()
 export class CategoriesService {
   private readonly logger = new Logger(CategoriesService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  private async generateCategorySlug(
+    name: string,
+    tournamentId: string,
+    excludeId?: string,
+  ): Promise<string> {
+    return generateUniqueSlug({
+      value: name,
+      exists: async (slug) => {
+        const existing = await this.prisma.category.findFirst({
+          where: {
+            tournamentId,
+            slug,
+            deletedAt: null,
+            ...(excludeId ? { id: { not: excludeId } } : {}),
+          },
+        });
+        return !!existing;
+      },
+    });
+  }
+
+  async findByTournamentSlugAndCategorySlug(
+    tournamentSlug: string,
+    categorySlug: string,
+  ) {
+    const tournament = await this.prisma.tournament.findFirst({
+      where: { slug: tournamentSlug, deletedAt: null },
+    });
+
+    if (!tournament) {
+      throw new NotFoundException(`Tournament not found`);
+    }
+
+    const category = await this.prisma.category.findFirst({
+      where: {
+        tournamentId: tournament.id,
+        slug: categorySlug,
+        deletedAt: null,
+      },
+      include: {
+        tournament: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            status: true,
+          },
+        },
+        zones: true,
+        _count: {
+          select: {
+            zones: true,
+            registrations: true,
+            matches: true,
+          },
+        },
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Category not found`);
+    }
+
+    return category;
+  }
 
   async create(createCategoryDto: CreateCategoryDto) {
     const tournament = await this.prisma.tournament.findUnique({
@@ -26,8 +93,13 @@ export class CategoriesService {
       throw new NotFoundException('Tournament not found');
     }
 
+    const slug = await this.generateCategorySlug(
+      createCategoryDto.name,
+      createCategoryDto.tournamentId,
+    );
+
     const category = await this.prisma.category.create({
-      data: createCategoryDto,
+      data: { ...createCategoryDto, slug },
       include: {
         tournament: {
           select: {
@@ -182,11 +254,20 @@ export class CategoriesService {
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
+
+    const data: Record<string, unknown> = { ...updateCategoryDto };
+    if (updateCategoryDto.name && updateCategoryDto.name !== existing.name) {
+      data.slug = await this.generateCategorySlug(
+        updateCategoryDto.name,
+        existing.tournamentId,
+        id,
+      );
+    }
 
     const updatedCategory = await this.prisma.category.update({
       where: { id },
-      data: updateCategoryDto,
+      data,
       include: {
         tournament: {
           select: {

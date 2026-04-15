@@ -25,20 +25,28 @@ export function CategoryDetailContent({
   myTeamId?: string
   categoryId: string
 }) {
-  const [activeTab, setActiveTab] = useState('posiciones')
+  const [activeTab, setActiveTab] = useState('fixture')
 
   const tabs = [
-    { key: 'posiciones', label: 'Posiciones' },
     { key: 'fixture', label: 'Fixture' },
+    { key: 'posiciones', label: 'Posiciones' },
     { key: 'mi-equipo', label: 'Mi Equipo', hidden: !isMyTeamPlaying },
   ]
 
   return (
-    <section className="mt-10">
+    <section>
       <CategoryTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'posiciones' && (
-        <StandingsTable standings={standingsData} />
+        <div className="ot-container">
+          {standingsData.zones.map((zone) => (
+            <StandingsTable
+              key={zone.name}
+              standings={zone.standings}
+              zoneName={standingsData.zones.length > 1 ? zone.name : undefined}
+            />
+          ))}
+        </div>
       )}
 
       {activeTab === 'fixture' && <FixtureView rounds={fixtureData.rounds} />}

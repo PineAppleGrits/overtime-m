@@ -14,94 +14,90 @@ type StandingEntry = {
   points: number
 }
 
+function getPositionBg(idx: number) {
+  if (idx === 0) return 'bg-[#3b336a]/80'
+  if (idx % 2 === 0) return 'bg-[#1f1b33]'
+  return 'bg-[#181525]'
+}
+
+function getPositionColor(idx: number) {
+  if (idx < 3) return 'text-ot-orange'
+  if (idx < 7) return 'text-white/60'
+  return 'text-[#4e4585]'
+}
+
+const DEFAULT_BADGE = '/badge-placeholder.png'
+
 export function StandingsTable({
   standings,
+  zoneName,
 }: {
   standings: StandingEntry[]
+  zoneName?: string
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-ot-light-blue/50">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-ot-dark-blue/50">
-            <th className="px-3 py-3 text-left text-[11px] uppercase tracking-wider text-white/40 font-semibold w-10">
-              #
-            </th>
-            <th className="sticky left-0 z-10 bg-ot-dark-blue/50 px-3 py-3 text-left text-[11px] uppercase tracking-wider text-white/40 font-semibold min-w-[140px]">
-              Equipo
-            </th>
-            <th className="px-3 py-3 text-center text-[11px] uppercase tracking-wider text-white/40 font-semibold">
-              PJ
-            </th>
-            <th className="px-3 py-3 text-center text-[11px] uppercase tracking-wider text-white/40 font-semibold">
-              PG
-            </th>
-            <th className="px-3 py-3 text-center text-[11px] uppercase tracking-wider text-white/40 font-semibold">
-              PP
-            </th>
-            <th className="px-3 py-3 text-center text-[11px] uppercase tracking-wider text-white/40 font-semibold">
-              PF
-            </th>
-            <th className="px-3 py-3 text-center text-[11px] uppercase tracking-wider text-white/40 font-semibold">
-              PC
-            </th>
-            <th className="px-3 py-3 text-center text-[11px] uppercase tracking-wider text-white/40 font-semibold">
-              DIF
-            </th>
-            <th className="px-3 py-3 text-center text-[11px] uppercase tracking-wider text-white/40 font-semibold">
-              PTS
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {standings.map((row) => (
-            <tr
-              key={row.teamId}
-              className={`border-t border-ot-light-blue/30 hover:bg-ot-dark-blue/40 transition-colors ${
-                row.position === 1 ? 'bg-amber-500/5' : ''
-              }`}
+    <div className="pb-10">
+      {zoneName && (
+        <div className="text-xl text-center text-ot-orange font-bold uppercase font-din-display mb-1">
+          <h2>{zoneName}</h2>
+        </div>
+      )}
+      <h3 className="font-bold uppercase text-sm text-center text-white/80 pb-4 font-din-display">
+        Tabla del torneo
+      </h3>
+      <div className="w-full shadow-lg uppercase">
+        {/* Header */}
+        <div className="flex h-10 items-center bg-[#3b336a] text-xs font-bold font-din-display">
+          <div className="w-[8%] text-center text-white/60">#</div>
+          <div className="w-[52%] text-left text-white/60 pl-2">equipo</div>
+          <div className="w-[40%] h-full flex items-center text-white/60 bg-[#3b336a]">
+            <div className="w-1/4 text-center">pj</div>
+            <div className="w-1/4 text-center">pg</div>
+            <div className="w-1/4 text-center">pp</div>
+            <div className="w-1/4 text-center">dp</div>
+          </div>
+        </div>
+
+        {/* Rows */}
+        {standings.map((row, idx) => (
+          <div
+            key={row.teamId}
+            className={`${getPositionBg(idx)} flex h-10 items-center text-sm font-bold font-946-latin`}
+          >
+            <div className={`w-[8%] text-center ${getPositionColor(idx)}`}>
+              {row.position}
+            </div>
+            <div className="w-[52%] flex items-center gap-2 pl-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={row.teamLogo ?? DEFAULT_BADGE}
+                alt=""
+                className="w-6 h-6 object-contain"
+              />
+              <span className="text-xs sm:text-sm font-thin font-din-display text-white mt-0.5 truncate">
+                {row.teamName}
+              </span>
+            </div>
+            <div
+              className="w-[40%] h-full flex items-center text-white/80 font-thin"
+              style={{
+                background:
+                  'linear-gradient(90deg, rgba(59, 51, 106, 0.3) 0%, rgba(59, 51, 106, 0) 100%)',
+              }}
             >
-              <td className="px-3 py-3 text-white/60 font-semibold">
-                {row.position}
-              </td>
-              <td className="sticky left-0 z-10 bg-ot-dark-blue px-3 py-3">
-                <span className="font-din-display font-semibold text-white">
-                  {row.teamName}
-                </span>
-              </td>
-              <td className="px-3 py-3 text-center text-white/70">
-                {row.played}
-              </td>
-              <td className="px-3 py-3 text-center text-white/70">
-                {row.won}
-              </td>
-              <td className="px-3 py-3 text-center text-white/70">
-                {row.lost}
-              </td>
-              <td className="px-3 py-3 text-center text-white/70">
-                {row.pointsFor}
-              </td>
-              <td className="px-3 py-3 text-center text-white/70">
-                {row.pointsAgainst}
-              </td>
-              <td
-                className={`px-3 py-3 text-center font-semibold ${
-                  row.diff > 0
-                    ? 'text-green-400'
-                    : row.diff < 0
-                      ? 'text-red-400'
-                      : 'text-white/70'
-                }`}
-              >
+              <div className="w-1/4 text-center">{row.played}</div>
+              <div className="w-1/4 text-center">{row.won}</div>
+              <div className="w-1/4 text-center">{row.lost}</div>
+              <div className="w-1/4 text-center">
                 {row.diff > 0 ? `+${row.diff}` : row.diff}
-              </td>
-              <td className="px-3 py-3 text-center text-ot-orange font-bold">
-                {row.points}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="pt-4 text-xs font-din-display text-center text-white/60">
+        PJ: Partidos Jugados - PG: Partidos Ganados - PP: Partidos Perdidos - DP: Diferencia de Puntos
+      </p>
     </div>
   )
 }

@@ -66,7 +66,7 @@ class TournamentService extends Service {
         return data
     }
     async getCategoryBySlug(tournamentSlug: string, categorySlug: string) {
-        const { data } = await this.client.get<Category>(`/tournaments/${tournamentSlug}/categories/${categorySlug}`)
+        const { data } = await this.client.get<Category & { tournament?: { id: string; name: string; slug: string; status?: string } }>(`/tournaments/by-slug/${tournamentSlug}/categories/${categorySlug}`)
         return data
     }
 }
