@@ -32,7 +32,7 @@ export function CategoryTabs({
             activeTab === tab.key
               ? {
                   background:
-                    'linear-gradient(180deg, rgba(255, 59, 47, 0) 0%, rgba(255, 59, 47, 0.2) 100%)',
+                    'linear-gradient(180deg, rgba(59, 51, 106, 0) 0%, rgba(59, 51, 106, 0.2) 100%)',
                 }
               : undefined
           }
