@@ -2,8 +2,8 @@ import TournamentService from "@/modules/tournament/TournamentService";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar, ChevronRight, Trophy } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
+import { notFound } from "next/navigation";
 
 function formatRegistrationPeriod(
   start?: string | null,
@@ -32,7 +32,16 @@ export default async function TournamentPage({
   params: Promise<{ tournamentSlug: string }>;
 }) {
   const { tournamentSlug } = await params;
-  const tournament = await TournamentService.getTournamentBySlug(tournamentSlug);
+
+  let tournament: Awaited<ReturnType<typeof TournamentService.getTournamentBySlug>> | null = null;
+  try {
+    tournament = await TournamentService.getTournamentBySlug(tournamentSlug);
+  } catch {
+    notFound();
+  }
+
+  if (!tournament) notFound();
+
   const categories = tournament.categories?.filter((c) => !c.hidden) ?? [];
   const registrationPeriod = formatRegistrationPeriod(
     tournament.registrationStartDate,
@@ -41,93 +50,118 @@ export default async function TournamentPage({
 
   return (
     <div className="min-h-screen bg-ot-background text-white">
-      <article className="ot-container py-10 md:py-14" aria-labelledby="tournament-title">
-        {/* Header */}
-        <header className="mb-10 md:mb-14">
-          <nav aria-label="Breadcrumb" className="mb-6">
-            <ol className="flex flex-wrap items-center gap-2 text-sm text-white/70">
-              <li>
-                <Link
-                  href="/torneos"
-                  className="hover:text-ot-orange focus:outline-none focus:ring-2 focus:ring-ot-orange focus:ring-offset-2 focus:ring-offset-ot-background rounded"
-                >
-                  Torneos
-                </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              <li className="text-white" aria-current="page">
-                {tournament.name}
-              </li>
-            </ol>
-          </nav>
+      {/* Hero header */}
+      <div className="relative bg-[#181525] overflow-hidden">
+        {/* Gradient accents */}
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            background:
+              'radial-gradient(ellipse 60% 50% at 50% 120%, rgba(59, 51, 106, 0.8) 0%, transparent 70%)',
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            background:
+              'radial-gradient(ellipse 40% 60% at 80% 0%, rgba(255, 59, 47, 0.4) 0%, transparent 60%)',
+          }}
+        />
 
-          <h1
-            id="tournament-title"
-            className="text-3xl font-bold tracking-tight text-white md:text-4xl"
+        <div className="relative ot-container py-14 md:py-20">
+          <Link
+            href="/torneos"
+            className="inline-flex items-center gap-1 text-sm text-[#a9a5bb] hover:text-ot-orange transition-colors mb-6 font-din-display uppercase"
           >
+            ‹ Torneos
+          </Link>
+
+          <h1 className="text-4xl md:text-5xl font-bold uppercase font-din-display text-ot-orange tracking-tight">
             {tournament.name}
           </h1>
 
           {tournament.description && (
-            <p className="mt-4 max-w-2xl text-lg text-white/80">
+            <p className="mt-4 max-w-2xl text-[#a9a5bb] text-base md:text-lg">
               {tournament.description}
             </p>
           )}
 
           {registrationPeriod && (
-            <div
-              className="mt-6 flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-ot-dark-blue/40 px-4 py-3 text-white/90"
-              aria-label="Período de inscripción"
-            >
-              <Calendar className="h-5 w-5 shrink-0 text-ot-orange" aria-hidden />
-              <span className="text-sm font-medium">Inscripción:</span>
-              <span className="text-sm">{registrationPeriod}</span>
+            <div className="mt-6 inline-flex items-center gap-3 rounded-sm bg-[#2b161f] px-5 py-3">
+              <span className="text-ot-orange font-din-display text-sm font-bold uppercase">Inscripción</span>
+              <span className="w-px h-4 bg-[#aa2c28]" />
+              <span className="text-[#a9a5bb] text-sm">{registrationPeriod}</span>
             </div>
           )}
-        </header>
+        </div>
+      </div>
 
-        {/* Categories */}
-        <section aria-labelledby="categories-heading">
-          <h2 id="categories-heading" className="sr-only">
-            Categorías del torneo
-          </h2>
+      {/* Categories section */}
+      <div className="ot-container py-10 md:py-14">
+        <h2 className="text-center text-ot-orange font-bold uppercase font-din-display text-lg mb-8">
+          Categorías
+        </h2>
 
-          {categories.length === 0 ? (
-            <div
-              className="rounded-2xl border border-white/10 bg-ot-dark-blue/20 px-6 py-12 text-center"
-              role="status"
-            >
-              <Trophy className="mx-auto h-12 w-12 text-white/40" aria-hidden />
-              <p className="mt-4 text-white/70">
-                Aún no hay categorías publicadas para este torneo.
-              </p>
-            </div>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
-              {categories.map((category) => (
-                <li key={category.id}>
-                  <Link
-                    href={`/torneos/${tournamentSlug}/${category.slug ?? category.id}`}
-                    className={cn(
-                      "group flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-ot-dark-blue/30 p-5",
-                      "transition-colors hover:border-ot-orange/40 hover:bg-ot-dark-blue/50",
-                      "focus:outline-none focus:ring-2 focus:ring-ot-orange focus:ring-offset-2 focus:ring-offset-ot-background"
-                    )}
-                  >
-                    <span className="font-semibold text-white group-hover:text-ot-orange">
+        {categories.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="text-[#4e4585] text-6xl font-946-latin mb-4">—</div>
+            <p className="text-[#a9a5bb] font-din-display uppercase text-sm">
+              Aún no hay categorías publicadas
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map((category, idx) => (
+              <Link
+                key={category.id}
+                href={`/torneos/${tournamentSlug}/${category.slug ?? category.id}`}
+                className="group relative overflow-hidden rounded-sm cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
+              >
+                {/* Card background */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      idx % 2 === 0
+                        ? 'linear-gradient(135deg, #2a2548 0%, #181525 100%)'
+                        : 'linear-gradient(135deg, #1f1b33 0%, #181525 100%)',
+                  }}
+                />
+                {/* Hover gradient */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, rgba(59, 51, 106, 0.5) 0%, rgba(255, 59, 47, 0.1) 100%)',
+                  }}
+                />
+
+                {/* Top accent line */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#3b336a] group-hover:bg-ot-orange transition-colors" />
+
+                <div className="relative flex items-center justify-between gap-4 p-6">
+                  <div>
+                    <span className="block font-din-display font-bold text-white uppercase text-lg group-hover:text-ot-orange transition-colors">
                       {category.name}
                     </span>
-                    <span className="flex shrink-0 items-center gap-1 text-sm text-white/70 group-hover:text-ot-orange">
-                      Postularse
-                      <ChevronRight className="h-4 w-4" aria-hidden />
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </article>
+                    {category._count && (
+                      <span className="block mt-1 text-xs text-[#a9a5bb]">
+                        {category._count.zones > 0 && `${category._count.zones} zona${category._count.zones !== 1 ? 's' : ''}`}
+                        {category._count.zones > 0 && category._count.registrations > 0 && ' · '}
+                        {category._count.registrations > 0 && `${category._count.registrations} inscripto${category._count.registrations !== 1 ? 's' : ''}`}
+                      </span>
+                    )}
+                  </div>
+                  <ChevronRight
+                    className="h-5 w-5 shrink-0 text-[#4e4585] group-hover:text-ot-orange transition-colors"
+                    aria-hidden
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
