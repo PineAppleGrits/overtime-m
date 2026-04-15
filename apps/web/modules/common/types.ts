@@ -16,6 +16,8 @@ export type Category = {
     zones: Zone[];
     hidden?: boolean;
     teamsPerZone?: number | null;
+    tournament?: { id: string; name: string; slug: string; status?: string; sportId?: string };
+    registrations?: { team?: { id: string; name: string; logoUrl?: string }; status?: string; requester?: { id: string } }[];
     _count?: { zones: number; registrations: number; matches: number };
 }
 

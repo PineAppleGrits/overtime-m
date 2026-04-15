@@ -12,6 +12,8 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL,
+    // Use direct connection (port 5432) for migrations to avoid Supabase pooler issues.
+    // Falls back to DATABASE_URL (pooler) if DIRECT_DATABASE_URL is not set.
+    url: process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL,
   },
 });

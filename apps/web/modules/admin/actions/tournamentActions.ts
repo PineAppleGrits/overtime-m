@@ -72,6 +72,7 @@ export async function createCategoryAction(input: unknown): Promise<ActionResult
   const { tournamentId, ...dto } = parsed.data
   try {
     await categoryService.createCategory(tournamentId, dto)
+    revalidatePath(`/admin/torneos/${tournamentId}`)
     revalidatePath(`/admin/torneos/${tournamentId}/categorias`)
     return { success: true }
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo crear la categoría' } }
@@ -87,6 +88,7 @@ export async function updateCategoryAction(input: unknown): Promise<ActionResult
       maxTeams: dto.maxTeams ?? undefined,
       teamsPerZone: dto.teamsPerZone ?? undefined,
     })
+    revalidatePath(`/admin/torneos/${tournamentId}`)
     revalidatePath(`/admin/torneos/${tournamentId}/categorias`)
     return { success: true }
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo actualizar la categoría' } }
@@ -97,6 +99,7 @@ export async function deleteCategoryAction(input: unknown): Promise<ActionResult
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   try {
     await categoryService.deleteCategory(parsed.data.tournamentId, parsed.data.categoryId)
+    revalidatePath(`/admin/torneos/${parsed.data.tournamentId}`)
     revalidatePath(`/admin/torneos/${parsed.data.tournamentId}/categorias`)
     return { success: true }
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo eliminar la categoría' } }
