@@ -44,12 +44,13 @@ const MOCK_MATCH = {
     badge: null,
     delegatePicture: null,
     score: 78,
+    // TL=1pt, TC2P=2pts, TC3P=3pts → totalScore = pt1 + pt2*2 + pt3*3, team.score = sum(totalScore)
     players: [
       { id: "p1", name: "Lucas Pérez", picture: null, captain: true, mvp: true, totalScore: 24, pt1: 2, pt2: 8, pt3: 2, fouls: 3, steals: 4, rebounds: 7, assists: 5 },
-      { id: "p2", name: "Marcos Díaz", picture: null, captain: false, mvp: false, totalScore: 18, pt1: 4, pt2: 6, pt3: 1, fouls: 2, steals: 1, rebounds: 3, assists: 6 },
-      { id: "p3", name: "Nicolás García", picture: null, captain: false, mvp: false, totalScore: 14, pt1: 0, pt2: 5, pt3: 1, fouls: 4, steals: 2, rebounds: 8, assists: 1 },
-      { id: "p4", name: "Rodrigo Sosa", picture: null, captain: false, mvp: false, totalScore: 12, pt1: 2, pt2: 4, pt3: 0, fouls: 1, steals: 3, rebounds: 5, assists: 2 },
-      { id: "p5", name: "Fabio Torres", picture: null, captain: false, mvp: false, totalScore: 10, pt1: 0, pt2: 3, pt3: 1, fouls: 2, steals: 0, rebounds: 2, assists: 4 },
+      { id: "p2", name: "Marcos Díaz", picture: null, captain: false, mvp: false, totalScore: 20, pt1: 4, pt2: 5, pt3: 2, fouls: 2, steals: 1, rebounds: 3, assists: 6 },
+      { id: "p3", name: "Nicolás García", picture: null, captain: false, mvp: false, totalScore: 14, pt1: 1, pt2: 5, pt3: 1, fouls: 4, steals: 2, rebounds: 8, assists: 1 },
+      { id: "p4", name: "Rodrigo Sosa", picture: null, captain: false, mvp: false, totalScore: 13, pt1: 2, pt2: 4, pt3: 1, fouls: 1, steals: 3, rebounds: 5, assists: 2 },
+      { id: "p5", name: "Fabio Torres", picture: null, captain: false, mvp: false, totalScore: 7, pt1: 1, pt2: 2, pt3: 1, fouls: 2, steals: 0, rebounds: 2, assists: 4 },
     ],
   } as Team,
   team2: {
@@ -60,10 +61,10 @@ const MOCK_MATCH = {
     score: 71,
     players: [
       { id: "p6", name: "Ezequiel Romero", picture: null, captain: true, mvp: false, totalScore: 22, pt1: 2, pt2: 7, pt3: 2, fouls: 3, steals: 2, rebounds: 6, assists: 3 },
-      { id: "p7", name: "Iván Martínez", picture: null, captain: false, mvp: false, totalScore: 16, pt1: 4, pt2: 4, pt3: 1, fouls: 5, steals: 1, rebounds: 4, assists: 7 },
-      { id: "p8", name: "Bruno López", picture: null, captain: false, mvp: false, totalScore: 15, pt1: 1, pt2: 5, pt3: 1, fouls: 2, steals: 3, rebounds: 5, assists: 2 },
-      { id: "p9", name: "Mateo Fernández", picture: null, captain: false, mvp: false, totalScore: 10, pt1: 0, pt2: 4, pt3: 0, fouls: 3, steals: 1, rebounds: 3, assists: 1 },
-      { id: "p10", name: "Agustín Ruiz", picture: null, captain: false, mvp: false, totalScore: 8, pt1: 2, pt2: 2, pt3: 0, fouls: 1, steals: 2, rebounds: 2, assists: 0 },
+      { id: "p7", name: "Iván Martínez", picture: null, captain: false, mvp: false, totalScore: 16, pt1: 2, pt2: 4, pt3: 2, fouls: 5, steals: 1, rebounds: 4, assists: 7 },
+      { id: "p8", name: "Bruno López", picture: null, captain: false, mvp: false, totalScore: 14, pt1: 1, pt2: 5, pt3: 1, fouls: 2, steals: 3, rebounds: 5, assists: 2 },
+      { id: "p9", name: "Mateo Fernández", picture: null, captain: false, mvp: false, totalScore: 11, pt1: 0, pt2: 4, pt3: 1, fouls: 3, steals: 1, rebounds: 3, assists: 1 },
+      { id: "p10", name: "Agustín Ruiz", picture: null, captain: false, mvp: false, totalScore: 8, pt1: 2, pt2: 3, pt3: 0, fouls: 1, steals: 2, rebounds: 2, assists: 0 },
     ],
   } as Team,
 };

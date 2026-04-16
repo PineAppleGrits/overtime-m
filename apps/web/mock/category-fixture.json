@@ -4,30 +4,30 @@
       "name": "Fecha 1",
       "date": "2025-10-05",
       "matches": [
-        { "id": "m1", "matchType": "Torneo", "date": "2025-10-05T19:00:00", "location": "Polideportivo Sur", "team1": { "id": "t1", "name": "Los Tigres" }, "team2": { "id": "t3", "name": "Panthers" }, "team1Score": 78, "team2Score": 71 },
-        { "id": "m2", "matchType": "Torneo", "date": "2025-10-05T20:30:00", "location": "Club Atlético Norte", "team1": { "id": "t2", "name": "Halcones FC" }, "team2": { "id": "t8", "name": "Toros del Sur" }, "team1Score": 85, "team2Score": 64 },
-        { "id": "m3", "matchType": "Torneo", "date": "2025-10-05T21:00:00", "location": "Polideportivo Sur", "team1": { "id": "t4", "name": "Dragones Rojos" }, "team2": { "id": "t6", "name": "Lobos Blancos" }, "team1Score": 72, "team2Score": 68 },
-        { "id": "m4", "matchType": "Torneo", "date": "2025-10-05T22:30:00", "location": "Club Atlético Norte", "team1": { "id": "t5", "name": "Guerreros" }, "team2": { "id": "t7", "name": "Vikingos" }, "team1Score": 66, "team2Score": 70 }
+        { "id": "m1", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-05T19:00:00", "location": "Polideportivo Sur", "team1": { "id": "t1", "name": "Los Tigres" }, "team2": { "id": "t3", "name": "Panthers" }, "team1Score": 78, "team2Score": 71 },
+        { "id": "m2", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-05T20:30:00", "location": "Club Atlético Norte", "team1": { "id": "t2", "name": "Halcones FC" }, "team2": { "id": "t8", "name": "Toros del Sur" }, "team1Score": 85, "team2Score": 64 },
+        { "id": "m3", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-05T21:00:00", "location": "Polideportivo Sur", "team1": { "id": "t4", "name": "Dragones Rojos" }, "team2": { "id": "t6", "name": "Lobos Blancos" }, "team1Score": 72, "team2Score": 68 },
+        { "id": "m4", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-05T22:30:00", "location": "Club Atlético Norte", "team1": { "id": "t5", "name": "Guerreros" }, "team2": { "id": "t7", "name": "Vikingos" }, "team1Score": 66, "team2Score": 70 }
       ]
     },
     {
       "name": "Fecha 2",
       "date": "2025-10-12",
       "matches": [
-        { "id": "m5", "matchType": "Torneo", "date": "2025-10-12T19:00:00", "location": "Polideportivo Sur", "team1": { "id": "t1", "name": "Los Tigres" }, "team2": { "id": "t2", "name": "Halcones FC" }, "team1Score": 82, "team2Score": 79 },
-        { "id": "m6", "matchType": "Torneo", "date": "2025-10-12T20:30:00", "location": "Club Atlético Norte", "team1": { "id": "t3", "name": "Panthers" }, "team2": { "id": "t4", "name": "Dragones Rojos" }, "team1Score": 75, "team2Score": 73 },
-        { "id": "m7", "matchType": "Liga", "date": "2025-10-12T21:00:00", "location": "Polideportivo Sur", "team1": { "id": "t6", "name": "Lobos Blancos" }, "team2": { "id": "t5", "name": "Guerreros" }, "team1Score": 60, "team2Score": 77 },
-        { "id": "m8", "matchType": "Liga", "date": "2025-10-12T22:30:00", "location": "Club Atlético Norte", "team1": { "id": "t7", "name": "Vikingos" }, "team2": { "id": "t8", "name": "Toros del Sur" }, "team1Score": 58, "team2Score": 55 }
+        { "id": "m5", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-12T19:00:00", "location": "Polideportivo Sur", "team1": { "id": "t1", "name": "Los Tigres" }, "team2": { "id": "t2", "name": "Halcones FC" }, "team1Score": 82, "team2Score": 79 },
+        { "id": "m6", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-12T20:30:00", "location": "Club Atlético Norte", "team1": { "id": "t3", "name": "Panthers" }, "team2": { "id": "t4", "name": "Dragones Rojos" }, "team1Score": 75, "team2Score": 73 },
+        { "id": "m7", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Liga", "date": "2025-10-12T21:00:00", "location": "Polideportivo Sur", "team1": { "id": "t6", "name": "Lobos Blancos" }, "team2": { "id": "t5", "name": "Guerreros" }, "team1Score": 60, "team2Score": 77 },
+        { "id": "m8", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Liga", "date": "2025-10-12T22:30:00", "location": "Club Atlético Norte", "team1": { "id": "t7", "name": "Vikingos" }, "team2": { "id": "t8", "name": "Toros del Sur" }, "team1Score": 58, "team2Score": 55 }
       ]
     },
     {
       "name": "Fecha 3",
       "date": "2025-10-19",
       "matches": [
-        { "id": "m9", "matchType": "Torneo", "date": "2025-10-19T19:00:00", "location": "Polideportivo Sur", "team1": { "id": "t1", "name": "Los Tigres" }, "team2": { "id": "t4", "name": "Dragones Rojos" } },
-        { "id": "m10", "matchType": "Torneo", "date": "2025-10-19T20:30:00", "location": "Club Atlético Norte", "team1": { "id": "t2", "name": "Halcones FC" }, "team2": { "id": "t6", "name": "Lobos Blancos" } },
-        { "id": "m11", "matchType": "Torneo", "date": "2025-10-19T21:00:00", "location": "Polideportivo Sur", "team1": { "id": "t3", "name": "Panthers" }, "team2": { "id": "t7", "name": "Vikingos" } },
-        { "id": "m12", "matchType": "Torneo", "date": "2025-10-19T22:30:00", "location": "Club Atlético Norte", "team1": { "id": "t5", "name": "Guerreros" }, "team2": { "id": "t8", "name": "Toros del Sur" } }
+        { "id": "m9", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-19T19:00:00", "location": "Polideportivo Sur", "team1": { "id": "t1", "name": "Los Tigres" }, "team2": { "id": "t4", "name": "Dragones Rojos" } },
+        { "id": "m10", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-19T20:30:00", "location": "Club Atlético Norte", "team1": { "id": "t2", "name": "Halcones FC" }, "team2": { "id": "t6", "name": "Lobos Blancos" } },
+        { "id": "m11", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-19T21:00:00", "location": "Polideportivo Sur", "team1": { "id": "t3", "name": "Panthers" }, "team2": { "id": "t7", "name": "Vikingos" } },
+        { "id": "m12", "tournamentSlug": "liga-overtime-2025", "categorySlug": "categoria-a", "matchType": "Torneo", "date": "2025-10-19T22:30:00", "location": "Club Atlético Norte", "team1": { "id": "t5", "name": "Guerreros" }, "team2": { "id": "t8", "name": "Toros del Sur" } }
       ]
     }
   ]

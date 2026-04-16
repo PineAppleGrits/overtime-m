@@ -2,6 +2,8 @@
   "fallback": {
     "lastMatch": {
       "id": "mock-last",
+      "tournamentSlug": "liga-overtime-2025",
+      "categorySlug": "categoria-a",
       "date": "2026-03-10T20:00:00Z",
       "location": "Estadio OT \u00b7 Cancha 1",
       "matchType": "Zona Regular",
@@ -12,6 +14,8 @@
     },
     "nextMatch": {
       "id": "mock-next",
+      "tournamentSlug": "liga-overtime-2025",
+      "categorySlug": "categoria-a",
       "date": "2026-04-14T20:00:00Z",
       "location": "Estadio OT \u00b7 Cancha 2",
       "matchType": "Zona Regular",

@@ -90,6 +90,12 @@ class MatchService extends Service {
     const { data } = await this.client.get(`/matches/${matchId}/announcements`)
     return data
   }
+
+  // TODO: conectar con API cuando el backend implemente el endpoint
+  async getMatchPlayerStats(matchId: string) {
+    const { data } = await this.client.get(`/matches/${matchId}/player-stats`)
+    return data
+  }
 }
 
 const matchService = new MatchService(client)

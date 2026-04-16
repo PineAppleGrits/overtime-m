@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { PageHeader } from '@/modules/admin/components/PageHeader'
 import { ConfirmDialog } from '@/modules/admin/components/ConfirmDialog'
@@ -23,6 +24,7 @@ import {
   ClipboardList,
   Plus,
   UserPlus,
+  Eye,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -556,6 +558,7 @@ export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchS
 
   function dayColumnProps() {
     return {
+      tournamentId,
       scheduledMatches,
       dragOverSlot,
       draggedMatchId: draggedMatch?.id ?? null,
@@ -780,6 +783,7 @@ function MatchCard({
   isSelected,
   staffInfo,
   isDragTarget,
+  detailHref,
 }: {
   match: MatchItem
   onDragStart: () => void
@@ -789,6 +793,7 @@ function MatchCard({
   isSelected?: boolean
   staffInfo?: { label: string; complete: boolean; total: number }
   isDragTarget?: boolean
+  detailHref?: string
 }) {
   return (
     <div
@@ -844,15 +849,27 @@ function MatchCard({
         )}
       </div>
 
-      {onRemove && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove() }}
-          className="opacity-0 group-hover:opacity-100 shrink-0 h-5 w-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-red-500 hover:bg-red-50 transition-all"
-          title="Quitar del horario"
-        >
-          <X className="h-3 w-3" />
-        </button>
-      )}
+      <div className="flex items-center gap-0.5 shrink-0">
+        {detailHref && (
+          <Link
+            href={detailHref}
+            onClick={(e) => e.stopPropagation()}
+            className="opacity-0 group-hover:opacity-100 h-5 w-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-[#ff3b2f] hover:bg-red-50 transition-all"
+            title="Ver detalle del partido"
+          >
+            <Eye className="h-3 w-3" />
+          </Link>
+        )}
+        {onRemove && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemove() }}
+            className="opacity-0 group-hover:opacity-100 h-5 w-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-red-500 hover:bg-red-50 transition-all"
+            title="Quitar del horario"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -862,6 +879,7 @@ function MatchCard({
 function DayColumn({
   label,
   day,
+  tournamentId,
   scheduledMatches,
   dragOverSlot,
   draggedMatchId,
@@ -875,6 +893,7 @@ function DayColumn({
 }: {
   label: string
   day: 'saturday' | 'sunday'
+  tournamentId: string
   scheduledMatches: ScheduledMatch[]
   dragOverSlot: { day: 'saturday' | 'sunday'; timeSlot: string } | null
   draggedMatchId: string | null
@@ -933,6 +952,7 @@ function DayColumn({
                       onSelect={() => onSelectMatch(matchInSlot.id)}
                       isSelected={selectedMatchId === matchInSlot.id}
                       isDragTarget={isSwapTarget}
+                      detailHref={`/admin/torneos/${tournamentId}/partidos/${matchInSlot.id}`}
                       staffInfo={{
                         label: staffLabel(matchInSlot.staff),
                         complete: hasMinimumStaff(matchInSlot.staff),

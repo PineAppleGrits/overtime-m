@@ -20,8 +20,8 @@ function formatTime(dateStr: string) {
 export function MatchPreview({ match }: Props) {
   const hasScore = match.team1Score !== undefined && match.team2Score !== undefined
   const statsHref =
-    hasScore && match.tournamentId && match.categoryId
-      ? `/torneos/${match.tournamentId}/categoria/${match.categoryId}/partidos/${match.id}`
+    hasScore && match.tournamentSlug && match.categorySlug
+      ? `/torneos/${match.tournamentSlug}/${match.categorySlug}/partido/${match.id}`
       : undefined
 
   return (

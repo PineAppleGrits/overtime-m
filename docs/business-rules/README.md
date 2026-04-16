@@ -1,0 +1,28 @@
+# Reglas de Negocio
+
+Reglas que rigen el comportamiento del dominio. Cada regla describe un invariante o restricción, independiente de la implementación técnica. Organizadas por entidad.
+
+## Formato
+
+Cada regla se identifica con `RN-XXX` (numeración global y estable; no reiniciar por archivo) y contiene:
+
+- **Contexto**: dominio o módulo al que aplica.
+- **Regla**: enunciado de la restricción/invariante.
+- **Motivo**: por qué existe (opcional).
+- **Notas**: referencias a tickets, pendientes, dudas.
+
+## Índice por entidad
+
+- [teams.md](./teams.md) — Equipos y delegados (RN-001, RN-002, RN-005, RN-009)
+- [players.md](./players.md) — Jugadores (RN-003, RN-006, RN-007, RN-008)
+- [franchises.md](./franchises.md) — Franquicias (RN-010, RN-011, RN-012)
+- [enrollments.md](./enrollments.md) — Postulaciones e inscripción (RN-004, RN-013–RN-019)
+- [pricing.md](./pricing.md) — Descuentos y tarifas (RN-020, RN-021)
+- [friendlies.md](./friendlies.md) — Amistosos (RN-022, RN-023)
+- [matches.md](./matches.md) — Partidos y tabla (RN-024)
+- [fines.md](./fines.md) — Multas y aranceles (RN-025–RN-032)
+
+## Ver también
+
+- [../domain-model.md](../domain-model.md) — Entidades, estados y estructura.
+- [../functionalities.md](../functionalities.md) — Features y flujos.
