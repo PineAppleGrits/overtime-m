@@ -87,10 +87,10 @@ function RegistrationCard({ reg }: { reg: Registration }) {
 
       {reg.status === 'pending' && tournamentSlug && categorySlug && (
         <Link
-          href={`/torneos/${tournamentSlug}/${categorySlug}`}
+          href={`/torneos/${tournamentSlug}/${categorySlug}/inscripcion/${reg.id}`}
           className="text-xs text-ot-orange hover:text-ot-orange/80 transition-colors"
         >
-          Ver información de pago →
+          Ver estado y pago →
         </Link>
       )}
     </div>

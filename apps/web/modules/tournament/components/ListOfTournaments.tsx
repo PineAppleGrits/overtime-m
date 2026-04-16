@@ -44,19 +44,21 @@ export async function ListOfTournaments() {
 
   if (filteredTournaments.length === 0) {
     return (
-      <div
-        className="rounded-2xl border border-white/10 bg-ot-dark-blue/20 px-6 py-16 text-center"
-        role="status"
-      >
-        <Trophy className="mx-auto h-12 w-12 text-white/40" aria-hidden />
-        <p className="mt-4 text-white/70">No hay torneos disponibles por el momento.</p>
+      <div className="py-16 text-center" role="status">
+        <div className="text-[#4e4585] text-6xl font-946-latin mb-4">—</div>
+        <p className="text-[#a9a5bb] font-din-display uppercase text-sm">
+          No hay torneos disponibles por el momento
+        </p>
+        <p className="mt-2 text-xs text-[#a9a5bb]/50">
+          Volvé más tarde para ver los próximos torneos.
+        </p>
       </div>
     )
   }
 
   return (
-    <ul className="flex flex-col gap-4" role="list">
-      {filteredTournaments.map((tournament) => {
+    <div className="flex flex-col gap-4" role="list">
+      {filteredTournaments.map((tournament, idx) => {
         const visibleCategories = tournament.categories?.filter((c) => !c.hidden) ?? []
         const registrationPeriod = formatRegistrationPeriod(
           tournament.registrationStartDate,
@@ -64,58 +66,93 @@ export async function ListOfTournaments() {
         )
 
         return (
-          <li key={tournament.id}>
-            <article className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-ot-dark-blue/30 p-5 transition-colors hover:border-ot-orange/30 hover:bg-ot-dark-blue/50 sm:flex-row sm:items-center">
+          <Link
+            key={tournament.id}
+            href={`/torneos/${tournament.slug}`}
+            className="group relative overflow-hidden rounded-sm cursor-pointer transition-shadow hover:shadow-xl"
+            role="listitem"
+          >
+            {/* Card background */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  idx % 2 === 0
+                    ? 'linear-gradient(135deg, #2a2548 0%, #181525 100%)'
+                    : 'linear-gradient(135deg, #1f1b33 0%, #181525 100%)',
+              }}
+            />
+            {/* Hover gradient */}
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(59, 51, 106, 0.5) 0%, rgba(255, 59, 47, 0.08) 100%)',
+              }}
+            />
 
+            {/* Left accent line */}
+            <div className="absolute top-0 left-0 bottom-0 w-[3px] bg-[#3b336a] group-hover:bg-ot-orange transition-colors duration-300" />
+
+            <div className="relative p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
               {/* Left: info */}
-              <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-bold text-white">{tournament.name}</h2>
+              <div className="flex-1 min-w-0 pl-2">
+                <h2 className="text-lg sm:text-xl font-bold uppercase font-din-display text-white group-hover:text-ot-orange transition-colors duration-300 tracking-tight">
+                  {tournament.name}
+                </h2>
 
                 {tournament.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-white/60">
+                  <p className="mt-1.5 line-clamp-2 text-sm text-[#a9a5bb]">
                     {tournament.description}
                   </p>
                 )}
 
-                {registrationPeriod && (
-                  <div className="mt-2 flex items-center gap-2 text-xs text-white/60">
-                    <Calendar className="h-3.5 w-3.5 shrink-0 text-ot-orange" aria-hidden />
-                    <span>{registrationPeriod}</span>
-                  </div>
-                )}
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  {registrationPeriod && (
+                    <div className="flex items-center gap-2 text-xs text-[#a9a5bb]">
+                      <Calendar className="h-3.5 w-3.5 shrink-0 text-ot-orange/70" aria-hidden />
+                      <span>{registrationPeriod}</span>
+                    </div>
+                  )}
 
-                {/* Categories */}
-                <div className="mt-3">
-                  {visibleCategories.length > 0 ? (
-                    <ul className="flex flex-wrap gap-2" role="list">
-                      {visibleCategories.map((category) => (
-                        <li key={category.id}>
-                          <span className="inline-block rounded-full border border-ot-orange/30 bg-ot-orange/10 px-3 py-1 text-xs font-medium text-ot-orange">
-                            {category.name}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-xs text-white/40">Sin categorías publicadas</p>
+                  {visibleCategories.length > 0 && (
+                    <div className="flex items-center gap-2 text-xs text-[#a9a5bb]">
+                      <Trophy className="h-3.5 w-3.5 shrink-0 text-[#4e4585]" aria-hidden />
+                      <span>
+                        {visibleCategories.length} categoría{visibleCategories.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
                   )}
                 </div>
+
+                {/* Category pills */}
+                {visibleCategories.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {visibleCategories.map((category) => (
+                      <span
+                        key={category.id}
+                        className="inline-block rounded-sm bg-[#3b336a]/40 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#a9a5bb] font-din-display"
+                      >
+                        {category.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Right: CTA */}
-              <div className="shrink-0">
-                <Link
-                  href={`/torneos/${tournament.slug}`}
-                  className="group inline-flex items-center gap-2 rounded-xl bg-ot-orange/90 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ot-orange focus:outline-none focus:ring-2 focus:ring-ot-orange focus:ring-offset-2 focus:ring-offset-ot-background whitespace-nowrap"
-                >
-                  Ver torneo
-                  <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                </Link>
+              {/* Right: arrow */}
+              <div className="shrink-0 flex items-center sm:pr-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-[#3b336a]/30 group-hover:bg-ot-orange/20 transition-colors duration-300">
+                  <ChevronRight
+                    className="h-5 w-5 text-[#4e4585] group-hover:text-ot-orange transition-all duration-300 group-hover:translate-x-0.5"
+                    aria-hidden
+                  />
+                </div>
               </div>
-            </article>
-          </li>
+            </div>
+          </Link>
         )
       })}
-    </ul>
+    </div>
   )
 }
