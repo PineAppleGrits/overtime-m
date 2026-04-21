@@ -6,10 +6,11 @@
 - **Regla**: La creación de equipos y el pase de equipo a franquicia solo están habilitados en ventanas de fecha determinadas.
 - **Notas**: Definir quién configura esas ventanas y a qué nivel aplican (global/torneo/categoría).
 
-## RN-011 — Delegados en franquicia
+## RN-011 — Administración de la franquicia
 
 - **Contexto**: Franquicias.
-- **Regla**: El creador de la franquicia puede asignar delegado(s).
+- **Regla**: Por ahora, **una franquicia es administrada por un único administrador** (habitualmente el creador). Ese administrador gestiona **múltiples equipos** bajo la franquicia.
+- **Evolución**: Delegados secundarios o múltiples administradores → queda para v2.
 
 ## RN-012 — [PENDIENTE] Descuento por franquicia
 

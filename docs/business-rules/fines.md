@@ -3,14 +3,19 @@
 ## RN-025 — Multa por cancelación tardía / no presentarse
 
 - **Contexto**: Incumplimiento de partido **sin aviso en tiempo**.
-- **Regla**: Si un equipo **no avisa dentro de la fecha-límite estipulada** (cancelación tardía) o directamente no se presenta al encuentro, la multa equivale al costo de la **jornada completa**. Ver RN-027 para el caso post fecha disponible con monto x2.
-- **Relación**: Ver RN-032 para el caso de cancelación **en tiempo** (antes del deadline), que no genera multa sino una decisión del equipo rival.
+- **Regla**: Si un equipo **no avisa dentro del plazo estipulado** (cancelación tardía) o directamente no se presenta al encuentro:
+  - **Pierde el partido** automáticamente.
+  - La multa equivale al costo de una **jornada completa**, entendida como el **valor de ambos equipos** (no de uno solo).
+- **Relación**:
+  - Ver [RN-027](#rn-027--multa-por-modificación--ausencia-post-fecha-disponible) para el caso post fecha disponible con monto × 2.
+  - Ver [RN-032](#rn-032--cancelación-en-tiempo-elección-del-equipo-rival) para el caso de cancelación **en tiempo** (dentro de las 72 hs de la misma semana), donde la decisión queda en manos del equipo rival.
+  - Ver [RN-052](./matches.md#rn-052--reprogramación-sin-penalización-por-aviso-con-mucha-antelación) para aviso con mucha antelación, sin penalización.
 
-## RN-026 — Pago parcial del 50% para habilitar siguiente partido
+## RN-026 — [A DEFINIR] Pago parcial del 50% para habilitar siguiente partido
 
 - **Contexto**: Deuda por multa de RN-025.
-- **Regla**: El equipo puede abonar el **50% de la multa** para quedar habilitado a jugar el **siguiente partido**.
-- **Notas**: La deuda sigue vigente; el saldo restante aplica RN-028 si vence.
+- **Regla propuesta**: El equipo podría abonar el **50% de la multa** para quedar habilitado a jugar el **siguiente partido**. La deuda restante seguiría vigente; el saldo aplica [RN-028](#rn-028--interés-por-deuda-vencida) si vence.
+- **Estado**: **Pendiente de decisión.** Por defecto aplica [RN-053](./matches.md#rn-053--deuda-pendiente-bloquea-el-siguiente-partido) (cualquier deuda bloquea), salvo que se decida mantener esta excepción. Pendiente definir también a qué tipos de deuda aplicaría (solo multas, todas).
 
 ## RN-027 — Multa por modificación / ausencia post fecha disponible
 
@@ -51,8 +56,11 @@
 
 ## RN-032 — Cancelación en tiempo: elección del equipo rival
 
-- **Contexto**: Un equipo cancela el partido **antes de la fecha-límite estipulada**.
-- **Regla**: La cancelación en tiempo **no genera multa** para el equipo que cancela. El **equipo rival** decide entre dos opciones:
-  1. **Pedir los puntos** del partido (ganar por no-presentación).
+- **Contexto**: Un equipo avisa que no puede disputar el partido **con al menos 72 hs de anticipación** (en la misma semana del encuentro, dentro del plazo admitido).
+- **Regla**: La cancelación en tiempo **no genera multa automática** para el equipo que cancela. El **equipo rival** decide entre dos opciones:
+  1. **Pedir los puntos** — el resultado se asigna como **20-0** por no-presentación.
   2. **Reprogramar** el encuentro.
-- **Notas**: Definir el mecanismo de decisión (plazo para elegir, default si no responde) y cómo se registra en la tabla si elige "pedir los puntos".
+- **Relación**:
+  - [RN-052](./matches.md#rn-052--reprogramación-sin-penalización-por-aviso-con-mucha-antelación) — con mucha más antelación, la reprogramación es directa y sin decisión del rival.
+  - [RN-025](#rn-025--multa-por-cancelación-tardía--no-presentarse) — si se avisa fuera del plazo de 72 hs, ya hay multa y pérdida del partido.
+- **Notas**: Definir el mecanismo exacto de decisión del rival (plazo para elegir, default si no responde) y cómo se registra en la tabla si elige "pedir los puntos".
