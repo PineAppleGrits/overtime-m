@@ -8,3 +8,8 @@ export enum TournamentStatus {
   ARCHIVED = "ARCHIVED",
   CANCELLED = "CANCELLED",
 }
+
+export enum FixtureFormat {
+  SINGLE_ROUND = "SINGLE_ROUND",
+  DOUBLE_ROUND = "DOUBLE_ROUND",
+}

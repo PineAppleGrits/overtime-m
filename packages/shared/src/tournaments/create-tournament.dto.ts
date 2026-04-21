@@ -8,9 +8,9 @@ import {
   IsNumber,
   Min,
 } from "class-validator";
-import { TournamentStatus } from "./enums";
+import { TournamentStatus, FixtureFormat } from "./enums";
 
-export { TournamentStatus };
+export { TournamentStatus, FixtureFormat };
 
 export class CreateTournamentDto {
   @IsString()
@@ -28,6 +28,14 @@ export class CreateTournamentDto {
   @IsEnum(TournamentStatus)
   @IsOptional()
   status?: TournamentStatus = TournamentStatus.DRAFT;
+
+  @IsEnum(FixtureFormat)
+  @IsOptional()
+  fixtureFormat?: FixtureFormat = FixtureFormat.SINGLE_ROUND;
+
+  @IsString()
+  @IsOptional()
+  modality?: string;
 
   @IsDateString()
   @IsOptional()

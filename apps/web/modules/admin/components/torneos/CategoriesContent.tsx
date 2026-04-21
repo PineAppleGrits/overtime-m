@@ -33,11 +33,11 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
 
   // Create category
   const [catDialog, setCatDialog] = useState(false)
-  const [catForm, setCatForm] = useState({ name: '', teamsPerZone: '', maxTeams: '' })
+  const [catForm, setCatForm] = useState({ name: '' })
 
   // Edit category
   const [editDialog, setEditDialog] = useState<CategoryData | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', maxTeams: '', teamsPerZone: '' })
+  const [editForm, setEditForm] = useState({ name: '' })
 
   // Delete category
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -59,7 +59,7 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
 
   const createCategoryAct = useServerAction(createCategoryAction, {
     successMessage: 'Categoría creada',
-    onSuccess: () => { invalidate(); setCatDialog(false); setCatForm({ name: '', teamsPerZone: '', maxTeams: '' }) },
+    onSuccess: () => { invalidate(); setCatDialog(false); setCatForm({ name: '' }) },
   })
   const updateCategoryAct = useServerAction(updateCategoryAction, {
     successMessage: 'Categoría actualizada',
@@ -83,11 +83,7 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
 
   const openEdit = (cat: CategoryData) => {
     setEditDialog(cat)
-    setEditForm({
-      name: cat.name,
-      maxTeams: cat.maxTeams?.toString() ?? '',
-      teamsPerZone: cat.teamsPerZone?.toString() ?? '',
-    })
+    setEditForm({ name: cat.name })
   }
 
   if (initialCategories.error && isError) {
@@ -151,11 +147,8 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
                     <Badge variant="outline">{cat.zones.length} zonas</Badge>
                     <Badge variant="secondary" className="gap-1">
                       <Users className="h-3 w-3" />
-                      {teamCount}{cat.maxTeams ? `/${cat.maxTeams}` : ''}
+                      {teamCount}
                     </Badge>
-                    {cat.teamsPerZone && (
-                      <span className="text-xs text-muted-foreground">{cat.teamsPerZone} eq/zona</span>
-                    )}
                   </div>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(cat)}>
@@ -182,7 +175,6 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
                               <p className="font-medium">{zone.name}</p>
                               <p className="text-sm text-muted-foreground">
                                 {zone.teams.length} equipos
-                                {cat.teamsPerZone ? ` / ${cat.teamsPerZone}` : ''}
                               </p>
                             </div>
                             <div className="flex gap-1">
@@ -221,28 +213,14 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Nombre *</Label>
-              <Input placeholder="Ej: Primera División, Sub-20" value={catForm.name} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Máximo de equipos</Label>
-                <Input type="number" min={1} placeholder="Sin límite" value={catForm.maxTeams} onChange={(e) => setCatForm({ ...catForm, maxTeams: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Equipos por zona</Label>
-                <Input type="number" min={1} placeholder="Ej: 4" value={catForm.teamsPerZone} onChange={(e) => setCatForm({ ...catForm, teamsPerZone: e.target.value })} />
-              </div>
+              <Input placeholder="Ej: Primera División, Sub-20" value={catForm.name} onChange={(e) => setCatForm({ name: e.target.value })} />
+              <p className="text-xs text-muted-foreground">Las zonas y la asignación de equipos se configuran después, desde el detalle de la categoría.</p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCatDialog(false)}>Cancelar</Button>
             <Button
-              onClick={() => createCategoryAct.execute({
-                tournamentId,
-                name: catForm.name,
-                teamsPerZone: parseInt(catForm.teamsPerZone) || undefined,
-                maxTeams: parseInt(catForm.maxTeams) || undefined,
-              })}
+              onClick={() => createCategoryAct.execute({ tournamentId, name: catForm.name })}
               disabled={createCategoryAct.isPending || !catForm.name}
             >
               {createCategoryAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Crear
@@ -258,17 +236,7 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Nombre *</Label>
-              <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Máximo de equipos</Label>
-                <Input type="number" min={1} placeholder="Sin límite" value={editForm.maxTeams} onChange={(e) => setEditForm({ ...editForm, maxTeams: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Equipos por zona</Label>
-                <Input type="number" min={1} placeholder="Sin límite" value={editForm.teamsPerZone} onChange={(e) => setEditForm({ ...editForm, teamsPerZone: e.target.value })} />
-              </div>
+              <Input value={editForm.name} onChange={(e) => setEditForm({ name: e.target.value })} />
             </div>
           </div>
           <DialogFooter>
@@ -278,8 +246,6 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
                 tournamentId,
                 categoryId: editDialog.id,
                 name: editForm.name,
-                maxTeams: parseInt(editForm.maxTeams) || null,
-                teamsPerZone: parseInt(editForm.teamsPerZone) || null,
               })}
               disabled={updateCategoryAct.isPending || !editForm.name}
             >

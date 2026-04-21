@@ -18,8 +18,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import {
-  AlertCircle, CalendarIcon, ChevronRight, Loader2,
+  AlertCircle, CalendarIcon, ChevronRight, HelpCircle, Loader2,
   Pencil, Plus, Trash2, Users, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -30,6 +31,7 @@ import {
 } from '@/modules/admin/actions/tournamentActions'
 import { useServerAction } from '@/modules/admin/hooks/useServerAction'
 import { AdminTournament, AdminCategory, TournamentStatus } from '@/modules/admin/types'
+import { getModalitiesForSport } from '@/modules/admin/lib/modalities'
 
 interface Sport { id: string; name: string; code: string }
 
@@ -322,6 +324,8 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
     name: initial?.name ?? '',
     description: initial?.description ?? '',
     sportId: initial?.sportId ?? '',
+    fixtureFormat: (initial?.fixtureFormat ?? 'SINGLE_ROUND') as 'SINGLE_ROUND' | 'DOUBLE_ROUND',
+    modality: initial?.modality ?? '',
     startDate: parseDate(initial?.startDate),
     endDate: parseDate(initial?.endDate),
     registrationStartDate: parseDate(initial?.registrationStartDate),
@@ -334,6 +338,8 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
       form.name !== (initial.name ?? '') ||
       form.description !== (initial.description ?? '') ||
       form.sportId !== (initial.sportId ?? '') ||
+      form.fixtureFormat !== (initial.fixtureFormat ?? 'SINGLE_ROUND') ||
+      form.modality !== (initial.modality ?? '') ||
       form.startDate?.toISOString() !== parseDate(initial.startDate)?.toISOString() ||
       form.endDate?.toISOString() !== parseDate(initial.endDate)?.toISOString() ||
       form.registrationStartDate?.toISOString() !== parseDate(initial.registrationStartDate)?.toISOString() ||
@@ -342,16 +348,16 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
   }, [form, initial])
 
   const [catDialog, setCatDialog] = useState(false)
-  const [catForm, setCatForm] = useState({ name: '', maxTeams: '', teamsPerZone: '' })
+  const [catForm, setCatForm] = useState({ name: '' })
   const [editCat, setEditCat] = useState<AdminCategory | null>(null)
-  const [editCatForm, setEditCatForm] = useState({ name: '', maxTeams: '', teamsPerZone: '' })
+  const [editCatForm, setEditCatForm] = useState({ name: '' })
   const [deleteCatId, setDeleteCatId] = useState<string | null>(null)
 
   const updateAction = useServerAction(updateTournamentAction, { successMessage: 'Torneo actualizado', onSuccess: invalidate })
   const changeStatusAct = useServerAction(changeStatusAction, { successMessage: 'Estado actualizado', onSuccess: invalidate })
   const createCatAct = useServerAction(createCategoryAction, {
     successMessage: 'Categoría creada',
-    onSuccess: () => { invalidate(); setCatDialog(false); setCatForm({ name: '', maxTeams: '', teamsPerZone: '' }) },
+    onSuccess: () => { invalidate(); setCatDialog(false); setCatForm({ name: '' }) },
   })
   const updateCatAct = useServerAction(updateCategoryAction, {
     successMessage: 'Categoría actualizada',
@@ -390,6 +396,8 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
       name: form.name,
       description: form.description || undefined,
       sportId: form.sportId,
+      fixtureFormat: form.fixtureFormat,
+      modality: form.modality.trim() || null,
       startDate: form.startDate?.toISOString(),
       endDate: form.endDate?.toISOString(),
       registrationStartDate: form.registrationStartDate?.toISOString() || undefined,
@@ -399,11 +407,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
 
   const openEditCat = (cat: AdminCategory) => {
     setEditCat(cat)
-    setEditCatForm({
-      name: cat.name,
-      maxTeams: (cat as unknown as Record<string, unknown>).maxTeams?.toString() ?? '',
-      teamsPerZone: cat.teamsPerZone?.toString() ?? '',
-    })
+    setEditCatForm({ name: cat.name })
   }
 
   const transitions = STATUS_TRANSITIONS[tournament.status] ?? []
@@ -432,10 +436,18 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
             </div>
           }
         />
-        <div className="flex flex-wrap items-center gap-3 mt-2">
+        <div className="flex flex-wrap items-center gap-2 mt-2">
           <StatusBadge status={tournament.status} type="tournament" />
+          {tournament.modality && (
+            <span className="inline-flex items-center rounded-md bg-[#0f0e13] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+              {tournament.modality}
+            </span>
+          )}
+          <span className="inline-flex items-center rounded-md border border-[#e8e6e1] px-2 py-0.5 text-[11px] font-medium text-[#6b6a72]">
+            {tournament.fixtureFormat === 'DOUBLE_ROUND' ? 'Ida y vuelta' : 'Una rueda'}
+          </span>
           <span className="text-[13px] text-[#9b99a6]">
-            {categories.length} categorías · {tournament._count?.registrations ?? 0} inscripciones
+            · {categories.length} categorías · {tournament._count?.registrations ?? 0} inscripciones
           </span>
         </div>
       </div>
@@ -477,12 +489,95 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[#6b6a72]">Disciplina</Label>
-                    <Select value={form.sportId} onValueChange={(v) => setForm({ ...form, sportId: v })}>
+                    <Select value={form.sportId} onValueChange={(v) => {
+                      const nextSport = sports.find((s) => s.id === v)
+                      const nextOptions = getModalitiesForSport(nextSport?.code)
+                      setForm((p) => ({
+                        ...p,
+                        sportId: v,
+                        modality: p.modality && nextOptions.includes(p.modality) ? p.modality : '',
+                      }))
+                    }}>
                       <SelectTrigger className="border-[#e8e6e1] h-9"><SelectValue /></SelectTrigger>
                       <SelectContent>{sports.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                 </div>
+
+                <div className="border-t border-[#f0efe9] my-6" />
+
+                <TooltipProvider delayDuration={200}>
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9b99a6] mb-5">Formato</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Label className="text-xs text-[#6b6a72]">Tipo de fixture</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button type="button" className="text-[#c4c2cc] hover:text-[#6b6a72] cursor-help">
+                              <HelpCircle className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-left">
+                            <p className="mb-1"><strong>Una rueda:</strong> cada equipo enfrenta al otro una sola vez.</p>
+                            <p><strong>Ida y vuelta:</strong> se enfrentan dos veces — como local y visitante.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Select
+                        value={form.fixtureFormat}
+                        onValueChange={(v) => setForm({ ...form, fixtureFormat: v as 'SINGLE_ROUND' | 'DOUBLE_ROUND' })}
+                      >
+                        <SelectTrigger className="border-[#e8e6e1] h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SINGLE_ROUND">Una rueda</SelectItem>
+                          <SelectItem value="DOUBLE_ROUND">Ida y vuelta</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Label className="text-xs text-[#6b6a72]">Modalidad</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button type="button" className="text-[#c4c2cc] hover:text-[#6b6a72] cursor-help">
+                              <HelpCircle className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-left">
+                            <p>Cantidad de jugadores en cancha — ej. <strong>3v3</strong>, <strong>5v5</strong>, <strong>11</strong>.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      {(() => {
+                        const currentSport = sports.find((s) => s.id === form.sportId)
+                        const opts = getModalitiesForSport(currentSport?.code)
+                        return (
+                          <Select
+                            value={form.modality || undefined}
+                            onValueChange={(v) => setForm({ ...form, modality: v })}
+                            disabled={opts.length === 0}
+                          >
+                            <SelectTrigger className="border-[#e8e6e1] h-9">
+                              <SelectValue placeholder={
+                                !currentSport
+                                  ? 'Elegí disciplina primero'
+                                  : opts.length === 0
+                                    ? 'Sin modalidades definidas'
+                                    : 'Seleccioná una modalidad'
+                              } />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {opts.map((m) => (
+                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )
+                      })()}
+                    </div>
+                  </div>
+                </TooltipProvider>
 
                 <div className="border-t border-[#f0efe9] my-6" />
 
@@ -550,12 +645,6 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                             <span className="inline-flex items-center gap-1">
                               <Users className="h-3 w-3" />{teamCount} equipos
                             </span>
-                            {cat.teamsPerZone && (
-                              <>
-                                <span>·</span>
-                                <span>{cat.teamsPerZone} eq/zona</span>
-                              </>
-                            )}
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -608,24 +697,15 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs text-[#6b6a72]">Nombre *</Label>
-              <Input placeholder="Ej: Primera División, Sub-20" value={catForm.name} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} className="border-[#e8e6e1] h-9" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-[#6b6a72]">Máximo de equipos</Label>
-                <Input type="number" min={1} placeholder="Sin límite" value={catForm.maxTeams} onChange={(e) => setCatForm({ ...catForm, maxTeams: e.target.value })} className="border-[#e8e6e1] h-9" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-[#6b6a72]">Equipos por zona</Label>
-                <Input type="number" min={1} placeholder="Ej: 4" value={catForm.teamsPerZone} onChange={(e) => setCatForm({ ...catForm, teamsPerZone: e.target.value })} className="border-[#e8e6e1] h-9" />
-              </div>
+              <Input placeholder="Ej: Primera División, Sub-20" value={catForm.name} onChange={(e) => setCatForm({ name: e.target.value })} className="border-[#e8e6e1] h-9" />
+              <p className="text-[11px] text-[#c4c2cc]">Las zonas y la asignación de equipos se configuran después, al entrar al detalle de la categoría.</p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCatDialog(false)} className="border-[#e8e6e1]">Cancelar</Button>
             <Button
               disabled={createCatAct.isPending || !catForm.name}
-              onClick={() => createCatAct.execute({ tournamentId, name: catForm.name, maxTeams: parseInt(catForm.maxTeams) || undefined, teamsPerZone: parseInt(catForm.teamsPerZone) || undefined })}
+              onClick={() => createCatAct.execute({ tournamentId, name: catForm.name })}
               className="bg-[#ff3b2f] hover:bg-[#e5352a] text-white"
             >
               {createCatAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Crear
@@ -640,28 +720,14 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs text-[#6b6a72]">Nombre *</Label>
-              <Input value={editCatForm.name} onChange={(e) => setEditCatForm({ ...editCatForm, name: e.target.value })} className="border-[#e8e6e1] h-9" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-[#6b6a72]">Máximo de equipos</Label>
-                <Input type="number" min={1} placeholder="Sin límite" value={editCatForm.maxTeams} onChange={(e) => setEditCatForm({ ...editCatForm, maxTeams: e.target.value })} className="border-[#e8e6e1] h-9" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-[#6b6a72]">Equipos por zona</Label>
-                <Input type="number" min={1} placeholder="Sin límite" value={editCatForm.teamsPerZone} onChange={(e) => setEditCatForm({ ...editCatForm, teamsPerZone: e.target.value })} className="border-[#e8e6e1] h-9" />
-              </div>
+              <Input value={editCatForm.name} onChange={(e) => setEditCatForm({ name: e.target.value })} className="border-[#e8e6e1] h-9" />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditCat(null)} className="border-[#e8e6e1]">Cancelar</Button>
             <Button
               disabled={updateCatAct.isPending || !editCatForm.name}
-              onClick={() => editCat && updateCatAct.execute({
-                tournamentId, categoryId: editCat.id, name: editCatForm.name,
-                maxTeams: parseInt(editCatForm.maxTeams) || null,
-                teamsPerZone: parseInt(editCatForm.teamsPerZone) || null,
-              })}
+              onClick={() => editCat && updateCatAct.execute({ tournamentId, categoryId: editCat.id, name: editCatForm.name })}
               className="bg-[#ff3b2f] hover:bg-[#e5352a] text-white"
             >
               {updateCatAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Guardar

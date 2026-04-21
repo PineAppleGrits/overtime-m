@@ -20,16 +20,18 @@ export default async function CategoryDetailPage({
       ? { data: (categoryResult.value.data ?? categoryResult.value) as AdminCategory, error: null }
       : { data: null, error: 'Error al cargar la categoría' }
 
-  const tournamentName =
+  const tournament =
     tournamentResult.status === 'fulfilled'
-      ? ((tournamentResult.value.data ?? tournamentResult.value) as AdminTournament).name
-      : 'Torneo'
+      ? ((tournamentResult.value.data ?? tournamentResult.value) as AdminTournament)
+      : null
 
   return (
     <CategoryDetailContent
       tournamentId={tournamentId}
       categoryId={categoryId}
-      tournamentName={tournamentName}
+      tournamentName={tournament?.name ?? 'Torneo'}
+      tournamentFixtureFormat={tournament?.fixtureFormat}
+      tournamentModality={tournament?.modality ?? undefined}
       initialCategory={initialCategory}
     />
   )

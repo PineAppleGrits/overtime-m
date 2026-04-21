@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { optionalDateStringSchema } from "../common/date-string.schema";
-import { TournamentStatus } from "./enums";
+import { TournamentStatus, FixtureFormat } from "./enums";
 
 const validateTournamentDatePairs = (
   value: Record<string, string | number | undefined>,
@@ -47,6 +47,8 @@ export const createTournamentBaseSchema = z.object({
   description: z.string().trim().optional(),
   sportId: z.string().uuid("La disciplina es invalida"),
   status: z.nativeEnum(TournamentStatus).optional(),
+  fixtureFormat: z.nativeEnum(FixtureFormat).optional(),
+  modality: z.string().trim().max(40).optional(),
   startDate: optionalDateStringSchema,
   endDate: optionalDateStringSchema,
   registrationStartDate: optionalDateStringSchema,

@@ -13,6 +13,8 @@ export type TournamentStatus =
   | 'ARCHIVED'
   | 'CANCELLED'
 
+export type FixtureFormat = 'SINGLE_ROUND' | 'DOUBLE_ROUND'
+
 export type PaymentMethod = 'transferencia' | 'efectivo' | 'configurado'
 
 export interface TournamentPricing {
@@ -40,6 +42,8 @@ export interface AdminTournament {
   teamOperationsOpenAt?: string | null
   teamOperationsCloseAt?: string | null
   insurancePerPlayer?: number | null
+  fixtureFormat?: FixtureFormat
+  modality?: string | null
   registrationPricing: TournamentPricing[]
   categories: AdminCategory[]
   _count?: { categories: number; registrations: number }

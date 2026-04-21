@@ -13,10 +13,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, Check, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, HelpCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createTournamentAction } from '@/modules/admin/actions/tournamentActions'
 import { useServerAction } from '@/modules/admin/hooks/useServerAction'
+import { getModalitiesForSport } from '@/modules/admin/lib/modalities'
 
 interface Sport { id: string; name: string; code: string }
 
@@ -26,6 +28,7 @@ interface NewTournamentContentProps {
 
 const STEPS = [
   { id: 'info', title: 'Información', description: 'Nombre y disciplina' },
+  { id: 'format', title: 'Formato', description: 'Modalidad y tipo de fixture' },
   { id: 'dates', title: 'Fechas del torneo', description: 'Cuándo arranca y termina' },
   { id: 'registration', title: 'Inscripciones', description: 'Ventana de inscripción' },
   { id: 'review', title: 'Confirmar', description: 'Revisá y creá el torneo' },
@@ -95,6 +98,8 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [sportId, setSportId] = useState('')
+  const [fixtureFormat, setFixtureFormat] = useState<'SINGLE_ROUND' | 'DOUBLE_ROUND'>('SINGLE_ROUND')
+  const [modality, setModality] = useState('')
 
   const [startDate, setStartDate] = useState<Date | undefined>()
   const [endMonth, setEndMonth] = useState('')  // "MM-YYYY" format
@@ -137,6 +142,7 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
   const canNextFromDates = !!startDate && !!endMonth
   const canNext =
     step === 'info' ? canNextFromInfo :
+    step === 'format' ? true :
     step === 'dates' ? canNextFromDates :
     true
 
@@ -155,6 +161,8 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
       name: name.trim(),
       description: description.trim() || undefined,
       sportId,
+      fixtureFormat,
+      modality: modality.trim() || undefined,
       startDate: startDate!.toISOString(),
       endDate: endDate!.toISOString(),
       registrationStartDate: regStartDate?.toISOString(),
@@ -165,7 +173,9 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const sportName = sports.find((s) => s.id === sportId)?.name
+  const selectedSport = sports.find((s) => s.id === sportId)
+  const sportName = selectedSport?.name
+  const modalityOptions = getModalitiesForSport(selectedSport?.code)
 
   return (
     <div>
@@ -241,7 +251,12 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
               </div>
               <div className="space-y-2">
                 <Label>Disciplina *</Label>
-                <Select value={sportId} onValueChange={setSportId}>
+                <Select value={sportId} onValueChange={(v) => {
+                  setSportId(v)
+                  const nextSport = sports.find((s) => s.id === v)
+                  const nextOptions = getModalitiesForSport(nextSport?.code)
+                  if (modality && !nextOptions.includes(modality)) setModality('')
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar disciplina" />
                   </SelectTrigger>
@@ -256,7 +271,82 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
           </Card>
         )}
 
-        {/* Step 2: Tournament dates */}
+        {/* Step 2: Format */}
+        {step === 'format' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Formato del torneo</CardTitle>
+              <CardDescription>Definí el tipo de fixture y la modalidad. Podés cambiarlo después.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <TooltipProvider delayDuration={200}>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <Label>Tipo de fixture *</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" className="text-muted-foreground hover:text-foreground cursor-help">
+                          <HelpCircle className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-left">
+                        <p className="mb-1"><strong>Una rueda:</strong> cada equipo enfrenta al otro una sola vez.</p>
+                        <p><strong>Ida y vuelta:</strong> se enfrentan dos veces — como local y visitante.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Select value={fixtureFormat} onValueChange={(v) => setFixtureFormat(v as 'SINGLE_ROUND' | 'DOUBLE_ROUND')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SINGLE_ROUND">Una rueda (todos contra todos)</SelectItem>
+                      <SelectItem value="DOUBLE_ROUND">Ida y vuelta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="modality">Modalidad</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" className="text-muted-foreground hover:text-foreground cursor-help">
+                          <HelpCircle className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-left">
+                        <p>Cantidad de jugadores en cancha — ej. <strong>3v3</strong>, <strong>5v5</strong>, <strong>11</strong>. Se muestra como identificador del torneo.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Select
+                    value={modality || undefined}
+                    onValueChange={setModality}
+                    disabled={modalityOptions.length === 0}
+                  >
+                    <SelectTrigger id="modality">
+                      <SelectValue placeholder={
+                        !selectedSport
+                          ? 'Elegí una disciplina primero'
+                          : modalityOptions.length === 0
+                            ? 'Sin modalidades definidas'
+                            : 'Seleccioná una modalidad'
+                      } />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modalityOptions.map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TooltipProvider>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 3: Tournament dates */}
         {step === 'dates' && (
           <Card>
             <CardHeader>
@@ -359,6 +449,16 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
                   <dt className="text-sm text-muted-foreground">Disciplina</dt>
                   <dd className="text-sm font-medium">{sportName}</dd>
                 </div>
+                <div className="flex justify-between border-b pb-2">
+                  <dt className="text-sm text-muted-foreground">Fixture</dt>
+                  <dd className="text-sm font-medium">{fixtureFormat === 'DOUBLE_ROUND' ? 'Ida y vuelta' : 'Una rueda'}</dd>
+                </div>
+                {modality.trim() && (
+                  <div className="flex justify-between border-b pb-2">
+                    <dt className="text-sm text-muted-foreground">Modalidad</dt>
+                    <dd className="text-sm font-medium">{modality.trim()}</dd>
+                  </div>
+                )}
                 <div className="flex justify-between border-b pb-2">
                   <dt className="text-sm text-muted-foreground">Inicio</dt>
                   <dd className="text-sm font-medium">

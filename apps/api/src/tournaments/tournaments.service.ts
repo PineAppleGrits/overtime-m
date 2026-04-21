@@ -179,6 +179,8 @@ export class TournamentsService {
           ? new Date(createTournamentDto.teamOperationsCloseAt)
           : null,
         insurancePerPlayer: createTournamentDto.insurancePerPlayer ?? null,
+        fixtureFormat: createTournamentDto.fixtureFormat ?? undefined,
+        modality: createTournamentDto.modality ?? null,
       },
       include: {
         sport: true,

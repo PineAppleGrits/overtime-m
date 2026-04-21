@@ -9,6 +9,7 @@ import {
   deleteTournamentSchema,
   createCategorySchema, updateCategorySchema, deleteCategorySchema,
   createZoneSchema, deleteZoneSchema,
+  assignTeamToZoneSchema, removeTeamFromZoneSchema, moveTeamBetweenZonesSchema,
   approveRegistrationTournamentSchema, rejectRegistrationTournamentSchema,
 } from '../schemas/tournamentSchemas'
 import type { ActionResult } from './types'
@@ -123,6 +124,42 @@ export async function deleteZoneAction(input: unknown): Promise<ActionResult> {
     revalidatePath('/admin/torneos')
     return { success: true }
   } catch (error) { console.error(error); return { success: false, error: 'No se pudo eliminar la zona' } }
+}
+
+export async function assignTeamToZoneAction(input: unknown): Promise<ActionResult> {
+  const parsed = assignTeamToZoneSchema.safeParse(input)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  try {
+    await zoneService.assignTeam(parsed.data.categoryId, parsed.data.zoneId, { teamId: parsed.data.teamId })
+    revalidatePath('/admin/torneos')
+    return { success: true }
+  } catch (error) { console.error(error); return { success: false, error: 'No se pudo asignar el equipo a la zona' } }
+}
+
+export async function removeTeamFromZoneAction(input: unknown): Promise<ActionResult> {
+  const parsed = removeTeamFromZoneSchema.safeParse(input)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  try {
+    await zoneService.removeTeam(parsed.data.categoryId, parsed.data.zoneId, parsed.data.teamId)
+    revalidatePath('/admin/torneos')
+    return { success: true }
+  } catch (error) { console.error(error); return { success: false, error: 'No se pudo remover el equipo de la zona' } }
+}
+
+export async function moveTeamBetweenZonesAction(input: unknown): Promise<ActionResult> {
+  const parsed = moveTeamBetweenZonesSchema.safeParse(input)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  const { categoryId, fromZoneId, toZoneId, teamId } = parsed.data
+  if (fromZoneId === toZoneId) return { success: true }
+  try {
+    await zoneService.removeTeam(categoryId, fromZoneId, teamId)
+    await zoneService.assignTeam(categoryId, toZoneId, { teamId })
+    revalidatePath('/admin/torneos')
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { success: false, error: 'No se pudo mover el equipo' }
+  }
 }
 
 export async function approveRegistrationTournamentAction(input: unknown): Promise<ActionResult> {
