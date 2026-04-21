@@ -34,8 +34,8 @@
 ## RN-029 — Arancel por pago fuera de fecha
 
 - **Contexto**: Pago de inscripción/cuotas luego del vencimiento.
-- **Regla**: El límite de pago en fecha es el **lunes posterior al fin de semana** de juego. Pasado ese plazo, se suma **X por día** de atraso.
-- **Notas**: Definir valor de X.
+- **Regla**: El límite de pago en fecha es el **lunes posterior al fin de semana** de juego. Pasado ese plazo, se suma **un cargo diario** por cada día de atraso.
+- **Monto**: El valor diario es el mismo definido en [RN-028](#rn-028--interés-por-deuda-vencida) — referencial **$5.000/día**, configurable desde la plataforma (ver [RN-021](./pricing.md#rn-021--tarifas-configurables)). Cada día de atraso emite un cargo independiente con el valor vigente al momento de emitirse.
 
 ## RN-030 — AJC (habilitación anticipada por pago)
 
