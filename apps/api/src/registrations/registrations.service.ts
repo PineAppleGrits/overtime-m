@@ -658,6 +658,11 @@ export class RegistrationsService {
               email: true,
             },
           },
+          rosterEntries: {
+            select: {
+              profileId: true,
+            },
+          },
           _count: {
             select: {
               payments: true,

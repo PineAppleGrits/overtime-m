@@ -32,9 +32,11 @@ function formatCurrency(amount: number): string {
 export function MyTeamTab({
   teamId: _teamId,
   categoryId: _categoryId,
+  canManage = false,
 }: {
   teamId: string
   categoryId: string
+  canManage?: boolean
 }) {
   // TODO: conectar con API para obtener datos reales del equipo
 
@@ -150,14 +152,16 @@ export function MyTeamTab({
         </div>
       </section>
 
-      {/* Agregar jugador */}
-      <div>
-        {/* TODO: implementar búsqueda y agregado de jugadores */}
-        <button className="inline-flex items-center gap-2 rounded-lg border border-ot-orange/40 px-4 py-2.5 text-sm font-semibold text-ot-orange hover:bg-ot-orange/10 transition-colors">
-          <UserPlus className="h-4 w-4" />
-          Agregar jugador
-        </button>
-      </div>
+      {/* Acciones de gestión del equipo */}
+      {canManage && (
+        <div className="flex flex-wrap gap-3">
+          {/* TODO: implementar búsqueda y agregado de jugadores */}
+          <button className="inline-flex items-center gap-2 rounded-lg border border-ot-orange/40 px-4 py-2.5 text-sm font-semibold text-ot-orange hover:bg-ot-orange/10 transition-colors cursor-pointer">
+            <UserPlus className="h-4 w-4" />
+            Agregar jugador
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { getProfile } from "@/lib/auth/session"
+import { hasAdminRole } from "@/lib/auth/hasAdminRole"
 import RegistrationService from "@/modules/registration/RegistrationService"
 import { CategoryDetailContent } from "@/modules/tournament/components/CategoryDetailContent"
 import TournamentService from "@/modules/tournament/TournamentService"
@@ -29,7 +30,12 @@ export default async function CategoryPage({
 
   if (!category || !tournament) notFound()
 
-  let registrations: { status?: string; requester?: { id?: string }; team?: { id?: string } }[] = []
+  let registrations: {
+    status?: string
+    requester?: { id?: string }
+    team?: { id?: string }
+    rosterEntries?: { profileId?: string }[]
+  }[] = []
   try {
     const registrationsResponse = await RegistrationService.getRegistrations({
       categoryId: category.id,
@@ -42,9 +48,15 @@ export default async function CategoryPage({
 
   const myRegistration = profile
     ? registrations.find(
-      (r: { requester?: { id?: string } }) => r.requester?.id === profile.id
+      (r) =>
+        r.requester?.id === profile.id ||
+        r.rosterEntries?.some((entry) => entry.profileId === profile.id)
     )
     : null
+
+  const isMyTeamPlaying = !!myRegistration && myRegistration.status === 'approved'
+  const isRequester = !!profile && myRegistration?.requester?.id === profile.id
+  const canManageTeam = !!profile && (isRequester || hasAdminRole(profile))
 
   return (
     <div className="min-h-screen bg-ot-background text-white">
@@ -61,9 +73,10 @@ export default async function CategoryPage({
         categoryName={category.name}
         tournamentSlug={tournamentSlug}
         categorySlug={categorySlug}
-        isMyTeamPlaying={!!myRegistration && myRegistration.status === 'approved'}
+        isMyTeamPlaying={isMyTeamPlaying}
         myTeamId={myRegistration?.team?.id}
         categoryId={category.id}
+        canManageTeam={canManageTeam}
       />
     </div>
   )

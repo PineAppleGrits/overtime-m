@@ -17,6 +17,7 @@ export function CategoryDetailContent({
   isMyTeamPlaying,
   myTeamId,
   categoryId,
+  canManageTeam = false,
 }: {
   categoryName: string
   tournamentSlug: string
@@ -24,6 +25,7 @@ export function CategoryDetailContent({
   isMyTeamPlaying: boolean
   myTeamId?: string
   categoryId: string
+  canManageTeam?: boolean
 }) {
   const [activeTab, setActiveTab] = useState('fixture')
 
@@ -52,7 +54,13 @@ export function CategoryDetailContent({
       {activeTab === 'fixture' && <FixtureView rounds={fixtureData.rounds} />}
 
       {activeTab === 'mi-equipo' && myTeamId && (
-        <MyTeamTab teamId={myTeamId} categoryId={categoryId} />
+        <div className="ot-container py-6">
+          <MyTeamTab
+            teamId={myTeamId}
+            categoryId={categoryId}
+            canManage={canManageTeam}
+          />
+        </div>
       )}
     </section>
   )
