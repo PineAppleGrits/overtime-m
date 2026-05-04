@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -28,6 +29,9 @@ import { AppValidationPipe } from './common/pipes/app-validation.pipe';
 import { StorageModule } from './common/storage/storage.module';
 import { SportRulesModule } from './common/sport-rules/sport-rules.module';
 import { CronSupportModule } from './common/cron/cron.module';
+import { CategoryLevelsModule } from './category-levels/category-levels.module';
+import { TeamCategorizationModule } from './team-categorization/team-categorization.module';
+import { FriendliesModule } from './friendlies/friendlies.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import supabaseConfig from './config/supabase.config';
@@ -66,6 +70,7 @@ import mercadopagoConfig from './config/mercadopago.config';
       // Permitimos múltiples listeners por evento (default es ilimitado).
       maxListeners: 20,
     }),
+    ScheduleModule.forRoot(), // habilita @Cron en jobs (W1.4 — friendlies expire)
     DatabaseModule,
     StorageModule,        // PR0 — Supabase storage + MediaAsset (global)
     SportRulesModule,     // PR0 — strategies de reglas por deporte+modalidad (global)
@@ -84,6 +89,9 @@ import mercadopagoConfig from './config/mercadopago.config';
     PaymentsModule, // Maneja Pagos (inscripciones, partidos)
     UsersModule,
     FranchisesModule,
+    CategoryLevelsModule, // W1.3 — niveles globales por deporte (RN-044, RN-058)
+    TeamCategorizationModule, // W1.3 — asignación de niveles a equipos (RN-039, RN-044)
+    FriendliesModule, // W1.4 — solicitud, generación y ciclo del amistoso (RN-022/023/039/059)
   ],
   controllers: [AppController],
   providers: [

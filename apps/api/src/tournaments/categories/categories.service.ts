@@ -1,9 +1,10 @@
 import {
+  HttpStatus,
   Injectable,
   NotFoundException,
-  BadRequestException,
   Logger,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
   CreateCategoryDto,
@@ -11,12 +12,46 @@ import {
   PaginationDto,
 } from '@overtime-mono/shared';
 import { generateUniqueSlug } from '../../common/utils/slug.util';
+import { BusinessError, ErrorCode } from '../../common/errors';
+import { SportRulesRegistry } from '../../common/sport-rules/sport-rules.registry';
+import {
+  Modality,
+  SportCode,
+} from '../../common/sport-rules/sport-rules.types';
+import {
+  isPlayoffConfigEditable,
+  validatePlayoffFormatJson,
+  validateZonesCount,
+} from './domain/rules/playoff-config.rules';
+import { LinkCategoryLevelUseCase } from './application/use-cases/link-category-level.use-case';
+
+/**
+ * Campos extendidos de creación/edición que pueden venir además de los
+ * declarados en `CreateCategoryDto` / `UpdateCategoryDto` (DTOs heredados
+ * con class-validator). Se aceptan opcionalmente desde el body — el controller
+ * los pasa tal cual.
+ *
+ * Cuando W1.x estabilice los DTOs en `@overtime-mono/shared`, se mueven allá.
+ */
+export interface CategoryPlayoffConfigPatch {
+  categoryLevelId?: string | null;
+  zonesCount?: number;
+  qualifierCount?: number | null;
+  qualifiersPerZone?: number | null;
+  hasPlayIn?: boolean;
+  hasThirdPlaceMatch?: boolean;
+  playoffFormatByRound?: Record<string, string> | null;
+}
 
 @Injectable()
 export class CategoriesService {
   private readonly logger = new Logger(CategoriesService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sportRules: SportRulesRegistry,
+    private readonly linkCategoryLevel: LinkCategoryLevelUseCase,
+  ) {}
 
   private async generateCategorySlug(
     name: string,
@@ -84,13 +119,51 @@ export class CategoriesService {
     return category;
   }
 
-  async create(createCategoryDto: CreateCategoryDto) {
+  async create(
+    createCategoryDto: CreateCategoryDto & CategoryPlayoffConfigPatch,
+  ) {
     const tournament = await this.prisma.tournament.findUnique({
       where: { id: createCategoryDto.tournamentId, deletedAt: null },
+      select: { id: true, sportId: true, modality: true },
     });
 
     if (!tournament) {
       throw new NotFoundException('Tournament not found');
+    }
+
+    // RN-044 — si se vincula categoryLevel, validar mismo sport.
+    if (createCategoryDto.categoryLevelId) {
+      await this.linkCategoryLevel.execute({
+        categoryLevelId: createCategoryDto.categoryLevelId,
+        tournamentId: tournament.id,
+      });
+    }
+
+    // DP-003 — validar zonesCount si vino.
+    if (createCategoryDto.zonesCount !== undefined) {
+      const err = validateZonesCount(createCategoryDto.zonesCount);
+      if (err) {
+        throw new BusinessError(
+          ErrorCode.CATEGORY_TOO_MANY_ZONES,
+          err,
+          HttpStatus.BAD_REQUEST,
+          { zonesCount: createCategoryDto.zonesCount },
+        );
+      }
+    }
+
+    // RN-047 — validar JSON de playoffs si vino.
+    if (createCategoryDto.playoffFormatByRound !== undefined) {
+      const err = validatePlayoffFormatJson(
+        createCategoryDto.playoffFormatByRound,
+      );
+      if (err) {
+        throw new BusinessError(
+          ErrorCode.VALIDATION_FAILED,
+          err,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
 
     const slug = await this.generateCategorySlug(
@@ -98,8 +171,55 @@ export class CategoriesService {
       createCategoryDto.tournamentId,
     );
 
+    // RN-047 / DP-001 — si no viene playoffFormatByRound, usar el default
+    // sugerido por la strategy del deporte/modalidad.
+    const playoffFormatByRound = this.resolvePlayoffFormatForCreate(
+      tournament.modality,
+      createCategoryDto.playoffFormatByRound,
+    );
+
+    const data: Prisma.CategoryCreateInput = {
+      name: createCategoryDto.name,
+      slug,
+      tournament: { connect: { id: createCategoryDto.tournamentId } },
+      ...(createCategoryDto.maxTeams !== undefined && {
+        maxTeams: createCategoryDto.maxTeams,
+      }),
+      ...(createCategoryDto.teamsPerZone !== undefined && {
+        teamsPerZone: createCategoryDto.teamsPerZone,
+      }),
+      ...(createCategoryDto.status !== undefined && {
+        status: createCategoryDto.status,
+      }),
+      ...(createCategoryDto.substatus !== undefined && {
+        substatus: createCategoryDto.substatus,
+      }),
+      ...(createCategoryDto.categoryLevelId && {
+        categoryLevel: { connect: { id: createCategoryDto.categoryLevelId } },
+      }),
+      ...(createCategoryDto.zonesCount !== undefined && {
+        zonesCount: createCategoryDto.zonesCount,
+      }),
+      ...(createCategoryDto.qualifierCount !== undefined && {
+        qualifierCount: createCategoryDto.qualifierCount,
+      }),
+      ...(createCategoryDto.qualifiersPerZone !== undefined && {
+        qualifiersPerZone: createCategoryDto.qualifiersPerZone,
+      }),
+      ...(createCategoryDto.hasPlayIn !== undefined && {
+        hasPlayIn: createCategoryDto.hasPlayIn,
+      }),
+      ...(createCategoryDto.hasThirdPlaceMatch !== undefined && {
+        hasThirdPlaceMatch: createCategoryDto.hasThirdPlaceMatch,
+      }),
+      playoffFormatByRound:
+        playoffFormatByRound === null
+          ? Prisma.JsonNull
+          : (playoffFormatByRound as Prisma.InputJsonValue),
+    };
+
     const category = await this.prisma.category.create({
-      data: { ...createCategoryDto, slug },
+      data,
       include: {
         tournament: {
           select: {
@@ -122,6 +242,25 @@ export class CategoriesService {
     this.logger.log(`Category created: ${category.name}`);
 
     return category;
+  }
+
+  /**
+   * Si el caller pasa explícitamente el JSON de playoffs lo respetamos
+   * (incluso vacío). Si no lo pasa, sembramos los defaults del deporte/modalidad
+   * para que las nuevas categorías queden listas con BO sensatos.
+   */
+  private resolvePlayoffFormatForCreate(
+    tournamentModality: string | null,
+    incoming: Record<string, string> | null | undefined,
+  ): Record<string, string> | null {
+    if (incoming !== undefined) {
+      return incoming;
+    }
+    const sportCode: SportCode = 'BASKETBALL';
+    const modality = (tournamentModality as Modality | null) ?? '5v5';
+    const rules = this.sportRules.tryGet(sportCode, modality);
+    if (!rules) return null;
+    return { ...rules.playoff.defaultFormatByRound };
   }
 
   async findAll(tournamentId: string, paginationDto: PaginationDto) {
@@ -253,10 +392,98 @@ export class CategoriesService {
     return category;
   }
 
-  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
+  async update(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto & CategoryPlayoffConfigPatch,
+  ) {
     const existing = await this.findOne(id);
 
-    const data: Record<string, unknown> = { ...updateCategoryDto };
+    // RN-044 — si se cambia categoryLevel, validar mismo sport.
+    if (updateCategoryDto.categoryLevelId) {
+      await this.linkCategoryLevel.execute({
+        categoryLevelId: updateCategoryDto.categoryLevelId,
+        tournamentId: existing.tournamentId,
+      });
+    }
+
+    // RN-047 — los campos de playoffs solo se pueden tocar si la categoría
+    // todavía no entró en PLAYOFFS_FASE.
+    const touchesPlayoffConfig =
+      updateCategoryDto.zonesCount !== undefined ||
+      updateCategoryDto.qualifierCount !== undefined ||
+      updateCategoryDto.qualifiersPerZone !== undefined ||
+      updateCategoryDto.hasPlayIn !== undefined ||
+      updateCategoryDto.hasThirdPlaceMatch !== undefined ||
+      updateCategoryDto.playoffFormatByRound !== undefined;
+
+    if (touchesPlayoffConfig && !isPlayoffConfigEditable(existing.substatus)) {
+      throw new BusinessError(
+        ErrorCode.CATEGORY_PLAYOFF_FORMAT_LOCKED,
+        'No se puede editar la configuración de playoffs porque la categoría ya está en fase de playoffs.',
+        HttpStatus.CONFLICT,
+        { categoryId: id },
+      );
+    }
+
+    if (updateCategoryDto.zonesCount !== undefined) {
+      const err = validateZonesCount(updateCategoryDto.zonesCount);
+      if (err) {
+        throw new BusinessError(
+          ErrorCode.CATEGORY_TOO_MANY_ZONES,
+          err,
+          HttpStatus.BAD_REQUEST,
+          { zonesCount: updateCategoryDto.zonesCount },
+        );
+      }
+    }
+
+    if (updateCategoryDto.playoffFormatByRound !== undefined) {
+      const err = validatePlayoffFormatJson(
+        updateCategoryDto.playoffFormatByRound,
+      );
+      if (err) {
+        throw new BusinessError(
+          ErrorCode.VALIDATION_FAILED,
+          err,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    const data: Prisma.CategoryUpdateInput = {};
+    if (updateCategoryDto.name !== undefined) data.name = updateCategoryDto.name;
+    if (updateCategoryDto.maxTeams !== undefined)
+      data.maxTeams = updateCategoryDto.maxTeams;
+    if (updateCategoryDto.teamsPerZone !== undefined)
+      data.teamsPerZone = updateCategoryDto.teamsPerZone;
+    if (updateCategoryDto.status !== undefined)
+      data.status = updateCategoryDto.status;
+    if (updateCategoryDto.substatus !== undefined)
+      data.substatus = updateCategoryDto.substatus;
+
+    if (updateCategoryDto.categoryLevelId !== undefined) {
+      data.categoryLevel =
+        updateCategoryDto.categoryLevelId === null
+          ? { disconnect: true }
+          : { connect: { id: updateCategoryDto.categoryLevelId } };
+    }
+    if (updateCategoryDto.zonesCount !== undefined)
+      data.zonesCount = updateCategoryDto.zonesCount;
+    if (updateCategoryDto.qualifierCount !== undefined)
+      data.qualifierCount = updateCategoryDto.qualifierCount;
+    if (updateCategoryDto.qualifiersPerZone !== undefined)
+      data.qualifiersPerZone = updateCategoryDto.qualifiersPerZone;
+    if (updateCategoryDto.hasPlayIn !== undefined)
+      data.hasPlayIn = updateCategoryDto.hasPlayIn;
+    if (updateCategoryDto.hasThirdPlaceMatch !== undefined)
+      data.hasThirdPlaceMatch = updateCategoryDto.hasThirdPlaceMatch;
+    if (updateCategoryDto.playoffFormatByRound !== undefined) {
+      data.playoffFormatByRound =
+        updateCategoryDto.playoffFormatByRound === null
+          ? Prisma.JsonNull
+          : (updateCategoryDto.playoffFormatByRound as Prisma.InputJsonValue);
+    }
+
     if (updateCategoryDto.name && updateCategoryDto.name !== existing.name) {
       data.slug = await this.generateCategorySlug(
         updateCategoryDto.name,

@@ -16,12 +16,17 @@ import {
   PaginationDto,
 } from '@overtime-mono/shared';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Admin } from '../../common/decorators/admin.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
+import { AutoBalanceTeamsUseCase } from './application/use-cases/auto-balance-teams.use-case';
 
 @Controller('categories/:categoryId/zones')
 export class ZonesController {
-  constructor(private readonly zonesService: ZonesService) {}
+  constructor(
+    private readonly zonesService: ZonesService,
+    private readonly autoBalance: AutoBalanceTeamsUseCase,
+  ) {}
 
   @Post()
   @Roles('admin')
@@ -33,6 +38,21 @@ export class ZonesController {
       ...createZoneDto,
       categoryId,
     });
+  }
+
+  /**
+   * POST /api/v1/categories/:categoryId/zones/auto-balance
+   *
+   * Distribuye los equipos con inscripción aprobada del torneo entre las
+   * zonas existentes de la categoría (round-robin determinístico).
+   * Idempotente respecto a equipos ya asignados.
+   *
+   * Solo admin/master.
+   */
+  @Post('auto-balance')
+  @Admin()
+  autoBalanceTeams(@Param('categoryId', ParseUUIDPipe) categoryId: string) {
+    return this.autoBalance.execute(categoryId);
   }
 
   @Public()

@@ -1,16 +1,20 @@
 import {
-  Controller,
-  Get,
-  Post,
+  BadRequestException,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TeamsService } from './teams.service';
-import { Roles } from '../common/decorators/roles.decorator';
+import { Admin } from '../common/decorators/admin.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
@@ -21,6 +25,17 @@ import {
   CreateTeamBodyDto,
   UpdateTeamBodyDto,
 } from './dto/team-request.dto';
+import {
+  BASKETBALL_MODALITIES,
+  Modality,
+} from '../common/sport-rules/sport-rules.types';
+
+interface UploadedFileShape {
+  buffer: Buffer;
+  mimetype: string;
+  originalname: string;
+  size: number;
+}
 
 @ApiTags('teams')
 @Controller('teams')
@@ -62,18 +77,58 @@ export class TeamsController {
   }
 
   @Patch(':id')
+  @Admin()
+  @ApiOperation({
+    summary:
+      'Actualiza datos del equipo. RN-005 — el delegado NO puede editar; solo admin/master.',
+  })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateTeamDto: UpdateTeamBodyDto,
   ) {
-    // TODO: Verificar que el usuario es el creador del equipo o admin
     return this.teamsService.update(id, updateTeamDto);
   }
 
   @Delete(':id')
+  @Admin()
+  @ApiOperation({ summary: 'Soft-delete del equipo. Solo admin/master.' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    // TODO: Verificar que el usuario es el creador del equipo o admin
     return this.teamsService.remove(id);
+  }
+
+  @Get(':id/roster-status')
+  @ApiOperation({
+    summary:
+      'Estado de la lista de buena fe del equipo según las reglas del deporte+modalidad (RN-009).',
+  })
+  getRosterStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('modality') modality?: string,
+  ) {
+    if (!modality || !BASKETBALL_MODALITIES.includes(modality as Modality)) {
+      throw new BadRequestException(
+        `Query param "modality" debe ser uno de: ${BASKETBALL_MODALITIES.join(', ')}`,
+      );
+    }
+    return this.teamsService.getRosterStatus(id, modality as Modality);
+  }
+
+  @Post(':id/logo')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary:
+      'Sube el logo del equipo (multipart/form-data, campo "file"). Crea un MediaAsset y actualiza Team.logoAssetId.',
+  })
+  uploadLogo(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() file: UploadedFileShape,
+    @CurrentUser('id') userId: string,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Archivo "file" requerido');
+    }
+    return this.teamsService.uploadLogo(id, userId, file);
   }
 
   @Post(':id/players')

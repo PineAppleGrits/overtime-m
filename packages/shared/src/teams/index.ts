@@ -1,6 +1,7 @@
 export * from './create-team.dto';
 export * from './update-team.dto';
 export * from './add-player.dto';
+export * from './roster-status.dto';
 export { createTeamSchema } from './create-team.schema';
 export type { CreateTeamDto as CreateTeamSchemaDto } from './create-team.schema';
 export { updateTeamSchema } from './update-team.schema';

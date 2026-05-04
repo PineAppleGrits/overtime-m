@@ -3,18 +3,28 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { MediaCategory, MediaVisibility } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import type {
   CreateFranchiseSchemaDto,
   AddPlayerSchemaDto,
   CreateTeamSchemaDto,
   PaginationSchemaDto,
+  TeamRosterStatusDto,
   UpdateTeamSchemaDto,
 } from '@overtime-mono/shared';
 import { generateUniqueSlug } from '../common/utils/slug.util';
 import { EligibilityService } from '../eligibility/eligibility.service';
+import { BusinessError, ErrorCode } from '../common/errors';
+import { MediaAssetService } from '../common/storage/media-asset.service';
+import { SportRulesRegistry } from '../common/sport-rules/sport-rules.registry';
+import {
+  Modality,
+  SportCode,
+} from '../common/sport-rules/sport-rules.types';
 
 @Injectable()
 export class TeamsService {
@@ -23,6 +33,8 @@ export class TeamsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eligibilityService: EligibilityService,
+    private readonly mediaAssets: MediaAssetService,
+    private readonly sportRules: SportRulesRegistry,
   ) {}
 
   private async generateTeamSlug(
@@ -105,6 +117,33 @@ export class TeamsService {
   }
 
   async create(createTeamDto: CreateTeamSchemaDto, creatorId: string) {
+    // RN-034 — DNI obligatorio y validado para crear equipo.
+    const creator = await this.prisma.profile.findUnique({
+      where: { id: creatorId },
+      select: {
+        id: true,
+        documentNumber: true,
+        documentVerified: true,
+      },
+    });
+    if (!creator) {
+      throw new NotFoundException('Creator profile not found');
+    }
+    if (!creator.documentNumber) {
+      throw new BusinessError(
+        ErrorCode.PROFILE_DNI_REQUIRED,
+        'Debés cargar tu DNI antes de crear un equipo (RN-034)',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    if (!creator.documentVerified) {
+      throw new BusinessError(
+        ErrorCode.PROFILE_DNI_NOT_VERIFIED,
+        'Tu DNI todavía no fue validado por la organización (RN-034)',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     // Verificar que el deporte existe
     const sport = await this.prisma.sport.findUnique({
       where: { id: createTeamDto.sportId },
@@ -477,6 +516,36 @@ export class TeamsService {
       throw new ConflictException('Profile already in team');
     }
 
+    // RN-002 — un jugador no puede pertenecer activamente a otro equipo del mismo deporte.
+    const conflictingMembership = await this.prisma.profileTeam.findFirst({
+      where: {
+        profileId: addPlayerDto.profileId,
+        isActive: true,
+        teamId: { not: teamId },
+        team: {
+          sportId: team.sportId,
+          deletedAt: null,
+        },
+      },
+      include: {
+        team: {
+          select: { id: true, name: true, sportId: true },
+        },
+      },
+    });
+    if (conflictingMembership) {
+      throw new BusinessError(
+        ErrorCode.TEAM_PLAYER_ALREADY_IN_OTHER_TEAM,
+        `El jugador ya pertenece al equipo "${conflictingMembership.team.name}" en el mismo deporte (RN-002)`,
+        HttpStatus.CONFLICT,
+        {
+          profileId: addPlayerDto.profileId,
+          conflictingTeamId: conflictingMembership.team.id,
+          sportId: team.sportId,
+        },
+      );
+    }
+
     await this.prisma.profileTeam.create({
       data: {
         teamId,
@@ -663,5 +732,117 @@ export class TeamsService {
     );
 
     return promotedTeam;
+  }
+
+  /**
+   * RN-009 — devuelve el estado de la lista de buena fe para una modalidad.
+   * `Team` no tiene modality propia; el llamador debe especificarla
+   * (típicamente la modalidad del torneo destino).
+   */
+  async getRosterStatus(
+    teamId: string,
+    modality: Modality,
+  ): Promise<TeamRosterStatusDto> {
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId, deletedAt: null },
+      select: {
+        id: true,
+        sport: { select: { code: true } },
+      },
+    });
+    if (!team) {
+      throw new NotFoundException(`Team with ID ${teamId} not found`);
+    }
+
+    const sportCode = team.sport.code as SportCode;
+    const rules = this.sportRules.tryGet(sportCode, modality);
+    if (!rules) {
+      throw new BusinessError(
+        ErrorCode.SPORT_RULES_NOT_FOUND,
+        `No hay reglas para sport="${sportCode}" modality="${modality}"`,
+        HttpStatus.BAD_REQUEST,
+        { sportCode, modality },
+      );
+    }
+
+    const count = await this.prisma.profileTeam.count({
+      where: { teamId, isActive: true },
+    });
+
+    const { rosterMin, rosterMax } = rules.roster;
+    const isValid = count >= rosterMin && count <= rosterMax;
+
+    return {
+      teamId,
+      modality,
+      count,
+      min: rosterMin,
+      max: rosterMax,
+      isValid,
+    };
+  }
+
+  /**
+   * Sube el logo del equipo (PUBLIC bucket vía MediaAssetService).
+   * Reemplaza un asset previo si existía (soft-delete del anterior).
+   */
+  async uploadLogo(
+    teamId: string,
+    uploaderId: string,
+    file: {
+      buffer: Buffer;
+      mimetype: string;
+      originalname: string;
+    },
+  ): Promise<{ assetId: string; url: string }> {
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId, deletedAt: null },
+      select: { id: true, name: true, logoAssetId: true },
+    });
+    if (!team) {
+      throw new NotFoundException(`Team with ID ${teamId} not found`);
+    }
+
+    if (!file?.buffer || file.buffer.length === 0) {
+      throw new BusinessError(
+        ErrorCode.MEDIA_UPLOAD_FAILED,
+        'Archivo de logo vacío o inválido',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const asset = await this.mediaAssets.upload({
+      uploadedByProfileId: uploaderId,
+      category: MediaCategory.TEAM_LOGO,
+      visibility: MediaVisibility.PUBLIC,
+      contentType: file.mimetype,
+      originalFilename: file.originalname,
+      body: file.buffer,
+      pathPrefix: `team-logos/${teamId}`,
+      metadata: { teamId },
+    });
+
+    const previousAssetId = team.logoAssetId;
+
+    await this.prisma.team.update({
+      where: { id: teamId },
+      data: { logoAssetId: asset.id },
+    });
+
+    if (previousAssetId && previousAssetId !== asset.id) {
+      try {
+        await this.mediaAssets.delete(previousAssetId);
+      } catch (err) {
+        this.logger.warn(
+          `Failed to delete previous logo asset ${previousAssetId} for team ${teamId}`,
+        );
+      }
+    }
+
+    const url = await this.mediaAssets.getAccessUrl(asset);
+
+    this.logger.log(`Logo uploaded for team ${team.name} (${teamId})`);
+
+    return { assetId: asset.id, url };
   }
 }

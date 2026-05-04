@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Injectable,
   NotFoundException,
   ConflictException,
@@ -12,6 +13,11 @@ import {
   AssignTeamDto,
   PaginationDto,
 } from '@overtime-mono/shared';
+import { BusinessError, ErrorCode } from '../../common/errors';
+import {
+  validateCanCreateZone,
+  validateTeamSingleZonePerCategory,
+} from './domain/rules/zones.rules';
 
 @Injectable()
 export class ZonesService {
@@ -30,6 +36,24 @@ export class ZonesService {
 
     if (!category) {
       throw new NotFoundException('Category not found');
+    }
+
+    // DP-003 — validar que la categoría todavía pueda alojar más zonas.
+    const existingZones = await this.prisma.zone.count({
+      where: { categoryId: category.id, deletedAt: null },
+    });
+    const err = validateCanCreateZone(existingZones, category.zonesCount);
+    if (err) {
+      throw new BusinessError(
+        ErrorCode.CATEGORY_TOO_MANY_ZONES,
+        err,
+        HttpStatus.CONFLICT,
+        {
+          categoryId: category.id,
+          existingZones,
+          configuredZonesCount: category.zonesCount,
+        },
+      );
     }
 
     const zone = await this.prisma.zone.create({
@@ -253,8 +277,13 @@ export class ZonesService {
   }
 
   /**
-   * Asignar equipo a zona
-   * REGLA DE NEGOCIO: Un equipo solo puede estar en 1 categoría por torneo
+   * Asignar equipo a zona.
+   *
+   * Reglas:
+   * - Un equipo solo puede estar en **1 zona dentro de la misma categoría**
+   *   (regla pura: `validateTeamSingleZonePerCategory`).
+   * - Un equipo solo puede estar en 1 categoría por torneo.
+   * - El deporte del equipo debe coincidir con el del torneo.
    */
   async assignTeam(zoneId: string, assignTeamDto: AssignTeamDto) {
     const zone = await this.findOne(zoneId);
@@ -268,49 +297,44 @@ export class ZonesService {
       throw new NotFoundException('Team not found');
     }
 
-    // Verificar que el equipo no está ya en esta zona
-    const existingAssignment = await this.prisma.teamZone.findFirst({
-      where: {
-        zoneId,
-        teamId: assignTeamDto.teamId,
-      },
-    });
-
-    if (existingAssignment) {
-      throw new ConflictException('Team is already assigned to this zone');
-    }
-
-    // REGLA DE NEGOCIO: Un equipo solo puede estar en 1 categoría por torneo
-    // Obtener el torneo de la categoría
+    // Obtener el torneo/categoría de la zona destino
     const category = await this.prisma.category.findUnique({
       where: { id: zone.categoryId },
-      include: {
-        tournament: true,
-      },
+      include: { tournament: { select: { id: true, sportId: true } } },
     });
 
     if (!category) {
       throw new NotFoundException('Category not found');
     }
 
-    // Verificar si el equipo ya está en otra categoría del mismo torneo
+    // Asignaciones existentes del equipo (ahorra queries posteriores).
     const teamZones = await this.prisma.teamZone.findMany({
-      where: {
-        teamId: assignTeamDto.teamId,
-      },
+      where: { teamId: assignTeamDto.teamId },
       include: {
         zone: {
           include: {
             category: {
-              include: {
-                tournament: true,
-              },
+              include: { tournament: { select: { id: true } } },
             },
           },
         },
       },
     });
 
+    // Regla pura: 1 zona por categoría.
+    const sameCategoryAssignments = teamZones
+      .filter((tz) => tz.zone.category.id === category.id)
+      .map((tz) => ({ zoneId: tz.zoneId, categoryId: tz.zone.category.id }));
+    const singleZoneErr = validateTeamSingleZonePerCategory(
+      sameCategoryAssignments,
+      zoneId,
+      category.id,
+    );
+    if (singleZoneErr) {
+      throw new ConflictException(singleZoneErr);
+    }
+
+    // Regla legacy: 1 categoría por torneo.
     for (const tz of teamZones) {
       if (tz.zone.category.tournament.id === category.tournament.id) {
         if (tz.zone.category.id !== category.id) {
@@ -321,12 +345,7 @@ export class ZonesService {
       }
     }
 
-    const categoryWithTournament = await this.prisma.category.findUnique({
-      where: { id: zone.categoryId },
-      include: { tournament: { select: { sportId: true } } },
-    });
-
-    if (team.sportId !== categoryWithTournament?.tournament.sportId) {
+    if (team.sportId !== category.tournament.sportId) {
       throw new BadRequestException('Team sport must match category sport');
     }
 

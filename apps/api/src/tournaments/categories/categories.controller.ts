@@ -17,10 +17,21 @@ import {
 import { Admin } from '../../common/decorators/admin.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
+import { ZodBody } from '../../common/decorators/zod-body.decorator';
+import { GetPlayoffConfigUseCase } from './application/use-cases/get-playoff-config.use-case';
+import { UpdatePlayoffConfigUseCase } from './application/use-cases/update-playoff-config.use-case';
+import {
+  UpdatePlayoffConfigInput,
+  UpdatePlayoffConfigSchema,
+} from './presentation/dto/playoff-config.schema';
 
 @Controller('tournaments/:tournamentId/categories')
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(
+    private readonly categoriesService: CategoriesService,
+    private readonly getPlayoffConfig: GetPlayoffConfigUseCase,
+    private readonly updatePlayoffConfig: UpdatePlayoffConfigUseCase,
+  ) {}
 
   @Post()
   @Admin()
@@ -47,6 +58,34 @@ export class CategoriesController {
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.categoriesService.findOne(id);
+  }
+
+  /**
+   * GET /api/v1/tournaments/:tournamentId/categories/:id/playoff-config
+   *
+   * Devuelve la config de playoff actual + el default sugerido por el
+   * deporte/modalidad si está vacía. Público — ayuda al admin/UI a
+   * mostrar la config efectiva al organizar.
+   */
+  @Public()
+  @Get(':id/playoff-config')
+  getPlayoffConfigEndpoint(@Param('id', ParseUUIDPipe) id: string) {
+    return this.getPlayoffConfig.execute(id);
+  }
+
+  /**
+   * PATCH /api/v1/tournaments/:tournamentId/categories/:id/playoff-config
+   *
+   * Editar config de playoffs. RN-047 — solo se permite mientras
+   * `substatus !== PLAYOFFS_FASE`.
+   */
+  @Patch(':id/playoff-config')
+  @Admin()
+  updatePlayoffConfigEndpoint(
+    @Param('id', ParseUUIDPipe) id: string,
+    @ZodBody(UpdatePlayoffConfigSchema) body: UpdatePlayoffConfigInput,
+  ) {
+    return this.updatePlayoffConfig.execute(id, body);
   }
 
   @Patch(':id')
