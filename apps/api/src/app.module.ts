@@ -33,6 +33,7 @@ import { CategoryLevelsModule } from './category-levels/category-levels.module';
 import { TeamCategorizationModule } from './team-categorization/team-categorization.module';
 import { FriendliesModule } from './friendlies/friendlies.module';
 import { PricingModule } from './pricing/pricing.module';
+import { DebtsModule } from './debts/debts.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import supabaseConfig from './config/supabase.config';
@@ -94,6 +95,7 @@ import mercadopagoConfig from './config/mercadopago.config';
     TeamCategorizationModule, // W1.3 — asignación de niveles a equipos (RN-039, RN-044)
     FriendliesModule, // W1.4 — solicitud, generación y ciclo del amistoso (RN-022/023/039/059)
     PricingModule, // W2.3 — pricing periods (+method) RN-048, descuentos manuales RN-020, franquicia stub RN-012/DP-011
+    DebtsModule, // W2.1 — deudas, cron de cargos diarios y auto-borrado de comprobantes (RN-025-031, RN-053, RN-060)
   ],
   controllers: [AppController],
   providers: [
