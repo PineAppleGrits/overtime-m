@@ -3,14 +3,21 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Admin } from '../../../common/decorators/admin.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
+import { BusinessError, ErrorCode } from '../../../common/errors';
 import { ParseUUIDPipe } from '../../../common/pipes/parse-uuid.pipe';
+import {
+  isPaymentMethod,
+  PaymentMethod,
+} from '../../domain/rules/payment-method.rules';
 import { CreatePricingPeriodUseCase } from '../../application/use-cases/create-pricing-period.use-case';
 import { DeletePricingPeriodUseCase } from '../../application/use-cases/delete-pricing-period.use-case';
 import { GetCurrentPricingUseCase } from '../../application/use-cases/get-current-pricing.use-case';
@@ -22,6 +29,13 @@ import {
 } from '../dto/pricing.dto';
 import { toPricingPeriodResponse } from '../mappers/pricing.mapper';
 
+/**
+ * RN-048 — endpoints CRUD de períodos de pricing por torneo, con awareness
+ * de la dimensión `paymentMethod`.
+ *
+ * Reemplaza al controller equivalente de W1.1 sumando el query/body param
+ * `paymentMethod`. La ruta es la misma (`/api/v1/tournaments/:id/pricing`).
+ */
 @ApiTags('tournaments')
 @Controller('tournaments/:tournamentId/pricing')
 export class TournamentPricingController {
@@ -36,24 +50,50 @@ export class TournamentPricingController {
   @Public()
   @Get()
   @ApiOperation({
-    summary: 'Listar períodos de precio de inscripción del torneo (RN-048)',
+    summary:
+      'Listar períodos de precio del torneo (RN-048). Filtrable por `?method=`.',
   })
-  async list(@Param('tournamentId', ParseUUIDPipe) tournamentId: string) {
-    const periods = await this.listUseCase.execute(tournamentId);
+  @ApiQuery({
+    name: 'method',
+    required: false,
+    enum: ['cash', 'transfer', 'card'],
+  })
+  async list(
+    @Param('tournamentId', ParseUUIDPipe) tournamentId: string,
+    @Query('method') method?: string,
+  ) {
+    const periods = await this.listUseCase.execute({
+      tournamentId,
+      paymentMethod: this.parseMethod(method),
+    });
     return periods.map(toPricingPeriodResponse);
   }
 
   @Public()
   @Get('current')
-  @ApiOperation({ summary: 'Obtener el precio vigente al instante actual' })
-  async current(@Param('tournamentId', ParseUUIDPipe) tournamentId: string) {
-    const period = await this.currentUseCase.execute(tournamentId);
+  @ApiOperation({
+    summary:
+      'Obtener el precio vigente. Si se pasa `?method=`, prioriza match exacto y cae al fallback (sin método).',
+  })
+  @ApiQuery({
+    name: 'method',
+    required: false,
+    enum: ['cash', 'transfer', 'card'],
+  })
+  async current(
+    @Param('tournamentId', ParseUUIDPipe) tournamentId: string,
+    @Query('method') method?: string,
+  ) {
+    const period = await this.currentUseCase.execute({
+      tournamentId,
+      paymentMethod: this.parseMethod(method) ?? null,
+    });
     return period ? toPricingPeriodResponse(period) : null;
   }
 
   @Admin()
   @Post()
-  @ApiOperation({ summary: 'Crear un nuevo período de precio (admin)' })
+  @ApiOperation({ summary: 'Crear un período de precio (admin)' })
   async create(
     @Param('tournamentId', ParseUUIDPipe) tournamentId: string,
     @Body() body: CreatePricingPeriodBodyDto,
@@ -64,6 +104,7 @@ export class TournamentPricingController {
       validTo: new Date(body.validTo),
       entryFeeAmount: body.entryFeeAmount,
       currency: body.currency,
+      paymentMethod: body.paymentMethod ?? null,
     });
     return toPricingPeriodResponse(created);
   }
@@ -82,6 +123,7 @@ export class TournamentPricingController {
       validTo: body.validTo ? new Date(body.validTo) : undefined,
       entryFeeAmount: body.entryFeeAmount,
       currency: body.currency,
+      paymentMethod: body.paymentMethod,
     });
     return toPricingPeriodResponse(updated);
   }
@@ -94,5 +136,18 @@ export class TournamentPricingController {
     @Param('pricingId', ParseUUIDPipe) pricingId: string,
   ) {
     return this.deleteUseCase.execute(pricingId);
+  }
+
+  private parseMethod(value?: string): PaymentMethod | undefined {
+    if (value === undefined || value === '') return undefined;
+    if (!isPaymentMethod(value)) {
+      throw new BusinessError(
+        ErrorCode.PRICING_INVALID_PAYMENT_METHOD,
+        `Método de pago inválido: '${value}'. Valores válidos: cash, transfer, card.`,
+        HttpStatus.BAD_REQUEST,
+        { method: value },
+      );
+    }
+    return value;
   }
 }

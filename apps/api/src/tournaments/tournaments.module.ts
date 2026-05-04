@@ -6,26 +6,24 @@ import { CategoriesModule } from './categories/categories.module';
 import { ZonesModule } from './zones/zones.module';
 import { ChangeTournamentStatusUseCase } from './application/use-cases/change-status.use-case';
 import { ValidateModalityUseCase } from './application/use-cases/validate-modality.use-case';
-import { CreatePricingPeriodUseCase } from './application/use-cases/create-pricing-period.use-case';
-import { UpdatePricingPeriodUseCase } from './application/use-cases/update-pricing-period.use-case';
-import { DeletePricingPeriodUseCase } from './application/use-cases/delete-pricing-period.use-case';
-import { ListPricingPeriodsUseCase } from './application/use-cases/list-pricing-periods.use-case';
-import { GetCurrentPricingUseCase } from './application/use-cases/get-current-pricing.use-case';
 import { GetSportRulesPublicUseCase } from './application/use-cases/get-sport-rules-public.use-case';
 import { TOURNAMENT_REPOSITORY } from './application/ports/tournament-repository.port';
-import { PRICING_REPOSITORY } from './application/ports/pricing-repository.port';
 import { PrismaTournamentRepository } from './infrastructure/repositories/prisma-tournament.repository';
-import { PrismaPricingRepository } from './infrastructure/repositories/prisma-pricing.repository';
-import { TournamentPricingController } from './presentation/controllers/tournament-pricing.controller';
 import { SportRulesController } from './presentation/controllers/sport-rules.controller';
 
+/**
+ * NOTA W2.3:
+ *
+ * Los endpoints de pricing periods (`tournaments/:id/pricing`) y sus use-cases
+ * fueron migrados al módulo `PricingModule` (apps/api/src/pricing/) para sumar
+ * la dimensión `paymentMethod` (RN-048) sin acoplar el módulo Tournaments.
+ *
+ * Aquí permanecen `TournamentsService`, `TournamentsController`, change-status,
+ * validate-modality y sport-rules. La migración mantiene compat de URLs.
+ */
 @Module({
   imports: [DatabaseModule, CategoriesModule, ZonesModule],
-  controllers: [
-    TournamentsController,
-    TournamentPricingController,
-    SportRulesController,
-  ],
+  controllers: [TournamentsController, SportRulesController],
   providers: [
     TournamentsService,
     // Repositories (port → implementation binding)
@@ -33,18 +31,9 @@ import { SportRulesController } from './presentation/controllers/sport-rules.con
       provide: TOURNAMENT_REPOSITORY,
       useClass: PrismaTournamentRepository,
     },
-    {
-      provide: PRICING_REPOSITORY,
-      useClass: PrismaPricingRepository,
-    },
     // Use-cases
     ValidateModalityUseCase,
     ChangeTournamentStatusUseCase,
-    CreatePricingPeriodUseCase,
-    UpdatePricingPeriodUseCase,
-    DeletePricingPeriodUseCase,
-    ListPricingPeriodsUseCase,
-    GetCurrentPricingUseCase,
     GetSportRulesPublicUseCase,
   ],
   exports: [TournamentsService],
