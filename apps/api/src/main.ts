@@ -48,8 +48,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
-  // Global prefix
-  app.setGlobalPrefix('api');
+  // Global prefix — `/api/v1` desde PR0 para versionar desde el inicio.
+  app.setGlobalPrefix('api/v1');
 
   // Swagger API Documentation
   const swaggerConfig = new DocumentBuilder()
@@ -103,7 +103,7 @@ Incluye el header: \`Authorization: Bearer <token>\`
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, cleanupOpenApiDoc(document), {
+  SwaggerModule.setup('api/v1/docs', app, cleanupOpenApiDoc(document), {
     swaggerOptions: {
       persistAuthorization: true,
       tagsSorter: 'alpha',
@@ -118,8 +118,8 @@ Incluye el header: \`Authorization: Bearer <token>\`
   await app.listen(port);
 
   logger.log(`Environment: ${nodeEnv}`);
-  logger.log(`Application is running on: http://localhost:${port}/api`);
-  logger.log(`Swagger docs available at: http://localhost:${port}/api/docs`);
+  logger.log(`Application is running on: http://localhost:${port}/api/v1`);
+  logger.log(`Swagger docs available at: http://localhost:${port}/api/v1/docs`);
 }
 
 bootstrap();

@@ -23,6 +23,7 @@ Cada regla se identifica con `RN-XXX` (numeración global y estable; no reinicia
 - [friendlies.md](./friendlies.md) — Amistosos (RN-022, RN-023, RN-059)
 - [matches.md](./matches.md) — Partidos y tabla (RN-024, RN-049–RN-056)
 - [fines.md](./fines.md) — Multas y aranceles (RN-025–RN-032)
+- [payments.md](./payments.md) — Pagos (RN-060)
 
 ## Ver también
 

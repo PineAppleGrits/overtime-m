@@ -7,9 +7,14 @@
     "dev": "turbo dev",
     "dev:web": "turbo dev --filter=overtime-fe",
     "dev:api": "turbo dev --filter=overtime-be",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "generate:openapi": "pnpm --filter overtime-be generate:openapi",
+    "generate:api-types": "pnpm generate:openapi && openapi-typescript apps/api/swagger.json -o packages/shared/src/generated/api.d.ts"
   },
   "devDependencies": {
+    "openapi-typescript": "^7.13.0",
     "turbo": "^2"
   }
 }

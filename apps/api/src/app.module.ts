@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -24,6 +25,9 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AppValidationPipe } from './common/pipes/app-validation.pipe';
+import { StorageModule } from './common/storage/storage.module';
+import { SportRulesModule } from './common/sport-rules/sport-rules.module';
+import { CronSupportModule } from './common/cron/cron.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import supabaseConfig from './config/supabase.config';
@@ -55,7 +59,17 @@ import mercadopagoConfig from './config/mercadopago.config';
         ],
       }),
     }),
+    EventEmitterModule.forRoot({
+      // Wildcard listeners ('match.*') habilitados.
+      wildcard: true,
+      delimiter: '.',
+      // Permitimos múltiples listeners por evento (default es ilimitado).
+      maxListeners: 20,
+    }),
     DatabaseModule,
+    StorageModule,        // PR0 — Supabase storage + MediaAsset (global)
+    SportRulesModule,     // PR0 — strategies de reglas por deporte+modalidad (global)
+    CronSupportModule,    // PR0 — advisory locks para crons (global)
     AuthModule,
     TeamsModule,
     SportsModule,

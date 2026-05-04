@@ -11,3 +11,11 @@ export * from './registrations';
 export * from './payments';
 export * from './fixtures';
 export * from './eligibility';
+// PR0 — nuevos namespaces
+export * from './errors';
+export * from './sport';
+export * from './debt';
+export * from './playoff';
+export * from './friendly';
+export * from './media';
+export * from './category-level';

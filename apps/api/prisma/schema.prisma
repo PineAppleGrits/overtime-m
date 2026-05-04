@@ -35,9 +35,19 @@ model Profile {
   documentVerifiedBy String?
   documentVerifiedAt DateTime?
   dateOfBirth        DateTime?
-  avatarUrl          String?
-  medicalCertificateUrl String?
-  swornStatementUrl  String?
+  // Legacy URLs (compatibilidad híbrida — RN-008 versionado pasa a usar MediaAsset)
+  avatarUrl              String?
+  medicalCertificateUrl  String?
+  swornStatementUrl      String?
+  // Punteros a MediaAsset (PR0 — nueva ruta de uploads)
+  avatarAssetId          String?
+  avatarAsset            MediaAsset? @relation("ProfileAvatar", fields: [avatarAssetId], references: [id])
+  currentMedicalAssetId  String?
+  currentMedicalAsset    MediaAsset? @relation("ProfileMedical", fields: [currentMedicalAssetId], references: [id])
+  currentSwornAssetId    String?
+  currentSwornAsset      MediaAsset? @relation("ProfileSworn", fields: [currentSwornAssetId], references: [id])
+  dniPhotoAssetId        String?
+  dniPhotoAsset          MediaAsset? @relation("ProfileDni", fields: [dniPhotoAssetId], references: [id])
   role               ProfileRole   @default(player)
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -61,11 +71,78 @@ model Profile {
   sanctions             Sanction[]                   @relation("SanctionTargetProfile")
   sanctionsCreated      Sanction[]                   @relation("SanctionCreatedBy")
   sanctionsResolved     Sanction[]                   @relation("SanctionResolvedBy")
+  // PR0 — nuevas relaciones inversas
+  mediaAssetsUploaded   MediaAsset[]                 @relation("MediaAssetUploadedBy")
+  debtsAsTarget         Debt[]                       @relation("DebtTargetProfile")
+  debtsCreated          Debt[]                       @relation("DebtCreatedBy")
+  debtAudits            DebtAudit[]
+  teamCategoryLevelsGranted TeamCategoryLevel[]
+  friendliesCreated     Friendly[]                   @relation("FriendlyCreatedBy")
+  friendliesGenerated   Friendly[]                   @relation("FriendlyGeneratedBy")
 
   @@index([deletedAt, name])
   @@index([deletedAt, email])
   @@index([deletedAt, createdAt])
   @@map("profiles")
+}
+
+// ============================================
+// MEDIA / STORAGE (PR0)
+// ============================================
+
+enum MediaVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum MediaCategory {
+  AVATAR
+  TEAM_LOGO
+  FRANCHISE_LOGO
+  TOURNAMENT_BANNER
+  PAYMENT_PROOF
+  MEDICAL_CERT
+  SWORN_STATEMENT
+  DNI_PHOTO
+  SANCTION_ATTACHMENT
+  BLACKLIST_ATTACHMENT
+  OTHER
+}
+
+// MediaAsset — registro centralizado de archivos en Supabase Storage.
+// Las entidades referencian con xxxAssetId; el histórico (apto médico anual RN-008)
+// se reconstruye consultando MediaAsset por (profileId, category, uploadedAt DESC).
+model MediaAsset {
+  id                  String          @id @default(uuid())
+  bucket              String          // 'public' | 'private' (en línea con Supabase bucket name)
+  storageKey          String          // path dentro del bucket
+  contentType         String
+  sizeBytes           Int
+  sha256              String
+  originalFilename    String
+  uploadedByProfileId String
+  uploadedBy          Profile         @relation("MediaAssetUploadedBy", fields: [uploadedByProfileId], references: [id])
+  visibility          MediaVisibility
+  category            MediaCategory
+  metadata            Json?           // year (apto), debtId, sanctionId, profileId, etc.
+  scheduledDeletionAt DateTime?       // RN-060 — marca para borrado automático
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  deletedAt           DateTime?
+
+  // Relaciones inversas (entidades que apuntan a este asset)
+  profileAvatars         Profile[]   @relation("ProfileAvatar")
+  profileMedicals        Profile[]   @relation("ProfileMedical")
+  profileSworns          Profile[]   @relation("ProfileSworn")
+  profileDniPhotos       Profile[]   @relation("ProfileDni")
+  teamLogos              Team[]      @relation("TeamLogo")
+
+  @@unique([bucket, storageKey])
+  @@index([uploadedByProfileId])
+  @@index([category])
+  @@index([scheduledDeletionAt])
+  @@index([deletedAt])
+  @@map("media_assets")
 }
 
 // ============================================
@@ -80,8 +157,10 @@ model Sport {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  teams       Team[]
-  tournaments Tournament[]
+  teams        Team[]
+  tournaments  Tournament[]
+  categoryLevels CategoryLevel[]
+  friendlies   Friendly[]
 
   @@map("sports")
 }
@@ -107,7 +186,9 @@ model Team {
   id          String    @id @default(uuid())
   name        String
   slug        String    @unique
-  logoUrl     String?
+  logoUrl     String?   // legacy, mantener por compat híbrida
+  logoAssetId String?
+  logoAsset   MediaAsset? @relation("TeamLogo", fields: [logoAssetId], references: [id])
   sportId     String
   sport       Sport     @relation(fields: [sportId], references: [id])
   franchiseId String?
@@ -120,12 +201,20 @@ model Team {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
-  members     ProfileTeam[]
-  teamZones   TeamZone[]
-  homeMatches Match[]        @relation("HomeTeam")
-  awayMatches   Match[]        @relation("AwayTeam")
-  registrations Registration[]
-  sanctions     Sanction[]     @relation("SanctionTargetTeam")
+  members         ProfileTeam[]
+  teamZones       TeamZone[]
+  homeMatches     Match[]        @relation("HomeTeam")
+  awayMatches     Match[]        @relation("AwayTeam")
+  registrations   Registration[]
+  sanctions       Sanction[]     @relation("SanctionTargetTeam")
+  // PR0 — nuevas relaciones
+  categoryLevels  TeamCategoryLevel[]
+  homeFriendlies  Friendly[]     @relation("FriendlyHome")
+  awayFriendlies  Friendly[]     @relation("FriendlyAway")
+  homePlayoffSeries PlayoffSeries[] @relation("PlayoffSeriesHome")
+  awayPlayoffSeries PlayoffSeries[] @relation("PlayoffSeriesAway")
+  wonPlayoffSeries  PlayoffSeries[] @relation("PlayoffSeriesWinner")
+  debts             Debt[]         @relation("DebtTargetTeam")
 
   @@index([franchiseId])
   @@map("teams")
@@ -145,6 +234,47 @@ model ProfileTeam {
   @@index([profileId])
   @@index([teamId])
   @@map("player_teams")
+}
+
+// ============================================
+// CATEGORÍAS GLOBALES (NIVELES) — PR0
+// ============================================
+
+// CategoryLevel — niveles globales por deporte (RN-044, RN-058).
+// Ej: básquet tiene niveles A, B, C, D. Los equipos se asocian a 1 o 2 niveles
+// (TeamCategoryLevel). Cada Category de un torneo se mapea opcionalmente a un nivel.
+model CategoryLevel {
+  id          String   @id @default(uuid())
+  sportId     String
+  sport       Sport    @relation(fields: [sportId], references: [id])
+  code        String   // 'A' | 'B' | 'C' | 'D' ...
+  displayName String
+  rank        Int      // 1 = más alto, números mayores = niveles inferiores
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teamLevels TeamCategoryLevel[]
+  categories Category[]
+
+  @@unique([sportId, code])
+  @@index([sportId, rank])
+  @@map("category_levels")
+}
+
+model TeamCategoryLevel {
+  id                 String        @id @default(uuid())
+  teamId             String
+  team               Team          @relation(fields: [teamId], references: [id])
+  categoryLevelId    String
+  categoryLevel      CategoryLevel @relation(fields: [categoryLevelId], references: [id])
+  grantedByProfileId String
+  grantedBy          Profile       @relation(fields: [grantedByProfileId], references: [id])
+  grantedAt          DateTime      @default(now())
+  notes              String?
+
+  @@unique([teamId, categoryLevelId])
+  @@index([teamId])
+  @@map("team_category_levels")
 }
 
 // ============================================
@@ -180,30 +310,33 @@ enum FixtureFormat {
 }
 
 model Tournament {
-  id                    String           @id @default(uuid())
-  name                  String
-  slug                  String           @unique
-  description           String?
-  sportId               String
-  sport                 Sport            @relation(fields: [sportId], references: [id])
-  status                TournamentStatus @default(DRAFT)
-  fixtureFormat         FixtureFormat    @default(SINGLE_ROUND)
-  modality              String?
-  startDate             DateTime?
-  endDate               DateTime?
-  registrationStartDate DateTime?
-  registrationEndDate   DateTime?
-  teamOperationsOpenAt  DateTime?
-  teamOperationsCloseAt DateTime?
-  insurancePerPlayer    Float?
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-  deletedAt             DateTime?
+  id                              String           @id @default(uuid())
+  name                            String
+  slug                            String           @unique
+  description                     String?
+  sportId                         String
+  sport                           Sport            @relation(fields: [sportId], references: [id])
+  status                          TournamentStatus @default(DRAFT)
+  fixtureFormat                   FixtureFormat    @default(SINGLE_ROUND)
+  modality                        String?          // '3v3' | '5v5' (libre por ahora; strategy lo lee)
+  startDate                       DateTime?
+  endDate                         DateTime?
+  registrationStartDate           DateTime?
+  registrationEndDate             DateTime?
+  teamOperationsOpenAt            DateTime?
+  teamOperationsCloseAt           DateTime?
+  insurancePerPlayer              Float?
+  // PR0 — nuevos campos
+  promotionPlayoffFormat          PlayoffFormat    @default(BO1)  // RN-058 repechaje
+  earlyCancellationThresholdHours Int?             // DP-013 — cuando se decida
+  createdAt                       DateTime         @default(now())
+  updatedAt                       DateTime         @updatedAt
+  deletedAt                       DateTime?
 
-  categories     Category[]
-  registrations  Registration[]
+  categories          Category[]
+  registrations       Registration[]
   registrationPricing TournamentRegistrationPricing[]
-  sanctions      Sanction[]
+  sanctions           Sanction[]
 
   @@index([status])
   @@index([sportId])
@@ -228,27 +361,38 @@ model TournamentRegistrationPricing {
 }
 
 model Category {
-  id           String            @id @default(uuid())
-  tournamentId String
-  tournament   Tournament        @relation(fields: [tournamentId], references: [id])
-  name         String
-  slug         String?
-  maxTeams     Int?
-  teamsPerZone Int?
-  status       CategoryStatus    @default(OPEN)
-  substatus    CategorySubstatus?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  deletedAt    DateTime?
+  id                   String            @id @default(uuid())
+  tournamentId         String
+  tournament           Tournament        @relation(fields: [tournamentId], references: [id])
+  name                 String
+  slug                 String?
+  maxTeams             Int?
+  teamsPerZone         Int?
+  status               CategoryStatus    @default(OPEN)
+  substatus            CategorySubstatus?
+  // PR0 — nivel global y config de playoffs
+  categoryLevelId      String?
+  categoryLevel        CategoryLevel?    @relation(fields: [categoryLevelId], references: [id])
+  zonesCount           Int               @default(1)   // 1 o 2 en v1 (DP-003)
+  qualifierCount       Int?              // total de clasificados a playoffs
+  qualifiersPerZone    Int?              // si hay zonas, cuántos por zona
+  hasPlayIn            Boolean           @default(false)  // DP-014
+  hasThirdPlaceMatch   Boolean           @default(false)
+  playoffFormatByRound Json?             // { quarterfinal: 'BO3', semifinal: 'BO3', final: 'BO5', thirdPlace: 'BO1', playIn: 'BO1' }
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  deletedAt            DateTime?
 
-  zones         Zone[]
-  matches       Match[]
-  registrations Registration[]
-  sanctions     Sanction[]
+  zones          Zone[]
+  matches        Match[]
+  registrations  Registration[]
+  sanctions      Sanction[]
+  playoffSeries  PlayoffSeries[]
 
   @@unique([tournamentId, slug])
   @@index([tournamentId])
   @@index([status])
+  @@index([categoryLevelId])
   @@map("categories")
 }
 
@@ -301,7 +445,8 @@ model Venue {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  matches Match[]
+  matches    Match[]
+  friendlies Friendly[]
 
   @@map("venues")
 }
@@ -325,19 +470,26 @@ model Match {
   matchDate      DateTime
   matchTime      String?
   status         String
-  matchType      String
-  homeScore   Int     @default(0)
-  awayScore   Int     @default(0)
-  costPerTeam Float?
-  createdAt   DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
+  matchType      String    // 'regular' | 'playoff' | 'friendly' | 'play_in' | 'promotion_playoff'
+  homeScore      Int       @default(0)
+  awayScore      Int       @default(0)
+  costPerTeam    Float?
+  // PR0 — vínculo con serie de playoff
+  seriesId         String?
+  series           PlayoffSeries? @relation(fields: [seriesId], references: [id])
+  seriesGameNumber Int?
+  playoffStage     PlayoffRound?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
 
-  matchStaff    MatchStaff[]
-  roster        MatchRoster[]
-  payments      Payment[]
-  announcements MatchAnnouncement[]
-  sanctions     Sanction[]
+  matchStaff      MatchStaff[]
+  roster          MatchRoster[]
+  payments        Payment[]
+  announcements   MatchAnnouncement[]
+  sanctions       Sanction[]
+  debts           Debt[]
+  resultingFriendly Friendly? @relation("FriendlyResultingMatch")
 
   @@index([homeTeamId])
   @@index([awayTeamId])
@@ -347,6 +499,7 @@ model Match {
   @@index([status])
   @@index([matchDate])
   @@index([status, matchDate])
+  @@index([seriesId])
   @@map("matches")
 }
 
@@ -378,6 +531,82 @@ model MatchAnnouncement {
 
   @@index([matchId])
   @@map("match_announcements")
+}
+
+// ============================================
+// PLAYOFFS — PR0
+// ============================================
+
+enum PlayoffRound {
+  PLAY_IN
+  ROUND_OF_16
+  QUARTERFINAL
+  SEMIFINAL
+  THIRD_PLACE
+  FINAL
+  PROMOTION_PLAYOFF // RN-058 — repechaje de ascenso/descenso
+}
+
+enum PlayoffFormat {
+  BO1
+  BO3
+  BO5
+}
+
+enum PlayoffSeriesStatus {
+  PENDING       // sin equipos asignados (esperando alimentadores)
+  READY         // equipos definidos, sin matches generados
+  IN_PROGRESS
+  COMPLETED
+}
+
+// PlayoffSeries — un enfrentamiento de playoffs (con N matches según BO format).
+// Modelo "B" del plan: la serie es el concepto de dominio; los Match guardan los partidos individuales con seriesId.
+model PlayoffSeries {
+  id                 String              @id @default(uuid())
+  categoryId         String
+  category           Category            @relation(fields: [categoryId], references: [id])
+  round              PlayoffRound
+  bracketPosition    Int                 // 1, 2, 3, 4 dentro de la ronda
+  format             PlayoffFormat
+  homeTeamId         String?
+  homeTeam           Team?               @relation("PlayoffSeriesHome", fields: [homeTeamId], references: [id])
+  awayTeamId         String?
+  awayTeam           Team?               @relation("PlayoffSeriesAway", fields: [awayTeamId], references: [id])
+  feedsFromSeriesAId String?
+  feedsFromSeriesA   PlayoffSeries?      @relation("FeedsFromA", fields: [feedsFromSeriesAId], references: [id])
+  feedsFromSeriesBId String?
+  feedsFromSeriesB   PlayoffSeries?      @relation("FeedsFromB", fields: [feedsFromSeriesBId], references: [id])
+  feedsToA           PlayoffSeries[]     @relation("FeedsFromA")
+  feedsToB           PlayoffSeries[]     @relation("FeedsFromB")
+  winnerTeamId       String?
+  winnerTeam         Team?               @relation("PlayoffSeriesWinner", fields: [winnerTeamId], references: [id])
+  status             PlayoffSeriesStatus @default(PENDING)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  matches PlayoffSeriesMatch[]
+  matchesDirect Match[]
+
+  @@unique([categoryId, round, bracketPosition])
+  @@index([categoryId])
+  @@index([status])
+  @@map("playoff_series")
+}
+
+// Tabla de soporte vacía para preservar el nombre de la relación si quisiéramos
+// agregar metadata por match-en-serie a futuro. Por ahora Match.seriesId alcanza.
+// (Se mantiene como referencia conceptual; no se persiste data en esta versión.)
+model PlayoffSeriesMatch {
+  id              String        @id @default(uuid())
+  seriesId        String
+  series          PlayoffSeries @relation(fields: [seriesId], references: [id])
+  matchId         String        @unique
+  // Evitamos relación recíproca con Match para no introducir un join obligatorio.
+  // Match.seriesId ya cubre el caso normal; este modelo queda reservado para metadata futura.
+
+  @@index([seriesId])
+  @@map("playoff_series_matches")
 }
 
 // ============================================
@@ -459,12 +688,13 @@ model Registration {
   approvedAt       DateTime?
   rejectedAt       DateTime?
   rejectionReason  String?
-  paymentProofUrl  String?
+  paymentProofUrl  String?  // legacy — nuevos uploads pasan por MediaAsset
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  payments Payment[]
+  payments      Payment[]
   rosterEntries RegistrationRosterEntry[]
+  debts         Debt[]
 
   @@unique([teamId, tournamentId])
   @@index([teamId])
@@ -498,11 +728,171 @@ model RegistrationRosterEntry {
 }
 
 // ============================================
+// AMISTOSOS — PR0
+// ============================================
+
+enum FriendlyStatus {
+  REQUESTED
+  GENERATED
+  PENDING_CONFIRMATION
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+  PLAYED
+  OBSERVED_FOR_CATEGORIZATION
+}
+
+// Friendly — solicitud y ciclo de un partido amistoso (RN-022, RN-023, RN-039, RN-059).
+// Al confirmarse (ambas señas pagadas) se materializa un Match con matchType='friendly'.
+model Friendly {
+  id                        String         @id @default(uuid())
+  sportId                   String
+  sport                     Sport          @relation(fields: [sportId], references: [id])
+  modality                  String         // '3v3' | '5v5'
+  homeTeamId                String
+  homeTeam                  Team           @relation("FriendlyHome", fields: [homeTeamId], references: [id])
+  awayTeamId                String
+  awayTeam                  Team           @relation("FriendlyAway", fields: [awayTeamId], references: [id])
+  proposedDate              DateTime
+  venueId                   String?
+  venue                     Venue?         @relation(fields: [venueId], references: [id])
+  status                    FriendlyStatus @default(REQUESTED)
+  notes                     String?
+  // Señas — Debts asociadas (FRIENDLY_DEPOSIT). Vencimiento = 24h desde generatedAt (RN-023).
+  // No usamos relación 1:1 de Friendly→Debt para evitar duplicar la fuente de verdad;
+  // las debts se identifican por friendlyId + type + targetTeamId.
+  confirmationDeadline      DateTime?
+  // Match resultante (cuando ambas señas se pagan, se crea Match con matchType='friendly')
+  resultingMatchId          String?        @unique
+  resultingMatch            Match?         @relation("FriendlyResultingMatch", fields: [resultingMatchId], references: [id])
+  observedForCategorization Boolean        @default(false)
+  // Auditoría
+  createdByProfileId        String
+  createdBy                 Profile        @relation("FriendlyCreatedBy", fields: [createdByProfileId], references: [id])
+  generatedByProfileId      String?
+  generatedBy               Profile?       @relation("FriendlyGeneratedBy", fields: [generatedByProfileId], references: [id])
+  generatedAt               DateTime?
+  cancelledAt               DateTime?
+  cancellationReason        String?
+  createdAt                 DateTime       @default(now())
+  updatedAt                 DateTime       @updatedAt
+  deletedAt                 DateTime?
+
+  debts Debt[]
+
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@index([status])
+  @@index([proposedDate])
+  @@map("friendlies")
+}
+
+// ============================================
+// DEUDAS — PR0
+// ============================================
+
+enum DebtType {
+  REGISTRATION_FEE          // RN-014, RN-015 — inscripción torneo
+  INSURANCE                 // RN-015, RN-017 — seguro por jugador
+  LATE_ROSTER_FEE           // RN-042 — alta jugador con torneo iniciado
+  MATCH_FEE                 // costo del partido (split entre 2 equipos)
+  FRIENDLY_DEPOSIT          // RN-022 — seña amistoso
+  MISSED_MATCH_FINE         // RN-025 — multa por no presentarse
+  LATE_NOTICE_FINE          // RN-027 — multa por modificación post-fecha
+  LATE_PAYMENT_DAILY_CHARGE // RN-029 — arancel diario por atraso
+  OVERDUE_INTEREST          // RN-028 — interés por deuda vencida
+  AJC_FEE                   // RN-030 — habilitación anticipada
+  OTHER_MANUAL              // admin crea ad-hoc
+}
+
+enum DebtStatus {
+  APPROVED
+  PARTIALLY_PAID
+  PAID
+  DELETED_BY_ERROR     // RN-031
+  DELETED_WITH_RECORD  // RN-031
+  CANCELLED            // ej. seguro reusado RN-017
+}
+
+// Debt — toda obligación cobrable (inscripción, seguro, multa, interés, AJC, seña...).
+// Se paga via 1+ Payment.
+// Cargos diarios automáticos (RN-028, RN-029) se modelan como Debt hijas con parentDebtId.
+model Debt {
+  id                 String        @id @default(uuid())
+  type               DebtType
+  status             DebtStatus    @default(APPROVED)
+  concept            String        // descripción legible (RN-028 exige descripción identificadora)
+  originAmount       Decimal       @db.Decimal(12, 2)
+  currentBalance     Decimal       @db.Decimal(12, 2)
+  currency           String        @default("ARS")
+  dueDate            DateTime
+  // Targets — al menos uno (team o profile)
+  teamId             String?
+  team               Team?         @relation("DebtTargetTeam", fields: [teamId], references: [id])
+  profileId          String?
+  profile            Profile?      @relation("DebtTargetProfile", fields: [profileId], references: [id])
+  // Orígenes opcionales (de qué evento de negocio nace la deuda)
+  registrationId     String?
+  registration       Registration? @relation(fields: [registrationId], references: [id])
+  matchId            String?
+  match              Match?        @relation(fields: [matchId], references: [id])
+  friendlyId         String?
+  friendly           Friendly?     @relation(fields: [friendlyId], references: [id])
+  sanctionId         String?
+  sanction           Sanction?     @relation(fields: [sanctionId], references: [id])
+  parentDebtId       String?
+  parentDebt         Debt?         @relation("DebtHierarchy", fields: [parentDebtId], references: [id])
+  childDebts         Debt[]        @relation("DebtHierarchy")
+  // Metadata
+  notes              String?
+  metadata           Json?
+  createdByProfileId String
+  createdBy          Profile       @relation("DebtCreatedBy", fields: [createdByProfileId], references: [id])
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+
+  payments Payment[]
+  audits   DebtAudit[]
+
+  @@index([teamId])
+  @@index([profileId])
+  @@index([status])
+  @@index([type])
+  @@index([dueDate])
+  @@index([parentDebtId])
+  @@index([sanctionId])
+  @@index([friendlyId])
+  @@map("debts")
+}
+
+// DebtAudit — historial de cambios de estado de una Debt (RN-031).
+model DebtAudit {
+  id          String     @id @default(uuid())
+  debtId      String
+  debt        Debt       @relation(fields: [debtId], references: [id])
+  fromStatus  DebtStatus
+  toStatus    DebtStatus
+  reason      String?
+  byProfileId String
+  by          Profile    @relation(fields: [byProfileId], references: [id])
+  at          DateTime   @default(now())
+
+  @@index([debtId])
+  @@index([byProfileId])
+  @@map("debt_audits")
+}
+
+// ============================================
 // PAGOS
 // ============================================
 
 model Payment {
   id                String        @id @default(uuid())
+  // PR0 — debtId reemplaza la asociación directa con registration/match para nuevos pagos.
+  // Los campos legacy quedan nullable para mantener histórico de pagos preexistentes.
+  debtId            String?
+  debt              Debt?         @relation(fields: [debtId], references: [id])
   registrationId    String?
   registration      Registration? @relation(fields: [registrationId], references: [id])
   matchId           String?
@@ -511,7 +901,7 @@ model Payment {
   profile           Profile       @relation(fields: [profileId], references: [id])
   amount            Float
   currency          String        @default("ARS")
-  method            String // mercadopago, cash, other
+  method            String // mercadopago, cash, transferencia, other
   status            String // pendiente, procesado, fallido
   providerPaymentId String?
   providerResponse  Json?
@@ -519,6 +909,7 @@ model Payment {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
+  @@index([debtId])
   @@index([registrationId])
   @@index([matchId])
   @@index([profileId])
@@ -526,6 +917,10 @@ model Payment {
   @@index([providerPaymentId])
   @@map("payments")
 }
+
+// ============================================
+// BLACKLIST Y SANCIONES
+// ============================================
 
 enum BlacklistStatus {
   ACTIVE
@@ -606,6 +1001,8 @@ model Sanction {
   resolutionNotes     String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
+
+  debts Debt[]
 
   @@index([targetProfileId])
   @@index([targetTeamId])
