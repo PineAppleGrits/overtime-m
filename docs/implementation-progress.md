@@ -2,7 +2,7 @@
 
 Tracking persistente del avance del plan en `docs/implementation-plan.md`. Se actualiza al completar cada subtask para que el trabajo pueda retomarse en sesiones nuevas.
 
-**Última actualización**: 2026-05-03 (Ola 2 cerrada, Ola 3 W3.1+W3.2 lanzados)
+**Última actualización**: 2026-05-03 (Ola 3 primer batch mergeado, segundo batch lanzado)
 
 ---
 
@@ -16,10 +16,10 @@ Tracking persistente del avance del plan en `docs/implementation-plan.md`. Se ac
 | Ola 2 — W2.3 Pricing & Discounts | 🟢 MERGEADA | PR #8 → main `f80bffb` |
 | Ola 2 — W2.1 Debts + crons | 🟢 MERGEADA | PR #9 → main `a0915e0` |
 | Ola 2 — W2.2 Payments completion | 🟢 MERGEADA | PR #10 → main `e698a45` |
-| Ola 3 — W3.1 Match lifecycle + Playoffs | 🟡 IN PROGRESS | `feat/api/match-lifecycle-playoffs` |
-| Ola 3 — W3.2 Staff completion | 🟡 IN PROGRESS | `feat/api/staff-completion` |
-| Ola 3 — W3.3 Eligibility + Sanctions | ⚪ Pending (segundo batch) | — |
-| Ola 3 — W3.4 Notifications + Users | ⚪ Pending (segundo batch) | — |
+| Ola 3 — W3.2 Staff completion | 🟢 MERGEADA | PR #11 → main `1fcfcfe` |
+| Ola 3 — W3.1 Match lifecycle + Playoffs | 🟢 MERGEADA | PR #12 → main `c346f66` |
+| Ola 3 — W3.3 Eligibility + Sanctions | 🟡 IN PROGRESS | `feat/api/eligibility-sanctions` |
+| Ola 3 — W3.4 Notifications + Users | 🟡 IN PROGRESS | `feat/api/notifications-users` |
 
 Leyenda: ⚪ pendiente · 🟡 en curso · 🟢 mergeada · 🔴 bloqueada
 
@@ -71,10 +71,10 @@ A iniciar **después de mergear PR0**. Detalle de scope, RNs y entregables por w
 - [x] W2.3 Pricing & Discounts (PR #8, mergeada)
 
 ### Ola 3
-- [ ] W3.1 Match lifecycle + Playoffs — IN PROGRESS (background agent)
-- [ ] W3.2 Staff completion — IN PROGRESS (background agent)
-- [ ] W3.3 Eligibility + Sanctions — segundo batch
-- [ ] W3.4 Notifications + Users — segundo batch
+- [x] W3.1 Match lifecycle + Playoffs (PR #12, mergeada)
+- [x] W3.2 Staff completion (PR #11, mergeada)
+- [ ] W3.3 Eligibility + Sanctions — IN PROGRESS (background agent)
+- [ ] W3.4 Notifications + Users — IN PROGRESS (background agent)
 
 ### Ola 3
 - [ ] W3.1 Match lifecycle + Playoffs
