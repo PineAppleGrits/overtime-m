@@ -4,6 +4,7 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import {
   CreateTournamentSchemaDto,
@@ -13,12 +14,23 @@ import {
   PaginationDto,
 } from '@overtime-mono/shared';
 import { generateUniqueSlug } from '../common/utils/slug.util';
+import { ValidateModalityUseCase } from './application/use-cases/validate-modality.use-case';
+import { ChangeTournamentStatusUseCase } from './application/use-cases/change-status.use-case';
+import { validateTournamentWindows } from './domain/rules/date-windows.rules';
+
+const SUPPORTED_TOURNAMENT_STATUSES = new Set<string>(
+  Object.values(TournamentStatus),
+);
 
 @Injectable()
 export class TournamentsService {
   private readonly logger = new Logger(TournamentsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly validateModality: ValidateModalityUseCase,
+    private readonly changeStatusUseCase: ChangeTournamentStatusUseCase,
+  ) {}
 
   private async generateTournamentSlug(
     name: string,
@@ -38,52 +50,6 @@ export class TournamentsService {
         return Boolean(existingTournament);
       },
     });
-  }
-
-  /**
-   * Validar transiciones de estado permitidas
-   */
-  private validateStatusTransition(
-    currentStatus: string,
-    newStatus: TournamentStatus,
-  ): void {
-    const validTransitions: Record<string, TournamentStatus[]> = {
-      DRAFT: [
-        TournamentStatus.OPEN,
-        TournamentStatus.ARCHIVED,
-        TournamentStatus.CANCELLED,
-      ],
-      OPEN: [
-        TournamentStatus.CLOSED,
-        TournamentStatus.ARCHIVED,
-        TournamentStatus.CANCELLED,
-      ],
-      CLOSED: [
-        TournamentStatus.READY_TO_SHIP,
-        TournamentStatus.ARCHIVED,
-        TournamentStatus.CANCELLED,
-      ],
-      READY_TO_SHIP: [
-        TournamentStatus.IN_PROGRESS,
-        TournamentStatus.ARCHIVED,
-        TournamentStatus.CANCELLED,
-      ],
-      IN_PROGRESS: [
-        TournamentStatus.FINISHED,
-        TournamentStatus.ARCHIVED,
-        TournamentStatus.CANCELLED,
-      ],
-      FINISHED: [TournamentStatus.ARCHIVED],
-      ARCHIVED: [],
-      CANCELLED: [],
-    };
-
-    const allowedStatuses = validTransitions[currentStatus] || [];
-    if (!allowedStatuses.includes(newStatus)) {
-      throw new BadRequestException(
-        `Cannot transition from ${currentStatus} to ${newStatus}. Valid transitions: ${allowedStatuses.join(', ')}`,
-      );
-    }
   }
 
   /**
@@ -121,36 +87,23 @@ export class TournamentsService {
       throw new NotFoundException('Sport not found');
     }
 
-    // Validar fechas
-    if (
-      createTournamentDto.startDate &&
-      createTournamentDto.endDate &&
-      new Date(createTournamentDto.startDate) >
-        new Date(createTournamentDto.endDate)
-    ) {
-      throw new BadRequestException('Start date must be before end date');
-    }
+    // RN-043 — validar modalidad si viene seteada
+    this.validateModality.execute({
+      sportCode: sport.code as 'BASKETBALL',
+      modality: createTournamentDto.modality ?? null,
+    });
 
-    if (
-      createTournamentDto.registrationStartDate &&
-      createTournamentDto.registrationEndDate &&
-      new Date(createTournamentDto.registrationStartDate) >
-        new Date(createTournamentDto.registrationEndDate)
-    ) {
-      throw new BadRequestException(
-        'Registration start date must be before registration end date',
-      );
-    }
-
-    if (
-      createTournamentDto.teamOperationsOpenAt &&
-      createTournamentDto.teamOperationsCloseAt &&
-      new Date(createTournamentDto.teamOperationsOpenAt) >
-        new Date(createTournamentDto.teamOperationsCloseAt)
-    ) {
-      throw new BadRequestException(
-        'Team operations open date must be before team operations close date',
-      );
+    // RN-046 — validar ventanas de fechas
+    const invalidWindow = validateTournamentWindows({
+      startDate: createTournamentDto.startDate,
+      endDate: createTournamentDto.endDate,
+      registrationStartDate: createTournamentDto.registrationStartDate,
+      registrationEndDate: createTournamentDto.registrationEndDate,
+      teamOperationsOpenAt: createTournamentDto.teamOperationsOpenAt,
+      teamOperationsCloseAt: createTournamentDto.teamOperationsCloseAt,
+    });
+    if (invalidWindow) {
+      throw new BadRequestException(invalidWindow.message);
     }
 
     const tournament = await this.prisma.tournament.create({
@@ -181,6 +134,12 @@ export class TournamentsService {
         insurancePerPlayer: createTournamentDto.insurancePerPlayer ?? null,
         fixtureFormat: createTournamentDto.fixtureFormat ?? undefined,
         modality: createTournamentDto.modality ?? null,
+        // RN-058 — repechaje (default Prisma: BO1)
+        promotionPlayoffFormat:
+          createTournamentDto.promotionPlayoffFormat ?? undefined,
+        // DP-013 — umbral de antelación (TODO: aplicar cuando RN-052 lo consuma)
+        earlyCancellationThresholdHours:
+          createTournamentDto.earlyCancellationThresholdHours ?? null,
       },
       include: {
         sport: true,
@@ -203,7 +162,11 @@ export class TournamentsService {
     return tournament;
   }
 
-  async findAll(paginationDto: PaginationDto, status?: string) {
+  async findAll(
+    paginationDto: PaginationDto,
+    status?: string,
+    publishedOnly?: boolean,
+  ) {
     // Aplicar transiciones automáticas antes de listar
     await this.applyAutomaticStatusTransitions();
 
@@ -216,12 +179,26 @@ export class TournamentsService {
 
     const skip = (page - 1) * limit;
 
-    const where: any = {
+    const where: Prisma.TournamentWhereInput = {
       deletedAt: null,
     };
 
     if (status) {
-      where.status = status;
+      if (!SUPPORTED_TOURNAMENT_STATUSES.has(status)) {
+        throw new BadRequestException(
+          `Estado de torneo inválido: ${status}. Valores permitidos: ${[
+            ...SUPPORTED_TOURNAMENT_STATUSES,
+          ].join(', ')}`,
+        );
+      }
+      where.status = status as TournamentStatus;
+    }
+
+    // RN-018 — publicación progresiva: sólo torneos con al menos 1 registration `approved`
+    if (publishedOnly) {
+      where.registrations = {
+        some: { status: 'approved' },
+      };
     }
 
     const [tournaments, total] = await Promise.all([
@@ -411,6 +388,7 @@ export class TournamentsService {
     const tournament = await this.findOne(id);
 
     // Si se está actualizando el deporte, verificar que existe
+    let resolvedSportCode = tournament.sport.code;
     if (updateTournamentDto.sportId) {
       const sport = await this.prisma.sport.findUnique({
         where: { id: updateTournamentDto.sportId },
@@ -419,37 +397,30 @@ export class TournamentsService {
       if (!sport) {
         throw new NotFoundException('Sport not found');
       }
+      resolvedSportCode = sport.code;
     }
 
-    // Validar fechas si se proporcionan
+    // RN-043 — si se cambia la modalidad, validar combinación con el sport actual
+    if (updateTournamentDto.modality !== undefined) {
+      this.validateModality.execute({
+        sportCode: resolvedSportCode as 'BASKETBALL',
+        modality: updateTournamentDto.modality,
+      });
+    }
+
+    // RN-046 — validar ventanas de fechas combinadas
     const startDate = updateTournamentDto.startDate
       ? new Date(updateTournamentDto.startDate)
       : tournament.startDate;
     const endDate = updateTournamentDto.endDate
       ? new Date(updateTournamentDto.endDate)
       : tournament.endDate;
-
-    if (startDate && endDate && startDate > endDate) {
-      throw new BadRequestException('Start date must be before end date');
-    }
-
     const registrationStartDate = updateTournamentDto.registrationStartDate
       ? new Date(updateTournamentDto.registrationStartDate)
       : tournament.registrationStartDate;
     const registrationEndDate = updateTournamentDto.registrationEndDate
       ? new Date(updateTournamentDto.registrationEndDate)
       : tournament.registrationEndDate;
-
-    if (
-      registrationStartDate &&
-      registrationEndDate &&
-      registrationStartDate > registrationEndDate
-    ) {
-      throw new BadRequestException(
-        'Registration start date must be before registration end date',
-      );
-    }
-
     const teamOperationsOpenAt = updateTournamentDto.teamOperationsOpenAt
       ? new Date(updateTournamentDto.teamOperationsOpenAt)
       : tournament.teamOperationsOpenAt;
@@ -457,28 +428,62 @@ export class TournamentsService {
       ? new Date(updateTournamentDto.teamOperationsCloseAt)
       : tournament.teamOperationsCloseAt;
 
-    if (
-      teamOperationsOpenAt &&
-      teamOperationsCloseAt &&
-      teamOperationsOpenAt > teamOperationsCloseAt
-    ) {
-      throw new BadRequestException(
-        'Team operations open date must be before team operations close date',
-      );
+    const invalidWindow = validateTournamentWindows({
+      startDate,
+      endDate,
+      registrationStartDate,
+      registrationEndDate,
+      teamOperationsOpenAt,
+      teamOperationsCloseAt,
+    });
+    if (invalidWindow) {
+      throw new BadRequestException(invalidWindow.message);
     }
 
-    // Si se está cambiando el estado, validar transición
-    if (updateTournamentDto.status) {
-      this.validateStatusTransition(
-        tournament.status,
-        updateTournamentDto.status,
-      );
+    // Si se está cambiando el estado, delegar al use-case (valida transición + emite evento).
+    if (
+      updateTournamentDto.status &&
+      updateTournamentDto.status !== tournament.status
+    ) {
+      await this.changeStatusUseCase.execute({
+        tournamentId: id,
+        newStatus: updateTournamentDto.status,
+      });
     }
 
     const updatedTournament = await this.prisma.tournament.update({
       where: { id },
       data: {
-        ...updateTournamentDto,
+        ...(updateTournamentDto.name !== undefined
+          ? { name: updateTournamentDto.name }
+          : {}),
+        ...(updateTournamentDto.description !== undefined
+          ? { description: updateTournamentDto.description }
+          : {}),
+        ...(updateTournamentDto.sportId !== undefined
+          ? { sportId: updateTournamentDto.sportId }
+          : {}),
+        ...(updateTournamentDto.fixtureFormat !== undefined
+          ? { fixtureFormat: updateTournamentDto.fixtureFormat }
+          : {}),
+        ...(updateTournamentDto.modality !== undefined
+          ? { modality: updateTournamentDto.modality }
+          : {}),
+        ...(updateTournamentDto.insurancePerPlayer !== undefined
+          ? { insurancePerPlayer: updateTournamentDto.insurancePerPlayer }
+          : {}),
+        ...(updateTournamentDto.promotionPlayoffFormat !== undefined
+          ? {
+              promotionPlayoffFormat:
+                updateTournamentDto.promotionPlayoffFormat,
+            }
+          : {}),
+        ...(updateTournamentDto.earlyCancellationThresholdHours !== undefined
+          ? {
+              earlyCancellationThresholdHours:
+                updateTournamentDto.earlyCancellationThresholdHours,
+            }
+          : {}),
         slug: updateTournamentDto.name
           ? await this.generateTournamentSlug(updateTournamentDto.name, id)
           : undefined,
@@ -523,15 +528,14 @@ export class TournamentsService {
   }
 
   async changeStatus(id: string, changeStatusDto: ChangeStatusDto) {
-    const tournament = await this.findOne(id);
+    // Delegar al use-case (valida transición + emite evento de dominio).
+    await this.changeStatusUseCase.execute({
+      tournamentId: id,
+      newStatus: changeStatusDto.status,
+    });
 
-    this.validateStatusTransition(tournament.status, changeStatusDto.status);
-
-    const updatedTournament = await this.prisma.tournament.update({
+    return this.prisma.tournament.findUnique({
       where: { id },
-      data: {
-        status: changeStatusDto.status,
-      },
       include: {
         sport: true,
         categories: {
@@ -547,12 +551,6 @@ export class TournamentsService {
         },
       },
     });
-
-    this.logger.log(
-      `Tournament status changed: ${tournament.name} -> ${changeStatusDto.status}`,
-    );
-
-    return updatedTournament;
   }
 
   async remove(id: string) {

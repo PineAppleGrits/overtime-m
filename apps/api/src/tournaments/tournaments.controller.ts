@@ -39,8 +39,15 @@ export class TournamentsController {
   findAll(
     @Query() paginationDto: PaginationDto,
     @Query('status') status?: string,
+    @Query('publishedOnly') publishedOnly?: string,
   ) {
-    return this.tournamentsService.findAll(paginationDto, status);
+    const onlyPublished =
+      publishedOnly === 'true' || publishedOnly === '1';
+    return this.tournamentsService.findAll(
+      paginationDto,
+      status,
+      onlyPublished,
+    );
   }
 
   @Public()

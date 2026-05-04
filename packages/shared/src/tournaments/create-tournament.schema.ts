@@ -2,6 +2,8 @@ import { z } from "zod";
 import { optionalDateStringSchema } from "../common/date-string.schema";
 import { TournamentStatus, FixtureFormat } from "./enums";
 
+const playoffFormatSchema = z.enum(["BO1", "BO3", "BO5"]);
+
 const validateTournamentDatePairs = (
   value: Record<string, string | number | undefined>,
   ctx: z.RefinementCtx,
@@ -58,6 +60,14 @@ export const createTournamentBaseSchema = z.object({
   insurancePerPlayer: z.coerce
     .number()
     .min(0, "El seguro por jugador no puede ser negativo")
+    .optional(),
+  // RN-058 — formato del repechaje de ascenso/descenso. Default backend: BO1.
+  promotionPlayoffFormat: playoffFormatSchema.optional(),
+  // DP-013 — umbral de antelación para reprogramación sin penalidad.
+  earlyCancellationThresholdHours: z.coerce
+    .number()
+    .int()
+    .min(0, "El umbral debe ser >= 0")
     .optional(),
 });
 
