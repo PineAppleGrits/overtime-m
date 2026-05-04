@@ -84,6 +84,7 @@ describe('FriendliesEventListener', () => {
       awayScore: 70,
       homeTeamId: 'team-A',
       awayTeamId: 'team-B',
+      countsForStandings: true,
     });
     expect(markPlayed.execute).toHaveBeenCalledWith({ friendlyId: 'f-1' });
   });
@@ -96,6 +97,7 @@ describe('FriendliesEventListener', () => {
       awayScore: 70,
       homeTeamId: 'team-A',
       awayTeamId: 'team-B',
+      countsForStandings: true,
     });
     expect(markPlayed.execute).not.toHaveBeenCalled();
   });
@@ -110,6 +112,7 @@ describe('FriendliesEventListener', () => {
       awayScore: 70,
       homeTeamId: 'team-A',
       awayTeamId: 'team-B',
+      countsForStandings: true,
     });
     expect(markPlayed.execute).not.toHaveBeenCalled();
   });

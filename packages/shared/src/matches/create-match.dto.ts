@@ -17,6 +17,14 @@ export enum MatchStatus {
   CANCELADO = 'cancelado',
   REPROGRAMADO = 'reprogramado',
   FINALIZADO = 'finalizado',
+  // W3.1 — RN-032: cancelado por un equipo, esperando decisión del rival.
+  PENDING_RIVAL_DECISION = 'pending_rival_decision',
+  // W3.1 — RN-054: suspendido durante encuentro, se va a reanudar.
+  SUSPENDIDO_A_REANUDAR = 'suspendido_a_reanudar',
+  // W3.1 — RN-055: suspendido y el admin todavía no resolvió.
+  SUSPENDIDO_PENDIENTE = 'suspendido_pendiente',
+  // W3.1 — RN-054: terminado sin continuidad (resolución administrativa).
+  FINALIZADO_CON_RESOLUCION = 'finalizado_con_resolucion',
 }
 
 export enum MatchType {

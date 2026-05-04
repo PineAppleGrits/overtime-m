@@ -38,8 +38,14 @@ export const DomainEvent = {
   MATCH_STARTED: 'match.started',
   MATCH_FINISHED: 'match.finished',
   MATCH_SUSPENDED: 'match.suspended',
+  MATCH_RESOLVED: 'match.resolved', // W3.1 — resolución administrativa de suspendidos
   MATCH_STAFF_ASSIGNED: 'match.staff.assigned',
   MATCH_PHOTO_FOLDER_CREATED: 'match.photoFolder.created', // RN-051
+
+  // Playoffs
+  PLAYOFF_SERIES_COMPLETED: 'playoff.series.completed', // W3.1 — serie cerrada
+  PLAYOFF_BRACKET_GENERATED: 'playoff.bracket.generated',
+  PLAYOFF_PROMOTION_GENERATED: 'playoff.promotion.generated', // RN-058
 
   // Friendlies
   FRIENDLY_REQUESTED: 'friendly.requested',
@@ -142,17 +148,66 @@ export interface DomainEventPayloads {
 
   // Matches
   'match.scheduled': { matchId: string };
-  'match.rescheduled': { matchId: string; previousDate: Date };
-  'match.cancelled': { matchId: string; reason?: string };
+  'match.rescheduled': {
+    matchId: string;
+    previousDate: Date;
+    newDate: Date;
+    reason?: string;
+    rescheduledBy?: string;
+  };
+  'match.cancelled': {
+    matchId: string;
+    reason?: string;
+    cancelledByTeamId?: string;
+    /** RN-032 — true si el partido pasó a `pending_rival_decision`. */
+    requiresRivalDecision?: boolean;
+  };
   'match.started': { matchId: string };
   'match.finished': {
     matchId: string;
     homeScore: number;
     awayScore: number;
-    homeTeamId: string;
-    awayTeamId: string;
+    homeTeamId: string | null;
+    awayTeamId: string | null;
+    /** RN-024 — false cuando es 0-0 administrativo (cancelación mutua o request_points 20-0 cuenta normalmente). */
+    countsForStandings: boolean;
+    /** Razón administrativa cuando el resultado no es orgánico. */
+    resolution?:
+      | 'rival_request_points'
+      | 'mutual_cancel'
+      | 'suspended_no_continuation'
+      | 'organic';
   };
-  'match.suspended': { matchId: string; reason?: string };
+  'match.suspended': {
+    matchId: string;
+    reason?: string;
+    currentScore?: { home: number; away: number };
+    resolution: 'reanudar' | 'fin_sin_continuidad' | 'pendiente';
+  };
+  'match.resolved': {
+    matchId: string;
+    resolution: 'reanudar' | 'fin_sin_continuidad';
+    resolvedBy: string;
+  };
+
+  // Playoffs
+  'playoff.series.completed': {
+    seriesId: string;
+    categoryId: string;
+    winnerTeamId: string;
+    loserTeamId: string | null;
+  };
+  'playoff.bracket.generated': {
+    categoryId: string;
+    seriesIds: string[];
+  };
+  'playoff.promotion.generated': {
+    seriesId: string;
+    upperCategoryId: string;
+    lowerCategoryId: string;
+    upperTeamId: string;
+    lowerTeamId: string;
+  };
   'match.staff.assigned': {
     matchId: string;
     staffId: string;

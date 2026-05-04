@@ -5,12 +5,20 @@ import {
   ZoneStandings,
   CategoryStandings,
 } from '@overtime-mono/shared';
+import { SportRulesRegistry } from '../../common/sport-rules/sport-rules.registry';
+import {
+  Modality,
+  SportCode,
+} from '../../common/sport-rules/sport-rules.types';
 
 @Injectable()
 export class StandingsService {
   private readonly logger = new Logger(StandingsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sportRules: SportRulesRegistry,
+  ) {}
 
   /**
    * Calculate standings for a category
@@ -19,7 +27,7 @@ export class StandingsService {
     const category = await this.prisma.category.findUnique({
       where: { id: categoryId, deletedAt: null },
       include: {
-        tournament: true,
+        tournament: { include: { sport: true } },
         zones: {
           where: { deletedAt: null },
           include: {
@@ -51,7 +59,18 @@ export class StandingsService {
       },
     });
 
-    const completedMatches = matches.filter((m) => m.status === 'finalizado');
+    // RN-024 — un 0-0 administrativo NO suma. Pero el partido sigue contando
+    // como "jugado" desde la mirada del fixture.
+    const sportCode = (category.tournament.sport.code as SportCode) ?? 'BASKETBALL';
+    const modality = (category.tournament.modality ?? '5v5') as Modality;
+    const rules = this.sportRules.tryGet(sportCode, modality);
+    const countsForStandings = (home: number, away: number): boolean =>
+      rules ? rules.scoreCountsForStandings(home, away) : !(home === 0 && away === 0);
+
+    const completedMatches = matches.filter(
+      (m) =>
+        m.status === 'finalizado' || m.status === 'finalizado_con_resolucion',
+    );
     const totalMatches = matches.length;
 
     // Calculate standings for each zone
@@ -66,6 +85,7 @@ export class StandingsService {
         zoneMatches,
         zone.id,
         zone.name,
+        countsForStandings,
       );
 
       // Sort and assign positions
@@ -139,6 +159,7 @@ export class StandingsService {
     }[],
     zoneId: string,
     zoneName: string,
+    countsForStandings: (home: number, away: number) => boolean = () => true,
   ): TeamStanding[] {
     const standings: TeamStanding[] = teams.map((team) => ({
       teamId: team.id,
@@ -161,6 +182,10 @@ export class StandingsService {
 
     for (const match of matches) {
       if (!match.homeTeamId || !match.awayTeamId) continue;
+
+      // RN-024 — si el resultado no suma para tabla (0-0 administrativo en
+      // basket), saltamos completamente el match.
+      if (!countsForStandings(match.homeScore, match.awayScore)) continue;
 
       const homeStanding = standingsMap.get(match.homeTeamId);
       const awayStanding = standingsMap.get(match.awayTeamId);
