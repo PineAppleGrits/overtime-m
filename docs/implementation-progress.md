@@ -2,7 +2,7 @@
 
 Tracking persistente del avance del plan en `docs/implementation-plan.md`. Se actualiza al completar cada subtask para que el trabajo pueda retomarse en sesiones nuevas.
 
-**Última actualización**: 2026-05-03 (Ola 1 mergeada, Ola 2 W2.1+W2.3 lanzada)
+**Última actualización**: 2026-05-03 (W2.1 + W2.3 mergeadas, W2.2 en curso)
 
 ---
 
@@ -13,10 +13,10 @@ Tracking persistente del avance del plan en `docs/implementation-plan.md`. Se ac
 | Ola 0 — PR0 Foundation | 🟢 MERGEADA | PR #5 → main `809e295` |
 | Ola 1 — W1.1 Tournaments | 🟢 MERGEADA | PR #6 → main `fc001a9` |
 | Ola 1 — W1.2/W1.3/W1.4 (batch) | 🟢 MERGEADA | PR #7 → main `8b3b50c` |
-| Ola 2 — W2.1 Debts + crons | 🟡 IN PROGRESS | `feat/api/debts` (background agent) |
-| Ola 2 — W2.3 Pricing & Discounts | 🟡 IN PROGRESS | `feat/api/pricing` (background agent) |
-| Ola 2 — W2.2 Payments completion | ⚪ Bloqueada por W2.1 | a spawnar después |
-| Ola 3 — Cierre operativo (4 worktrees) | ⚪ Bloqueada por Ola 2 | — |
+| Ola 2 — W2.3 Pricing & Discounts | 🟢 MERGEADA | PR #8 → main `f80bffb` |
+| Ola 2 — W2.1 Debts + crons | 🟢 MERGEADA | PR #9 → main `a0915e0` |
+| Ola 2 — W2.2 Payments completion | 🟡 IN PROGRESS | `feat/api/payments-completion` (background agent) |
+| Ola 3 — Cierre operativo (4 worktrees) | ⚪ Bloqueada por W2.2 | — |
 
 Leyenda: ⚪ pendiente · 🟡 en curso · 🟢 mergeada · 🔴 bloqueada
 
@@ -63,9 +63,9 @@ A iniciar **después de mergear PR0**. Detalle de scope, RNs y entregables por w
 - [x] W1.4 Friendlies (incluida en PR #7)
 
 ### Ola 2
-- [ ] W2.1 Debts module + cron — IN PROGRESS (background agent en `feat/api/debts`)
-- [ ] W2.2 Payments completion — bloqueada por W2.1
-- [ ] W2.3 Pricing & Discounts — IN PROGRESS (background agent en `feat/api/pricing`)
+- [x] W2.1 Debts module + cron (PR #9, mergeada)
+- [ ] W2.2 Payments completion — IN PROGRESS (background agent en `feat/api/payments-completion`)
+- [x] W2.3 Pricing & Discounts (PR #8, mergeada)
 
 ### Ola 3
 - [ ] W3.1 Match lifecycle + Playoffs
