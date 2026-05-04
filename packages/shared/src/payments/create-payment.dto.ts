@@ -22,6 +22,14 @@ export enum PaymentType {
 }
 
 export class CreatePaymentDto {
+  @ApiPropertyOptional({
+    description:
+      'ID de la deuda (W2.2 — preferido: vincula el pago a la Debt y descuenta saldo al aprobarse)',
+  })
+  @IsOptional()
+  @IsUUID()
+  debtId?: string;
+
   @ApiPropertyOptional({ description: 'ID de la inscripción (si es pago de inscripción)' })
   @IsOptional()
   @IsUUID()
@@ -32,10 +40,15 @@ export class CreatePaymentDto {
   @IsUUID()
   matchId?: string;
 
-  @ApiProperty({ description: 'Monto del pago', minimum: 0 })
+  @ApiPropertyOptional({
+    description:
+      'Monto del pago. Si se pasa debtId y se omite, default = Debt.currentBalance.',
+    minimum: 0,
+  })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  amount: number;
+  amount?: number;
 
   @ApiPropertyOptional({ description: 'Moneda', default: 'ARS' })
   @IsOptional()
