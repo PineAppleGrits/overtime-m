@@ -63,6 +63,7 @@ export const DomainEvent = {
   // Sanctions
   SANCTION_CREATED: 'sanction.created',
   SANCTION_RESOLVED: 'sanction.resolved',
+  AJC_APPLIED: 'sanction.ajc.applied', // RN-030 — habilitación anticipada por AJC aplicada
 } as const;
 
 export type DomainEventName = (typeof DomainEvent)[keyof typeof DomainEvent];
@@ -211,4 +212,13 @@ export interface DomainEventPayloads {
   // Sanctions
   'sanction.created': { sanctionId: string; targetType: string };
   'sanction.resolved': { sanctionId: string; resolvedBy: string };
+  'sanction.ajc.applied': {
+    sanctionId: string;
+    profileId: string;
+    debtId: string;
+    refereeSalary: number;
+    fechasFreed: number;
+    amount: number;
+    appliedBy: string;
+  };
 }
