@@ -4,7 +4,9 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CategorySubstatus, Prisma } from '@prisma/client';
 import type {
   AddRegistrationRosterEntryDto,
@@ -12,6 +14,7 @@ import type {
   PaginationDto,
   RegistrationRosterPlayerDto,
 } from '@overtime-mono/shared';
+import { DomainEvent, DomainEventPayloads } from '../common/events';
 import { PrismaService } from '../database/prisma.service';
 import { EligibilityService } from '../eligibility/eligibility.service';
 import {
@@ -147,6 +150,7 @@ export class RegistrationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eligibilityService: EligibilityService,
+    @Optional() private readonly eventEmitter?: EventEmitter2,
   ) {}
 
   private assertNoDuplicateProfileIds(profileIds: string[]): void {
@@ -851,6 +855,13 @@ export class RegistrationsService {
 
     this.logger.log(`Registration approved: ${id}`);
 
+    this.eventEmitter?.emit(DomainEvent.REGISTRATION_APPROVED, {
+      registrationId: id,
+      teamId: updatedRegistration.teamId,
+      tournamentId: updatedRegistration.tournamentId,
+      approvedBy,
+    } satisfies DomainEventPayloads['registration.approved']);
+
     return updatedRegistration;
   }
 
@@ -875,6 +886,14 @@ export class RegistrationsService {
     });
 
     this.logger.log(`Registration rejected: ${id}`);
+
+    this.eventEmitter?.emit(DomainEvent.REGISTRATION_REJECTED, {
+      registrationId: id,
+      teamId: updatedRegistration.teamId,
+      tournamentId: updatedRegistration.tournamentId,
+      rejectedBy: approvedBy,
+      reason: rejectionReason ?? undefined,
+    } satisfies DomainEventPayloads['registration.rejected']);
 
     return updatedRegistration;
   }

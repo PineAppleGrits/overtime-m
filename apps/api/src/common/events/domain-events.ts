@@ -69,7 +69,23 @@ export const DomainEvent = {
   // Sanctions
   SANCTION_CREATED: 'sanction.created',
   SANCTION_RESOLVED: 'sanction.resolved',
+  SANCTION_CANCELLED: 'sanction.cancelled',
+  SANCTION_FECHA_CUMPLIDA: 'sanction.fechaCumplida.added',
   AJC_APPLIED: 'sanction.ajc.applied', // RN-030 — habilitación anticipada por AJC aplicada
+
+  // Blacklist (W3.3)
+  BLACKLIST_CREATED: 'blacklist.created',
+  BLACKLIST_LIFTED: 'blacklist.lifted',
+
+  // Medical / Sworn (W3.3 — RN-008)
+  MEDICAL_CERT_UPLOADED: 'medical-cert.uploaded',
+  SWORN_STATEMENT_UPLOADED: 'sworn-statement.uploaded',
+
+  // Profiles / users (W3.4)
+  PROFILE_DNI_VERIFIED: 'profile.dni.verified', // RN-034 / RN-036
+  PROFILE_DNI_PENDING_REVIEW: 'profile.dni.pendingReview', // RN-036 / DP-009
+  PROFILE_ROLE_CHANGED: 'profile.role.changed', // RN-057
+  PROFILE_MERGED: 'profile.merged', // RN-035 — fusión por DNI nexo
 } as const;
 
 export type DomainEventName = (typeof DomainEvent)[keyof typeof DomainEvent];
@@ -265,8 +281,23 @@ export interface DomainEventPayloads {
   'payment.rejected': { paymentId: string; reason?: string };
 
   // Sanctions
-  'sanction.created': { sanctionId: string; targetType: string };
+  'sanction.created': {
+    sanctionId: string;
+    targetType: string;
+    targetProfileId?: string;
+    targetTeamId?: string;
+    kind: string;
+    totalFechas?: number;
+  };
   'sanction.resolved': { sanctionId: string; resolvedBy: string };
+  'sanction.cancelled': { sanctionId: string; cancelledBy: string };
+  'sanction.fechaCumplida.added': {
+    sanctionId: string;
+    matchId: string;
+    fechasCumplidas: number;
+    totalFechas: number;
+    autoResolved: boolean;
+  };
   'sanction.ajc.applied': {
     sanctionId: string;
     profileId: string;
@@ -275,5 +306,55 @@ export interface DomainEventPayloads {
     fechasFreed: number;
     amount: number;
     appliedBy: string;
+  };
+
+  // Blacklist
+  'blacklist.created': {
+    blacklistId: string;
+    documentNumber: string;
+    profileId?: string;
+    blockedBy: string;
+  };
+  'blacklist.lifted': {
+    blacklistId: string;
+    liftedBy: string;
+  };
+
+  // Medical / Sworn
+  'medical-cert.uploaded': {
+    profileId: string;
+    assetId: string;
+    year: number;
+    validUntil: string; // 'YYYY-12-31'
+  };
+  'sworn-statement.uploaded': {
+    profileId: string;
+    assetId: string;
+    year: number;
+    validUntil: string;
+  };
+
+  // Profiles / users
+  'profile.dni.verified': {
+    profileId: string;
+    documentNumber: string;
+    verifiedBy: string;
+  };
+  'profile.dni.pendingReview': {
+    profileId: string;
+    assetId: string;
+  };
+  'profile.role.changed': {
+    profileId: string;
+    fromRole: string;
+    toRole: string;
+    changedBy: string;
+  };
+  'profile.merged': {
+    /** Profile id que sobrevive (típicamente el de la cuenta nueva). */
+    survivorProfileId: string;
+    /** Profile id que fue dado de baja (soft-delete) y cuyas relaciones se movieron. */
+    mergedProfileId: string;
+    documentNumber: string;
   };
 }

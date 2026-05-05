@@ -7,8 +7,10 @@ import {
   Delete,
   Patch,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Request } from 'express';
 import { RegistrationsService } from './registrations.service';
 import { ApproveRegistrationDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -44,12 +46,18 @@ export class RegistrationsController {
     @Query('teamId', ParseOptionalUUIDPipe) teamId?: string,
     @Query('categoryId', ParseOptionalUUIDPipe) categoryId?: string,
     @Query('status') status?: string,
+    @Req() req?: Request & { user?: { role?: string } },
   ) {
+    // RN-018 — publicación progresiva: usuarios no-admin sólo ven inscripciones
+    // ya aprobadas. Admin y master pueden filtrar libremente o ver todo.
+    const userRole = req?.user?.role;
+    const isPrivileged = userRole === 'admin' || userRole === 'master';
+    const effectiveStatus = isPrivileged ? status : 'aprobada';
     return this.registrationsService.findAll(paginationDto, {
       tournamentId,
       teamId,
       categoryId,
-      status,
+      status: effectiveStatus,
     });
   }
 
