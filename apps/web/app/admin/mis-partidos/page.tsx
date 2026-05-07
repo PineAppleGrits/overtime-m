@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { PageHeader } from '@/modules/admin/components/PageHeader'
-import { MatchAssignmentList } from '@/modules/my-matches/components/MatchAssignmentList'
+import { MisPartidosCalendar } from '@/modules/my-matches/components/MisPartidosCalendar'
 import myMatchesService from '@/modules/my-matches/services/MyMatchesService'
 import type { MyMatchAssignment } from '@/modules/my-matches/types'
 
@@ -23,7 +23,7 @@ export default async function MisPartidosPage() {
         description="Tus partidos asignados como parte del personal de Overtime"
       />
 
-      <MatchAssignmentList assignments={assignments} error={error} />
+      <MisPartidosCalendar assignments={assignments} error={error} />
     </div>
   )
 }

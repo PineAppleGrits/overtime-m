@@ -8,20 +8,21 @@ import {
   Trophy,
   Users,
   UserCog,
+  UserMinus,
+  Ban,
+  ShieldAlert,
   Dumbbell,
   Settings,
-  UserCircle,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   CalendarCheck,
   Camera,
   Briefcase,
-  UsersRound,
   ExternalLink,
   MapPin,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Image from 'next/image'
@@ -64,13 +65,30 @@ const sidebarItems: SidebarSection[] = [
     items: [
       { label: 'Torneos', href: '/admin/torneos', icon: Trophy },
       { label: 'Equipos', href: '/admin/equipos', icon: Users },
+    ],
+  },
+  {
+    title: 'Jugadores',
+    items: [
       {
-        label: 'Jugadores',
+        label: 'Lista de jugadores',
+        href: '/admin/jugadores',
         icon: UserCog,
-        subItems: [
-          { label: 'Todos los jugadores', href: '/admin/jugadores' },
-          { label: 'Lista Negra', href: '/admin/jugadores/lista-negra' },
-        ],
+      },
+      {
+        label: 'Jugadores sin equipo',
+        href: '/admin/jugadores/sin-equipo',
+        icon: UserMinus,
+      },
+      {
+        label: 'Blacklist',
+        href: '/admin/jugadores/lista-negra',
+        icon: Ban,
+      },
+      {
+        label: 'Suspensiones',
+        href: '/admin/jugadores/suspensiones',
+        icon: ShieldAlert,
       },
     ],
   },
@@ -78,24 +96,18 @@ const sidebarItems: SidebarSection[] = [
     title: 'Organización',
     items: [
       {
-        label: 'Todos los usuarios',
-        href: '/admin/usuarios',
-        icon: UsersRound,
-        roles: ['admin', 'master'],
-      },
-      {
         label: 'Empleados',
         icon: Briefcase,
         roles: ['admin', 'master'],
         subItems: [
           { label: 'Todos los empleados', href: '/admin/empleados' },
-          { label: 'Árbitros', href: '/admin/empleados/arbitros' },
           { label: 'Fotógrafos', href: '/admin/empleados/fotografos' },
           { label: 'Oficiales de mesa', href: '/admin/empleados/oficiales' },
+          { label: 'Árbitros', href: '/admin/empleados/arbitros' },
         ],
       },
       {
-        label: 'Canchas',
+        label: 'Canchas / Locaciones',
         href: '/admin/canchas',
         icon: MapPin,
         roles: ['admin', 'master'],
@@ -112,7 +124,6 @@ const sidebarItems: SidebarSection[] = [
         icon: Settings,
         roles: ['admin', 'master'],
       },
-      { label: 'Mi Perfil', href: '/admin/perfil', icon: UserCircle },
     ],
   },
 ]
@@ -129,10 +140,37 @@ export function AdminSidebar() {
     return !!profile && roles.includes(profile.role)
   }
 
+  // Pick the single best matching href for the current pathname (longest prefix
+  // wins). Ensures we don't highlight a parent item when a sibling sub-route
+  // is the actual destination — e.g. /admin/jugadores/lista-negra should only
+  // light up "Blacklist", not also "Lista de jugadores".
+  const activeHref = useMemo(() => {
+    const all: string[] = []
+    for (const section of sidebarItems) {
+      for (const item of section.items) {
+        if (item.href) all.push(item.href)
+        if (item.subItems) {
+          for (const sub of item.subItems) all.push(sub.href)
+        }
+      }
+    }
+    let best: string | null = null
+    for (const href of all) {
+      const matches =
+        href === '/admin'
+          ? pathname === '/admin'
+          : pathname === href || pathname.startsWith(href + '/')
+      if (matches && (!best || href.length > best.length)) {
+        best = href
+      }
+    }
+    return best
+  }, [pathname])
+
   // Derived: open if pathname matches a child, OR user explicitly opened it.
   // Path-active always wins over a manual close (better UX than hiding the active section).
   const getIsExpanded = (label: string, subItems: SubItem[]) => {
-    const pathActive = subItems.some(sub => pathname === sub.href)
+    const pathActive = subItems.some(sub => sub.href === activeHref)
     if (pathActive) return true
     return manualOverrides[label] ?? false
   }
@@ -218,12 +256,10 @@ export function AdminSidebar() {
                     {visibleItems.map(item => {
                       const hasSubItems = !!item.subItems
                       const isSubActive = hasSubItems
-                        ? item.subItems!.some(sub => pathname === sub.href)
+                        ? item.subItems!.some(sub => sub.href === activeHref)
                         : false
                       const isActive = item.href
-                        ? item.href === '/admin'
-                          ? pathname === '/admin'
-                          : pathname.startsWith(item.href)
+                        ? item.href === activeHref
                         : isSubActive
                       const isExpanded = hasSubItems ? getIsExpanded(item.label, item.subItems!) : false
                       const Icon = item.icon
@@ -288,7 +324,7 @@ export function AdminSidebar() {
                           {!collapsed && hasSubItems && isExpanded && (
                             <div className="ml-3 mt-0.5 mb-0.5 flex flex-col gap-0.5 border-l border-white/[0.07] pl-3">
                               {item.subItems!.map(sub => {
-                                const isSubItemActive = pathname === sub.href
+                                const isSubItemActive = sub.href === activeHref
                                 return (
                                   <Link
                                     key={sub.href}
