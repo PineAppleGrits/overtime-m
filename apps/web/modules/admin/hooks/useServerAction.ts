@@ -3,6 +3,7 @@
 import { useCallback, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/modules/common/errors'
 import type { ActionResult } from '../actions/types'
 
 interface UseServerActionOptions<TData = void> {
@@ -37,7 +38,7 @@ export function useServerAction<TInput, TData = void>(
           // Bust the Next.js router cache so navigating back shows fresh data.
           router.refresh()
         } else {
-          toast.error(result.error ?? 'Ocurrió un error inesperado')
+          toast.error(getErrorMessage(result.error))
         }
       })
     },

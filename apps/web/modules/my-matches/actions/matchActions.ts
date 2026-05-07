@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import myMatchesService from '../services/MyMatchesService'
 import { updateMatchScoreSchema, changeMatchStatusSchema } from '../schemas/matchSchemas'
+import { ErrorCode, actionFailure } from '@/modules/common/errors'
 
 interface ActionResult {
   success: boolean
@@ -19,8 +20,7 @@ export async function updateMatchScoreAction(
   const parsed = updateMatchScoreSchema.safeParse(input)
 
   if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? 'Datos inválidos'
-    return { success: false, error: firstError }
+    return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   }
 
   const { matchId, homeScore, awayScore } = parsed.data
@@ -31,7 +31,7 @@ export async function updateMatchScoreAction(
     return { success: true }
   } catch (error) {
     console.error('Error updating match score:', error)
-    return { success: false, error: 'No se pudo actualizar el marcador' }
+    return actionFailure(ErrorCode.MATCH_SCORE_UPDATE_FAILED)
   }
 }
 
@@ -45,8 +45,7 @@ export async function changeMatchStatusAction(
   const parsed = changeMatchStatusSchema.safeParse(input)
 
   if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? 'Datos inválidos'
-    return { success: false, error: firstError }
+    return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   }
 
   const { matchId, status } = parsed.data
@@ -57,6 +56,6 @@ export async function changeMatchStatusAction(
     return { success: true }
   } catch (error) {
     console.error('Error changing match status:', error)
-    return { success: false, error: 'No se pudo cambiar el estado del partido' }
+    return actionFailure(ErrorCode.MATCH_STATUS_CHANGE_FAILED)
   }
 }

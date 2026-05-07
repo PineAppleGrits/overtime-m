@@ -2,6 +2,7 @@
 
 import { getProfile } from '@/lib/auth/session'
 import type { ActionResult } from '@/modules/admin/actions/types'
+import { ErrorCode, actionFailure } from '@/modules/common/errors'
 import { normalizeTeamPayload } from '@/modules/team/team-payload'
 import teamService from '@/modules/team/TeamService'
 import userService from '@/modules/user/UserService'
@@ -17,7 +18,7 @@ const createFranchiseSchema = z.object({
 
 export async function leaveTeamAction(teamId: string): Promise<ActionResult<void>> {
   const profile = await getProfile()
-  if (!profile) return { success: false, error: 'No autenticado' }
+  if (!profile) return actionFailure(ErrorCode.NOT_AUTHENTICATED)
 
   try {
     await teamService.removePlayer(teamId, profile.id)
@@ -26,7 +27,7 @@ export async function leaveTeamAction(teamId: string): Promise<ActionResult<void
     return { success: true }
   } catch (error) {
     console.error(error)
-    return { success: false, error: 'No se pudo abandonar el equipo' }
+    return actionFailure(ErrorCode.TEAM_LEAVE_FAILED)
   }
 }
 
@@ -35,7 +36,7 @@ export async function createUserTeamAction(
 ): Promise<ActionResult<{ id: string }>> {
   const parsed = createTeamSchema.safeParse(input)
   if (!parsed.success)
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos invÃ¡lidos' }
+    return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
 
   try {
     const team = await teamService.createTeam(normalizeTeamPayload(parsed.data))
@@ -44,7 +45,7 @@ export async function createUserTeamAction(
     return { success: true, data: { id } }
   } catch (error) {
     console.error(error)
-    return { success: false, error: 'No se pudo crear el equipo' }
+    return actionFailure(ErrorCode.TEAM_CREATE_FAILED)
   }
 }
 
@@ -57,7 +58,7 @@ export async function removePlayerFromTeamAction(
   const profileIdParsed = uuidSchema.safeParse(profileId)
 
   if (!teamIdParsed.success || !profileIdParsed.success) {
-    return { success: false, error: 'IDs inválidos' }
+    return actionFailure(ErrorCode.INVALID_ID)
   }
 
   try {
@@ -67,7 +68,7 @@ export async function removePlayerFromTeamAction(
     return { success: true }
   } catch (error) {
     console.error(error)
-    return { success: false, error: 'No se pudo quitar al jugador del equipo' }
+    return actionFailure(ErrorCode.ROSTER_REMOVE_FAILED)
   }
 }
 
@@ -80,7 +81,7 @@ export async function addPlayerToTeamAction(
   const profileIdParsed = uuidSchema.safeParse(profileId)
 
   if (!teamIdParsed.success || !profileIdParsed.success) {
-    return { success: false, error: 'IDs inválidos' }
+    return actionFailure(ErrorCode.INVALID_ID)
   }
 
   try {
@@ -90,7 +91,7 @@ export async function addPlayerToTeamAction(
     return { success: true }
   } catch (error) {
     console.error(error)
-    return { success: false, error: 'No se pudo agregar al jugador' }
+    return actionFailure(ErrorCode.ROSTER_ADD_FAILED)
   }
 }
 
@@ -105,12 +106,12 @@ export async function updateTeamNameAction(
   const uuidSchema = z.string().uuid()
   const teamIdParsed = uuidSchema.safeParse(teamId)
   if (!teamIdParsed.success) {
-    return { success: false, error: 'ID de equipo inválido' }
+    return actionFailure(ErrorCode.INVALID_ID)
   }
 
   const parsed = updateTeamNameSchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+    return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   }
 
   try {
@@ -120,7 +121,7 @@ export async function updateTeamNameAction(
     return { success: true }
   } catch (error) {
     console.error(error)
-    return { success: false, error: 'No se pudo actualizar el nombre del equipo' }
+    return actionFailure(ErrorCode.TEAM_UPDATE_FAILED)
   }
 }
 
@@ -130,7 +131,7 @@ export async function deleteTeamAction(
   const uuidSchema = z.string().uuid()
   const teamIdParsed = uuidSchema.safeParse(teamId)
   if (!teamIdParsed.success) {
-    return { success: false, error: 'ID de equipo inválido' }
+    return actionFailure(ErrorCode.INVALID_ID)
   }
 
   try {
@@ -139,7 +140,7 @@ export async function deleteTeamAction(
     return { success: true }
   } catch (error) {
     console.error(error)
-    return { success: false, error: 'No se pudo eliminar el equipo' }
+    return actionFailure(ErrorCode.TEAM_DELETE_FAILED)
   }
 }
 
@@ -148,7 +149,7 @@ export async function createFranchiseWithTeamAction(
 ): Promise<ActionResult<{ teamId: string; franchiseId: string }>> {
   const parsed = createFranchiseSchema.safeParse(input)
   if (!parsed.success)
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos invÃ¡lidos' }
+    return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
 
   try {
     const franchise = await teamService.createFranchise({ name: parsed.data.franchiseName })
@@ -167,7 +168,7 @@ export async function createFranchiseWithTeamAction(
     return { success: true, data: { teamId, franchiseId } }
   } catch (error) {
     console.error(error)
-    return { success: false, error: 'No se pudo crear la franquicia' }
+    return actionFailure(ErrorCode.FRANCHISE_CREATE_FAILED)
   }
 }
 

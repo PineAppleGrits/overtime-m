@@ -134,6 +134,7 @@ export default tournamentBrowserService
 - Siempre retornan `ActionResult<T>` (ver `modules/admin/actions/types.ts`).
 - Siempre llaman `revalidatePath(...)` al finalizar con éxito.
 - **Nunca** usan `browserClient` — sólo `client` (SSR).
+- Errores user-facing salen del catálogo en `modules/common/errors` — **no inlinear strings**. Usar `actionFailure(ErrorCode.X)` (devuelve `{ success: false, error }` ya localizado).
 
 ```ts
 'use server'
@@ -141,21 +142,28 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import service from '@/modules/[feature]/[Feature]Service'
 import type { ActionResult } from '@/modules/admin/actions/types'
+import { ErrorCode, actionFailure } from '@/modules/common/errors'
 
 const schema = z.object({ name: z.string().min(1) })
 
 export async function createXAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = schema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     const result = await service.create(parsed.data)
     revalidatePath('/ruta-relevante')
     return { success: true, data: { id: result.id } }
   } catch {
-    return { success: false, error: 'No se pudo completar la operación' }
+    return actionFailure(ErrorCode.GENERIC)
   }
 }
 ```
+
+### Catálogo de errores (`modules/common/errors`)
+- `codes.ts` — `ErrorCode` (objeto `as const` + tipo). Códigos `SCREAMING_SNAKE_CASE`, agrupados por dominio.
+- `messages.ts` — `ERROR_MESSAGES: Record<ErrorCode, string>` (TS te exige tener todos los códigos cubiertos).
+- Helpers: `getErrorMessage(code, fallback?)` para client-side, `actionFailure(code, override?)` para server actions.
+- Si vas a escribir un mensaje nuevo, primero revisá si ya hay uno equivalente; sumás un código nuevo solo si el mensaje es genuinamente distinto.
 
 ---
 
@@ -401,3 +409,4 @@ const { profile } = useAuth()
 10. **Los textos de la UI van en español rioplatense** (vos, hacé, inscribite, etc.).
 11. **Todos los botones y links deben tener `cursor: pointer`** — ya hay una regla global en `globals.css` para `.admin-panel`, pero si creás componentes custom interactivos, asegurate de que muestren pointer.
 12. **Todas las páginas deben ser responsive (mobile-first)** — usá las utilidades responsive de Tailwind (`sm:`, `md:`, `lg:`). Grids deben colapsar a una columna en mobile, tablas deben scrollear horizontalmente, y los headers/toolbars deben stackear en mobile. Testeá siempre en viewport chico.
+13. **No magic strings ni magic numbers** — los mensajes de error van por `modules/common/errors`; las constantes de negocio (límites, defaults) en `constants.ts` del módulo dueño. Si encontrás un literal repetido al hacer un cambio, movelo al catálogo correspondiente en lugar de duplicarlo.
