@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import sportService from '@/modules/sport/SportService'
+import { ErrorCode, actionFailure } from '@/modules/common/errors'
 import {
   createSportSchema,
   updateSportSchema,
@@ -12,7 +13,7 @@ import type { ActionResult } from './types'
 export async function createSportAction(input: unknown): Promise<ActionResult> {
   const parsed = createSportSchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+    return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   }
   try {
     await sportService.createSport(parsed.data)
@@ -20,14 +21,14 @@ export async function createSportAction(input: unknown): Promise<ActionResult> {
     return { success: true }
   } catch (error) {
     console.error('Error creating sport:', error)
-    return { success: false, error: 'No se pudo crear la disciplina' }
+    return actionFailure(ErrorCode.SPORT_CREATE_FAILED)
   }
 }
 
 export async function updateSportAction(input: unknown): Promise<ActionResult> {
   const parsed = updateSportSchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+    return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   }
   const { id, ...data } = parsed.data
   try {
@@ -36,14 +37,14 @@ export async function updateSportAction(input: unknown): Promise<ActionResult> {
     return { success: true }
   } catch (error) {
     console.error('Error updating sport:', error)
-    return { success: false, error: 'No se pudo actualizar la disciplina' }
+    return actionFailure(ErrorCode.SPORT_UPDATE_FAILED)
   }
 }
 
 export async function deleteSportAction(input: unknown): Promise<ActionResult> {
   const parsed = deleteSportSchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+    return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   }
   try {
     await sportService.deleteSport(parsed.data.id)
@@ -51,6 +52,6 @@ export async function deleteSportAction(input: unknown): Promise<ActionResult> {
     return { success: true }
   } catch (error) {
     console.error('Error deleting sport:', error)
-    return { success: false, error: 'No se pudo eliminar la disciplina' }
+    return actionFailure(ErrorCode.SPORT_DELETE_FAILED)
   }
 }

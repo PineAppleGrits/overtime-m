@@ -9,6 +9,7 @@ import { ErrorCode } from './codes'
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCode.GENERIC]: 'Ocurrió un error inesperado',
   [ErrorCode.NETWORK]: 'No pudimos conectar con el servidor',
+  [ErrorCode.STATUS_CHANGE_FAILED]: 'No se pudo cambiar el estado',
 
   [ErrorCode.NOT_AUTHENTICATED]: 'Tenés que iniciar sesión para hacer esto',
   [ErrorCode.NOT_AUTHORIZED]: 'No tenés permisos para esta acción',
@@ -26,6 +27,41 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 
   [ErrorCode.MATCH_SCORE_UPDATE_FAILED]: 'No se pudo actualizar el marcador',
   [ErrorCode.MATCH_STATUS_CHANGE_FAILED]: 'No se pudo cambiar el estado del partido',
+
+  [ErrorCode.BLACKLIST_ADD_FAILED]: 'No se pudo agregar a la lista negra',
+  [ErrorCode.BLACKLIST_REMOVE_FAILED]: 'No se pudo eliminar de la lista negra',
+  [ErrorCode.BLACKLIST_CHECK_FAILED]: 'No se pudo verificar el estado del jugador',
+
+  [ErrorCode.EMPLOYEE_CREATE_FAILED]: 'No se pudo crear el empleado',
+  [ErrorCode.EMPLOYEE_UPDATE_FAILED]: 'No se pudo actualizar el empleado',
+  [ErrorCode.EMPLOYEE_DELETE_FAILED]: 'No se pudo eliminar el empleado',
+
+  [ErrorCode.PLAYER_CREATE_FAILED]: 'No se pudo crear el jugador',
+  [ErrorCode.PLAYER_UPDATE_FAILED]: 'No se pudo actualizar el jugador',
+  [ErrorCode.PLAYER_DELETE_FAILED]: 'No se pudo eliminar el jugador',
+
+  [ErrorCode.REGISTRATION_APPROVE_FAILED]: 'No se pudo aprobar la inscripción',
+  [ErrorCode.REGISTRATION_REJECT_FAILED]: 'No se pudo rechazar la inscripción',
+
+  [ErrorCode.SITE_CONFIG_GENERAL_FAILED]: 'No se pudo guardar la configuración',
+  [ErrorCode.SITE_CONFIG_SOCIAL_FAILED]: 'No se pudo guardar las redes sociales',
+  [ErrorCode.SITE_CONFIG_PAYMENT_FAILED]: 'No se pudo guardar la configuración de pagos',
+
+  [ErrorCode.SPORT_CREATE_FAILED]: 'No se pudo crear la disciplina',
+  [ErrorCode.SPORT_UPDATE_FAILED]: 'No se pudo actualizar la disciplina',
+  [ErrorCode.SPORT_DELETE_FAILED]: 'No se pudo eliminar la disciplina',
+
+  [ErrorCode.TOURNAMENT_CREATE_FAILED]: 'No se pudo crear el torneo',
+  [ErrorCode.TOURNAMENT_UPDATE_FAILED]: 'No se pudo actualizar el torneo',
+  [ErrorCode.TOURNAMENT_DELETE_FAILED]: 'No se pudo eliminar el torneo',
+  [ErrorCode.CATEGORY_CREATE_FAILED]: 'No se pudo crear la categoría',
+  [ErrorCode.CATEGORY_UPDATE_FAILED]: 'No se pudo actualizar la categoría',
+  [ErrorCode.CATEGORY_DELETE_FAILED]: 'No se pudo eliminar la categoría',
+  [ErrorCode.ZONE_CREATE_FAILED]: 'No se pudo crear la zona',
+  [ErrorCode.ZONE_DELETE_FAILED]: 'No se pudo eliminar la zona',
+  [ErrorCode.ZONE_TEAM_ASSIGN_FAILED]: 'No se pudo asignar el equipo a la zona',
+  [ErrorCode.ZONE_TEAM_REMOVE_FAILED]: 'No se pudo remover el equipo de la zona',
+  [ErrorCode.ZONE_TEAM_MOVE_FAILED]: 'No se pudo mover el equipo',
 }
 
 /**

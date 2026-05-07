@@ -2,12 +2,17 @@
 
 import { revalidatePath } from 'next/cache'
 import siteConfigService from '@/modules/site-config/SiteConfigService'
-import { updateGeneralConfigSchema, updateSocialConfigSchema, updatePaymentConfigSchema } from '../schemas/siteConfigSchemas'
+import { ErrorCode, actionFailure } from '@/modules/common/errors'
+import {
+  updateGeneralConfigSchema,
+  updateSocialConfigSchema,
+  updatePaymentConfigSchema,
+} from '../schemas/siteConfigSchemas'
 import type { ActionResult } from './types'
 
 export async function updateGeneralConfigAction(input: unknown): Promise<ActionResult> {
   const parsed = updateGeneralConfigSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     const dto = {
       siteName: parsed.data.siteName,
@@ -21,12 +26,15 @@ export async function updateGeneralConfigAction(input: unknown): Promise<ActionR
     await siteConfigService.updateConfig(dto)
     revalidatePath('/admin/configuracion')
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo guardar la configuración' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.SITE_CONFIG_GENERAL_FAILED)
+  }
 }
 
 export async function updateSocialConfigAction(input: unknown): Promise<ActionResult> {
   const parsed = updateSocialConfigSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     const sm = parsed.data.socialMedia
     await siteConfigService.updateConfig({
@@ -39,12 +47,15 @@ export async function updateSocialConfigAction(input: unknown): Promise<ActionRe
     })
     revalidatePath('/admin/configuracion')
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo guardar las redes sociales' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.SITE_CONFIG_SOCIAL_FAILED)
+  }
 }
 
 export async function updatePaymentConfigAction(input: unknown): Promise<ActionResult> {
   const parsed = updatePaymentConfigSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     const pc = parsed.data.paymentConfig
     await siteConfigService.updateConfig({
@@ -58,5 +69,8 @@ export async function updatePaymentConfigAction(input: unknown): Promise<ActionR
     })
     revalidatePath('/admin/configuracion')
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo guardar la configuración de pagos' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.SITE_CONFIG_PAYMENT_FAILED)
+  }
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import adminTournamentServerService from '@/modules/admin-tournament/AdminTournamentService'
 import categoryService from '@/modules/tournament/CategoryService'
 import zoneService from '@/modules/tournament/ZoneService'
+import { ErrorCode, actionFailure } from '@/modules/common/errors'
 import {
   createTournamentSchema, updateTournamentSchema, changeStatusSchema,
   deleteTournamentSchema,
@@ -16,7 +17,7 @@ import type { ActionResult } from './types'
 
 export async function createTournamentAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = createTournamentSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     const result = await adminTournamentServerService.createTournament({
       ...parsed.data,
@@ -26,12 +27,15 @@ export async function createTournamentAction(input: unknown): Promise<ActionResu
     })
     revalidatePath('/admin/torneos')
     return { success: true, data: { id: result.id } }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo crear el torneo' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.TOURNAMENT_CREATE_FAILED)
+  }
 }
 
 export async function updateTournamentAction(input: unknown): Promise<ActionResult> {
   const parsed = updateTournamentSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   const { id, ...data } = parsed.data
   try {
     await adminTournamentServerService.updateTournament(id, {
@@ -43,45 +47,57 @@ export async function updateTournamentAction(input: unknown): Promise<ActionResu
     revalidatePath('/admin/torneos')
     revalidatePath(`/admin/torneos/${id}`)
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo actualizar el torneo' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.TOURNAMENT_UPDATE_FAILED)
+  }
 }
 
 export async function changeStatusAction(input: unknown): Promise<ActionResult> {
   const parsed = changeStatusSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await adminTournamentServerService.changeStatus(parsed.data.id, parsed.data.status)
     revalidatePath('/admin/torneos')
     revalidatePath(`/admin/torneos/${parsed.data.id}`)
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo cambiar el estado' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.STATUS_CHANGE_FAILED)
+  }
 }
 
 export async function deleteTournamentAction(input: unknown): Promise<ActionResult> {
   const parsed = deleteTournamentSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await adminTournamentServerService.deleteTournament(parsed.data.id)
     revalidatePath('/admin/torneos')
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo eliminar el torneo' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.TOURNAMENT_DELETE_FAILED)
+  }
 }
 
 export async function createCategoryAction(input: unknown): Promise<ActionResult> {
   const parsed = createCategorySchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   const { tournamentId, ...dto } = parsed.data
   try {
     await categoryService.createCategory(tournamentId, dto)
     revalidatePath(`/admin/torneos/${tournamentId}`)
     revalidatePath(`/admin/torneos/${tournamentId}/categorias`)
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo crear la categoría' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.CATEGORY_CREATE_FAILED)
+  }
 }
 
 export async function updateCategoryAction(input: unknown): Promise<ActionResult> {
   const parsed = updateCategorySchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   const { tournamentId, categoryId, ...dto } = parsed.data
   try {
     await categoryService.updateCategory(tournamentId, categoryId, {
@@ -92,63 +108,81 @@ export async function updateCategoryAction(input: unknown): Promise<ActionResult
     revalidatePath(`/admin/torneos/${tournamentId}`)
     revalidatePath(`/admin/torneos/${tournamentId}/categorias`)
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo actualizar la categoría' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.CATEGORY_UPDATE_FAILED)
+  }
 }
 
 export async function deleteCategoryAction(input: unknown): Promise<ActionResult> {
   const parsed = deleteCategorySchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await categoryService.deleteCategory(parsed.data.tournamentId, parsed.data.categoryId)
     revalidatePath(`/admin/torneos/${parsed.data.tournamentId}`)
     revalidatePath(`/admin/torneos/${parsed.data.tournamentId}/categorias`)
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo eliminar la categoría' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.CATEGORY_DELETE_FAILED)
+  }
 }
 
 export async function createZoneAction(input: unknown): Promise<ActionResult> {
   const parsed = createZoneSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await zoneService.createZone(parsed.data.categoryId, { name: parsed.data.name })
     revalidatePath('/admin/torneos')
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo crear la zona' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.ZONE_CREATE_FAILED)
+  }
 }
 
 export async function deleteZoneAction(input: unknown): Promise<ActionResult> {
   const parsed = deleteZoneSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await zoneService.deleteZone(parsed.data.categoryId, parsed.data.zoneId)
     revalidatePath('/admin/torneos')
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo eliminar la zona' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.ZONE_DELETE_FAILED)
+  }
 }
 
 export async function assignTeamToZoneAction(input: unknown): Promise<ActionResult> {
   const parsed = assignTeamToZoneSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await zoneService.assignTeam(parsed.data.categoryId, parsed.data.zoneId, { teamId: parsed.data.teamId })
     revalidatePath('/admin/torneos')
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo asignar el equipo a la zona' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.ZONE_TEAM_ASSIGN_FAILED)
+  }
 }
 
 export async function removeTeamFromZoneAction(input: unknown): Promise<ActionResult> {
   const parsed = removeTeamFromZoneSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await zoneService.removeTeam(parsed.data.categoryId, parsed.data.zoneId, parsed.data.teamId)
     revalidatePath('/admin/torneos')
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo remover el equipo de la zona' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.ZONE_TEAM_REMOVE_FAILED)
+  }
 }
 
 export async function moveTeamBetweenZonesAction(input: unknown): Promise<ActionResult> {
   const parsed = moveTeamBetweenZonesSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   const { categoryId, fromZoneId, toZoneId, teamId } = parsed.data
   if (fromZoneId === toZoneId) return { success: true }
   try {
@@ -158,26 +192,32 @@ export async function moveTeamBetweenZonesAction(input: unknown): Promise<Action
     return { success: true }
   } catch (error) {
     console.error(error)
-    return { success: false, error: 'No se pudo mover el equipo' }
+    return actionFailure(ErrorCode.ZONE_TEAM_MOVE_FAILED)
   }
 }
 
 export async function approveRegistrationTournamentAction(input: unknown): Promise<ActionResult> {
   const parsed = approveRegistrationTournamentSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await adminTournamentServerService.approveRegistration(parsed.data.tournamentId, parsed.data.registrationId)
     revalidatePath(`/admin/torneos/${parsed.data.tournamentId}/inscripciones`)
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo aprobar la inscripción' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.REGISTRATION_APPROVE_FAILED)
+  }
 }
 
 export async function rejectRegistrationTournamentAction(input: unknown): Promise<ActionResult> {
   const parsed = rejectRegistrationTournamentSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
     await adminTournamentServerService.rejectRegistration(parsed.data.tournamentId, parsed.data.registrationId, parsed.data.rejectionReason)
     revalidatePath(`/admin/torneos/${parsed.data.tournamentId}/inscripciones`)
     return { success: true }
-  } catch (error) { console.error(error); return { success: false, error: 'No se pudo rechazar la inscripción' } }
+  } catch (error) {
+    console.error(error)
+    return actionFailure(ErrorCode.REGISTRATION_REJECT_FAILED)
+  }
 }

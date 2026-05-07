@@ -156,6 +156,19 @@ Esto es scope de FE — no entra en el cierre de backend.
 
 ---
 
+## 8. Endpoints faltantes para retirar mocks del frontend
+
+Detalle completo en [`frontend-mocks-debt.md`](./frontend-mocks-debt.md).
+
+Resumen de los más críticos:
+- `GET /teams/:teamId/matches?type=last|next` — última/próxima jornada del equipo (mock `team-matches.json`).
+- `GET /categories/:categoryId/standings` — tabla de posiciones por zona (mock `category-standings.json`).
+- `GET /categories/:categoryId/fixture` o flag `roundNumber` en `Match` — fixture agrupado por fecha (mock `category-fixture.json`).
+- `GET /teams/:teamId/balance` — read model agregado de deudas + pagos + sanciones (mock `team-balance.json`).
+- `GET /teams/:teamId/stats` + `GET /teams/:teamId/player-stats` — stats acumuladas (mocks `team-stats.json`, `player-stats.json`). Depende de stats por match implementadas.
+
+---
+
 ## Cómo trabajar este backlog
 
 - **Cerrar DPs**: el usuario confirma valores de DP-001 a DP-017. Por cada DP cerrada, una PR chica que reemplaza el TODO con la lógica final + actualiza `pending-decisions.md` (mover a la business rule correspondiente).
