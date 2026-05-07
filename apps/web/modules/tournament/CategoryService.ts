@@ -1,6 +1,7 @@
 import { client } from "../common/client/baseClient"
 import { Service } from "../common/services/Service"
 import { PaginationParams } from "../common/dto"
+import type { MatchPreviewData } from "../common/components/MatchPreview/types"
 
 interface CreateCategoryDto {
   name: string
@@ -13,6 +14,40 @@ interface UpdateCategoryDto {
   sportId?: string
   maxTeams?: number
   teamsPerZone?: number
+}
+
+export interface CategoryStandingEntry {
+  position: number
+  teamId: string
+  teamName: string
+  teamLogo: string | null
+  played: number
+  won: number
+  lost: number
+  pointsFor: number
+  pointsAgainst: number
+  diff: number
+  points: number
+}
+
+export interface CategoryStandingsZone {
+  id: string
+  name: string
+  standings: CategoryStandingEntry[]
+}
+
+export interface CategoryStandingsResponse {
+  zones: CategoryStandingsZone[]
+}
+
+export interface CategoryFixtureRound {
+  name: string
+  date: string
+  matches: MatchPreviewData[]
+}
+
+export interface CategoryFixtureResponse {
+  rounds: CategoryFixtureRound[]
 }
 
 class CategoryService extends Service {
@@ -41,6 +76,22 @@ class CategoryService extends Service {
 
   async deleteCategory(tournamentId: string, id: string) {
     const { data } = await this.client.delete(`/tournaments/${tournamentId}/categories/${id}`)
+    return data
+  }
+
+  /** BE-MOCK-003 — tabla de posiciones por zona. */
+  async getCategoryStandings(categoryId: string) {
+    const { data } = await this.client.get<CategoryStandingsResponse>(
+      `/categories/${categoryId}/standings`,
+    )
+    return data
+  }
+
+  /** BE-MOCK-002 — fixture agrupado por ronda. */
+  async getCategoryFixture(categoryId: string) {
+    const { data } = await this.client.get<CategoryFixtureResponse>(
+      `/categories/${categoryId}/fixture`,
+    )
     return data
   }
 }

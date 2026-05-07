@@ -3,11 +3,19 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { MediaCategory, MediaVisibility } from '@prisma/client';
+import {
+  DebtStatus,
+  DebtType,
+  MediaCategory,
+  MediaVisibility,
+  Prisma,
+} from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
+import { readFechasState } from '../sanctions/domain/rules/fechas-counting.rules';
 import type {
   CreateFranchiseSchemaDto,
   AddPlayerSchemaDto,
@@ -953,6 +961,302 @@ export class TeamsService {
         : null,
       team1Score: hasResult ? match.homeScore : null,
       team2Score: hasResult ? match.awayScore : null,
+    };
+  }
+
+  /**
+   * BE-MOCK-004 — Estado financiero y disciplinario consolidado del equipo.
+   *
+   * Auth: solo admin/master, el creator del team o el captain pueden consultarlo.
+   * Cualquier otro currentUser → ForbiddenException.
+   *
+   * Devuelve:
+   *  - totalDebt: suma de `currentBalance` de Debts del team con status no terminal
+   *    (excluye PAID, CANCELLED y los DELETED_*).
+   *  - totalPaid: suma de Payment.amount con status=procesado, scopeados al team
+   *    (debt.teamId === team o registration.teamId === team).
+   *  - pendingConfirmation: ídem pero con status pendiente | procesando
+   *    (proxy del estado "voucher subido pero todavía no confirmado por admin").
+   *  - registrations[]: por cada Registration del team, agrupa sus Debts y Payments
+   *    y deriva inscriptionAmount/insuranceAmount/paidAmount/status/voucherUrl.
+   *  - suspensions[]: sanciones DISCIPLINARY ACTIVE de profiles que están en el roster
+   *    activo del team. totalGames/remainingGames se leen del marcador embebido en
+   *    `notes` (RN-003 / fechas-counting.rules.ts).
+   *
+   * El shape se alinea con `TeamBalance` del FE (apps/web/modules/team/TeamBalanceService.ts).
+   */
+  async getBalance(
+    teamId: string,
+    currentUserId: string,
+    currentUserRole: string | null | undefined,
+  ) {
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId, deletedAt: null },
+      select: { id: true, creatorId: true, captainId: true },
+    });
+    if (!team) {
+      throw new NotFoundException('Team not found');
+    }
+
+    const isAdmin =
+      currentUserRole === 'admin' || currentUserRole === 'master';
+    const isCreator = team.creatorId === currentUserId;
+    const isCaptain = team.captainId === currentUserId;
+    if (!isAdmin && !isCreator && !isCaptain) {
+      throw new ForbiddenException(
+        'Solo admin/master, el creador o el capitán del equipo pueden ver el balance',
+      );
+    }
+
+    // Debts del team que todavía generan saldo (status no terminal).
+    const NON_TERMINAL_DEBT_STATUSES: DebtStatus[] = [
+      DebtStatus.APPROVED,
+      DebtStatus.PARTIALLY_PAID,
+    ];
+
+    // Una sola query para todas las Debts del team — luego agrupamos en memoria
+    // para construir totales globales y desgloses por registration.
+    const debts = await this.prisma.debt.findMany({
+      where: {
+        teamId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        type: true,
+        status: true,
+        originAmount: true,
+        currentBalance: true,
+        registrationId: true,
+        payments: {
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    // Acumuladores globales.
+    const decimalToNumber = (d: Prisma.Decimal): number => Number(d.toString());
+
+    let totalDebt = 0;
+    let totalPaid = 0;
+    let pendingConfirmation = 0;
+
+    for (const debt of debts) {
+      if (NON_TERMINAL_DEBT_STATUSES.includes(debt.status)) {
+        totalDebt += decimalToNumber(debt.currentBalance);
+      }
+      for (const p of debt.payments) {
+        if (p.status === 'procesado') {
+          totalPaid += p.amount;
+        } else if (p.status === 'pendiente' || p.status === 'procesando') {
+          pendingConfirmation += p.amount;
+        }
+      }
+    }
+
+    // Agrupar debts por registrationId (las que no tienen registration quedan fuera
+    // del array `registrations[]` pero ya impactaron en los totales globales).
+    const debtsByRegistration = new Map<string, typeof debts>();
+    for (const debt of debts) {
+      if (!debt.registrationId) continue;
+      const list = debtsByRegistration.get(debt.registrationId) ?? [];
+      list.push(debt);
+      debtsByRegistration.set(debt.registrationId, list);
+    }
+
+    const registrationRecords = await this.prisma.registration.findMany({
+      where: { teamId },
+      select: {
+        id: true,
+        tournament: { select: { name: true } },
+        category: { select: { name: true } },
+      },
+    });
+
+    // playersCount es un proxy del roster actual del team (no hay snapshot por
+    // registration en el schema). TODO: si en el futuro RegistrationRosterEntry
+    // se materializa por inscripción, derivar de ahí en lugar del roster activo.
+    const activePlayersCount = await this.prisma.profileTeam.count({
+      where: { teamId, isActive: true },
+    });
+
+    // Para resolver voucherUrl tomamos el último Payment con un MediaAsset
+    // category=PAYMENT_PROOF asociado vía metadata.paymentId. Buscamos los
+    // assets en una sola query y los mapeamos por paymentId.
+    const allPaymentIds = debts.flatMap((d) => d.payments.map((p) => p.id));
+    const proofAssets = allPaymentIds.length
+      ? await this.prisma.mediaAsset.findMany({
+          where: {
+            category: MediaCategory.PAYMENT_PROOF,
+            deletedAt: null,
+            metadata: { path: ['paymentId'], string_contains: '' },
+          },
+          select: {
+            id: true,
+            bucket: true,
+            storageKey: true,
+            metadata: true,
+            createdAt: true,
+          },
+        })
+      : [];
+    const voucherByPaymentId = new Map<string, { url: string; createdAt: Date }>();
+    for (const asset of proofAssets) {
+      const meta = asset.metadata as { paymentId?: string } | null;
+      const pid = meta?.paymentId;
+      if (!pid || !allPaymentIds.includes(pid)) continue;
+      // URL pública estable: `${bucket}/${storageKey}` — el FE puede pedir un
+      // signed URL al endpoint de media si hace falta (asset es PRIVATE).
+      // TODO: si el FE necesita signed URL, exponer un /media/:assetId/url
+      //       y devolver ese path acá.
+      const url = `${asset.bucket}/${asset.storageKey}`;
+      const existing = voucherByPaymentId.get(pid);
+      if (!existing || existing.createdAt < asset.createdAt) {
+        voucherByPaymentId.set(pid, { url, createdAt: asset.createdAt });
+      }
+    }
+
+    const registrations = registrationRecords.map((reg) => {
+      const regDebts = debtsByRegistration.get(reg.id) ?? [];
+
+      // TODO: si en el futuro INSURANCE convive con LATE_ROSTER_FEE u otros tipos
+      //       per-jugador, considerar agruparlos. Por ahora: REGISTRATION_FEE
+      //       e INSURANCE son los conceptos base de una inscripción.
+      const inscriptionAmount = regDebts
+        .filter((d) => d.type === DebtType.REGISTRATION_FEE)
+        .reduce((acc, d) => acc + decimalToNumber(d.originAmount), 0);
+      const insuranceAmount = regDebts
+        .filter((d) => d.type === DebtType.INSURANCE)
+        .reduce((acc, d) => acc + decimalToNumber(d.originAmount), 0);
+
+      const totalAmount = inscriptionAmount + insuranceAmount;
+
+      let regPaidAmount = 0;
+      let regPendingAmount = 0;
+      let latestPendingVoucher: { url: string; createdAt: Date } | null = null;
+      let latestApprovedVoucher: { url: string; createdAt: Date } | null = null;
+      for (const debt of regDebts) {
+        for (const p of debt.payments) {
+          const v = voucherByPaymentId.get(p.id) ?? null;
+          if (p.status === 'procesado') {
+            regPaidAmount += p.amount;
+            if (
+              v &&
+              (!latestApprovedVoucher ||
+                latestApprovedVoucher.createdAt < v.createdAt)
+            ) {
+              latestApprovedVoucher = v;
+            }
+          } else if (p.status === 'pendiente' || p.status === 'procesando') {
+            regPendingAmount += p.amount;
+            if (
+              v &&
+              (!latestPendingVoucher ||
+                latestPendingVoucher.createdAt < v.createdAt)
+            ) {
+              latestPendingVoucher = v;
+            }
+          }
+        }
+      }
+
+      // Status derivado: si todas las debts de la registration están PAID o no
+      // hay saldo, "paid". Si hay vouchers pendientes de confirmación,
+      // "voucher_sent". Si no, "pending_payment".
+      const allPaidOrNoDebts =
+        regDebts.length > 0 &&
+        regDebts.every(
+          (d) =>
+            d.status === DebtStatus.PAID ||
+            d.status === DebtStatus.CANCELLED ||
+            d.status === DebtStatus.DELETED_BY_ERROR ||
+            d.status === DebtStatus.DELETED_WITH_RECORD,
+        );
+
+      let status: 'pending_payment' | 'voucher_sent' | 'paid';
+      if (allPaidOrNoDebts) {
+        status = 'paid';
+      } else if (regPendingAmount > 0 || latestPendingVoucher) {
+        status = 'voucher_sent';
+      } else {
+        status = 'pending_payment';
+      }
+
+      const voucherUrl =
+        latestApprovedVoucher?.url ?? latestPendingVoucher?.url ?? null;
+
+      return {
+        id: reg.id,
+        tournamentName: reg.tournament?.name ?? '',
+        categoryName: reg.category?.name ?? '',
+        inscriptionAmount,
+        insuranceAmount,
+        playersCount: activePlayersCount,
+        totalAmount,
+        paidAmount: regPaidAmount,
+        status,
+        voucherUrl,
+      };
+    });
+
+    // Suspensiones — sanciones DISCIPLINARY activas a profiles del roster activo
+    // del team. La FE sólo muestra suspensiones de jugadores (no del team).
+    const activeRosterIds = await this.prisma.profileTeam.findMany({
+      where: { teamId, isActive: true },
+      select: { profileId: true },
+    });
+    const profileIds = activeRosterIds.map((m) => m.profileId);
+
+    const suspensions = profileIds.length
+      ? await this.prisma.sanction
+          .findMany({
+            where: {
+              targetType: 'PROFILE',
+              kind: 'DISCIPLINARY',
+              targetProfileId: { in: profileIds },
+            },
+            select: {
+              id: true,
+              targetProfileId: true,
+              status: true,
+              reason: true,
+              notes: true,
+              endsAt: true,
+              targetProfile: { select: { id: true, name: true } },
+            },
+          })
+          .then((rows) =>
+            rows.map((s) => {
+              const fechas = readFechasState(s.notes);
+              const totalGames = fechas?.totalFechas ?? 0;
+              const remainingGames = fechas
+                ? Math.max(0, fechas.totalFechas - fechas.fechasCumplidas)
+                : 0;
+              return {
+                profileId: s.targetProfileId ?? '',
+                playerName: s.targetProfile?.name ?? '',
+                reason: s.reason,
+                totalGames,
+                remainingGames,
+                endDate: s.endsAt ? s.endsAt.toISOString() : '',
+                isActive: s.status === 'ACTIVE',
+              };
+            }),
+          )
+      : [];
+
+    return {
+      totalDebt,
+      totalPaid,
+      pendingConfirmation,
+      registrations,
+      suspensions,
     };
   }
 }

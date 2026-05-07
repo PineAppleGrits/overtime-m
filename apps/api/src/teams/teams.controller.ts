@@ -114,6 +114,18 @@ export class TeamsController {
     return this.teamsService.findTeamMatches(id, type as 'last' | 'next' | undefined);
   }
 
+  @Get(':id/balance')
+  @ApiOperation({
+    summary:
+      'Estado financiero (deudas, pagos, comprobantes) y suspensiones del equipo. Auth: solo admin/master, creator o captain del team (BE-MOCK-004).',
+  })
+  getBalance(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: { id: string; role?: string | null } | undefined,
+  ) {
+    return this.teamsService.getBalance(id, user?.id ?? '', user?.role);
+  }
+
   @Get(':id/roster-status')
   @ApiOperation({
     summary:

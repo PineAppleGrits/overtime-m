@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CategoriesController } from './categories.controller';
+import { CategoryStandingsController } from './category-standings.controller';
 import { DatabaseModule } from '../../database/database.module';
 import { GetPlayoffConfigUseCase } from './application/use-cases/get-playoff-config.use-case';
 import { UpdatePlayoffConfigUseCase } from './application/use-cases/update-playoff-config.use-case';
@@ -9,7 +10,7 @@ import { LinkCategoryLevelUseCase } from './application/use-cases/link-category-
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [CategoriesController],
+  controllers: [CategoriesController, CategoryStandingsController],
   providers: [
     CategoriesService,
     GetPlayoffConfigUseCase,

@@ -1,9 +1,25 @@
 import { getProfile } from "@/lib/auth/session"
 import { hasAdminRole } from "@/lib/auth/hasAdminRole"
 import RegistrationService from "@/modules/registration/RegistrationService"
+import categoryService from "@/modules/tournament/CategoryService"
+import type {
+  CategoryFixtureResponse,
+  CategoryStandingsResponse,
+} from "@/modules/tournament/CategoryService"
 import { CategoryDetailContent } from "@/modules/tournament/components/CategoryDetailContent"
 import TournamentService from "@/modules/tournament/TournamentService"
 import { notFound } from "next/navigation"
+
+const EMPTY_STANDINGS: CategoryStandingsResponse = { zones: [] }
+const EMPTY_FIXTURE: CategoryFixtureResponse = { rounds: [] }
+
+async function getCategoryQueries(categoryId: string) {
+  const [standings, fixture] = await Promise.all([
+    categoryService.getCategoryStandings(categoryId).catch(() => EMPTY_STANDINGS),
+    categoryService.getCategoryFixture(categoryId).catch(() => EMPTY_FIXTURE),
+  ])
+  return { standings, fixture }
+}
 
 export default async function CategoryPage({
   params,
@@ -58,6 +74,8 @@ export default async function CategoryPage({
   const isRequester = !!profile && myRegistration?.requester?.id === profile.id
   const canManageTeam = !!profile && (isRequester || hasAdminRole(profile))
 
+  const { standings, fixture } = await getCategoryQueries(category.id)
+
   return (
     <div className="min-h-screen bg-ot-background text-white">
       {/* Tournament Header — full width */}
@@ -77,6 +95,8 @@ export default async function CategoryPage({
         myTeamId={myRegistration?.team?.id}
         categoryId={category.id}
         canManageTeam={canManageTeam}
+        standings={standings}
+        fixture={fixture}
       />
     </div>
   )

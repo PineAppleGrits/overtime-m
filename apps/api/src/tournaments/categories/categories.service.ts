@@ -531,4 +531,247 @@ export class CategoriesService {
 
     return { message: 'Category deleted successfully' };
   }
+
+  /**
+   * BE-MOCK-003 — tabla de posiciones por zona de la categoría.
+   *
+   * Calcula on-the-fly a partir de los matches finalizados de tipo `regular`
+   * (la tabla es de fase regular; playoffs/amistosos no cuentan).
+   *
+   * Reglas FIBA (RN-018):
+   *  - Siempre hay ganador → no hay empate.
+   *  - PG suma 2 pts, PP suma 1 pt.
+   *  - Orden: puntos desc, DP desc, PF desc.
+   *
+   * Si la categoría no existe → 404.
+   * Si no tiene zonas → `{ zones: [] }`.
+   * Si una zona no tiene teams → `{ ..., standings: [] }`.
+   */
+  async computeStandings(categoryId: string) {
+    // 1) 404 si la categoría no existe (o está soft-deleted).
+    const category = await this.prisma.category.findUnique({
+      where: { id: categoryId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${categoryId} not found`);
+    }
+
+    // 2) Cargar zonas con sus teams + matches finalizados de fase regular.
+    //    El filtro por `matchType: 'regular'` y `status: 'finalizado'` se aplica
+    //    en la query para no traer playoffs ni programados.
+    const zones = await this.prisma.zone.findMany({
+      where: { categoryId, deletedAt: null },
+      orderBy: { name: 'asc' },
+      include: {
+        teamZones: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
+          },
+        },
+        matches: {
+          where: {
+            deletedAt: null,
+            status: 'finalizado',
+            matchType: 'regular',
+          },
+          select: {
+            homeTeamId: true,
+            awayTeamId: true,
+            homeScore: true,
+            awayScore: true,
+          },
+        },
+      },
+    });
+
+    // 3) Por zona: armar acumulador por team y recorrer matches.
+    type Row = {
+      position: number;
+      teamId: string;
+      teamName: string;
+      teamLogo: string | null;
+      played: number;
+      won: number;
+      lost: number;
+      pointsFor: number;
+      pointsAgainst: number;
+      diff: number;
+      points: number;
+    };
+
+    const result = zones.map((zone) => {
+      const rows = new Map<string, Row>();
+
+      for (const tz of zone.teamZones) {
+        rows.set(tz.team.id, {
+          position: 0,
+          teamId: tz.team.id,
+          teamName: tz.team.name,
+          teamLogo: tz.team.logoUrl,
+          played: 0,
+          won: 0,
+          lost: 0,
+          pointsFor: 0,
+          pointsAgainst: 0,
+          diff: 0,
+          points: 0,
+        });
+      }
+
+      for (const match of zone.matches) {
+        const { homeTeamId, awayTeamId, homeScore, awayScore } = match;
+        if (!homeTeamId || !awayTeamId) continue;
+
+        const home = rows.get(homeTeamId);
+        const away = rows.get(awayTeamId);
+        // Defensivo: si un match referencia un team que no está en la zona
+        // (no debería pasar), lo ignoramos para no contaminar la tabla.
+        if (!home || !away) continue;
+
+        home.played += 1;
+        away.played += 1;
+        home.pointsFor += homeScore;
+        home.pointsAgainst += awayScore;
+        away.pointsFor += awayScore;
+        away.pointsAgainst += homeScore;
+
+        if (homeScore > awayScore) {
+          home.won += 1;
+          away.lost += 1;
+        } else if (awayScore > homeScore) {
+          away.won += 1;
+          home.lost += 1;
+        }
+        // FIBA: no hay empate; si llegara a venir, no sumamos PG/PP a nadie.
+      }
+
+      const standings = Array.from(rows.values()).map((r) => ({
+        ...r,
+        diff: r.pointsFor - r.pointsAgainst,
+        points: 2 * r.won + 1 * r.lost,
+      }));
+
+      // Orden: puntos desc, DP desc, PF desc.
+      standings.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.diff !== a.diff) return b.diff - a.diff;
+        return b.pointsFor - a.pointsFor;
+      });
+
+      standings.forEach((s, idx) => {
+        s.position = idx + 1;
+      });
+
+      return {
+        id: zone.id,
+        name: zone.name,
+        standings,
+      };
+    });
+
+    return { zones: result };
+  }
+
+  /**
+   * BE-MOCK-002 — `GET /categories/:categoryId/fixture`
+   *
+   * Devuelve los matches de fase regular de la categoría agrupados por
+   * "ronda". Hoy no existe `Match.roundNumber` en el schema (ver
+   * docs/be-proposals-mocks.md §BE-MOCK-002 opción A) así que usamos el
+   * `matchDate` (día calendario) como proxy: cada fecha distinta es una ronda.
+   *
+   * El nombre de la ronda se asigna como "Fecha N" según el orden cronológico
+   * (1 = más temprana). Cuando se sume `roundNumber` se reemplaza por el valor
+   * real y permite tener varios días en la misma ronda.
+   */
+  async getFixture(categoryId: string) {
+    const category = await this.prisma.category.findUnique({
+      where: { id: categoryId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${categoryId} not found`);
+    }
+
+    const matches = await this.prisma.match.findMany({
+      where: {
+        categoryId,
+        deletedAt: null,
+        matchType: 'regular',
+        status: { in: ['programado', 'reprogramado', 'finalizado', 'en_curso', 'suspendido'] },
+      },
+      orderBy: { matchDate: 'asc' },
+      include: {
+        homeTeam: { select: { id: true, name: true, logoUrl: true } },
+        awayTeam: { select: { id: true, name: true, logoUrl: true } },
+        venue: { select: { id: true, name: true } },
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            tournament: { select: { id: true, name: true, slug: true } },
+          },
+        },
+      },
+    });
+
+    const dayKey = (d: Date) =>
+      `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+
+    type Bucket = { key: string; date: Date; matches: typeof matches };
+    const buckets: Bucket[] = [];
+    const byKey = new Map<string, Bucket>();
+    for (const m of matches) {
+      const k = dayKey(m.matchDate);
+      let bucket = byKey.get(k);
+      if (!bucket) {
+        bucket = { key: k, date: m.matchDate, matches: [] };
+        byKey.set(k, bucket);
+        buckets.push(bucket);
+      }
+      bucket.matches.push(m);
+    }
+
+    const rounds = buckets.map((bucket, idx) => ({
+      name: `Fecha ${idx + 1}`,
+      date: bucket.date.toISOString(),
+      matches: bucket.matches.map((m) => {
+        const hasResult = m.status === 'finalizado';
+        return {
+          id: m.id,
+          tournamentSlug: m.category?.tournament?.slug ?? null,
+          categorySlug: m.category?.slug ?? null,
+          date: m.matchDate.toISOString(),
+          location: m.venue?.name ?? null,
+          matchType: m.matchType,
+          team1: m.homeTeam
+            ? {
+                id: m.homeTeam.id,
+                name: m.homeTeam.name,
+                logoUrl: m.homeTeam.logoUrl,
+              }
+            : null,
+          team2: m.awayTeam
+            ? {
+                id: m.awayTeam.id,
+                name: m.awayTeam.name,
+                logoUrl: m.awayTeam.logoUrl,
+              }
+            : null,
+          team1Score: hasResult ? m.homeScore : null,
+          team2Score: hasResult ? m.awayScore : null,
+        };
+      }),
+    }));
+
+    return { rounds };
+  }
 }

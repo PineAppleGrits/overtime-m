@@ -1,4 +1,4 @@
-import teamBalanceMock from '../../mock/team-balance.json'
+import { client } from '../common/client/baseClient'
 
 export interface RegistrationBalance {
   id: string
@@ -31,8 +31,21 @@ export interface TeamBalance {
   suspensions: Suspension[]
 }
 
-// TODO: reemplazar con GET /teams/:id/balance
+const EMPTY_BALANCE: TeamBalance = {
+  totalDebt: 0,
+  totalPaid: 0,
+  pendingConfirmation: 0,
+  registrations: [],
+  suspensions: [],
+}
+
+/** BE-MOCK-004 — balance financiero + suspensiones del team. */
 export async function getTeamBalance(teamId: string): Promise<TeamBalance> {
-  const data = teamBalanceMock as Record<string, TeamBalance>
-  return data[teamId] ?? data['fallback']
+  try {
+    const { data } = await client.get<TeamBalance>(`/teams/${teamId}/balance`)
+    return data
+  } catch (error) {
+    console.error('Error fetching team balance:', error)
+    return EMPTY_BALANCE
+  }
 }
