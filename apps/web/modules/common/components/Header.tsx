@@ -33,19 +33,23 @@ const getTorneos = async (): Promise<NavItem[]> => {
         return tournamentsToNavItems(tournaments)
     } catch (error) {
         console.error(error)
-        return [{
-            id: "error",
-            name: "Hubo un error al cargar los torneos",
-            href: "#"
-        }]
+        return []
     }
+}
+
+const TODOS_LOS_TORNEOS: NavItem = {
+    id: "todos-los-torneos",
+    name: "Todos los torneos",
+    href: "/torneos",
 }
 
 export const Header = async () => {
     const torneos = await getTorneos()
 
+    const torneosSubMenu: NavItem[] = [TODOS_LOS_TORNEOS, ...torneos]
+
     const navItems = navItem.map((item) =>
-        item.id === "torneos" ? { ...item, subMenu: torneos } : item
+        item.id === "torneos" ? { ...item, subMenu: torneosSubMenu } : item
     );
 
     return (

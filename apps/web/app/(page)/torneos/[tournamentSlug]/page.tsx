@@ -1,8 +1,9 @@
 import TournamentService from "@/modules/tournament/TournamentService";
+import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight, Users } from "lucide-react";
 import { notFound } from "next/navigation";
 
 function formatRegistrationPeriod(
@@ -110,55 +111,92 @@ export default async function TournamentPage({
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category, idx) => (
-              <Link
-                key={category.id}
-                href={`/torneos/${tournamentSlug}/${category.slug ?? category.id}`}
-                className="group relative overflow-hidden rounded-sm cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
-              >
-                {/* Card background */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      idx % 2 === 0
-                        ? 'linear-gradient(135deg, #2a2548 0%, #181525 100%)'
-                        : 'linear-gradient(135deg, #1f1b33 0%, #181525 100%)',
-                  }}
-                />
-                {/* Hover gradient */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, rgba(59, 51, 106, 0.5) 0%, rgba(255, 59, 47, 0.1) 100%)',
-                  }}
-                />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map((category, idx) => {
+              const isOrange = idx % 2 === 0;
+              const zones = category._count?.zones ?? 0;
+              const registrations = category._count?.registrations ?? 0;
 
-                {/* Top accent line */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#3b336a] group-hover:bg-ot-orange transition-colors" />
-
-                <div className="relative flex items-center justify-between gap-4 p-6">
-                  <div>
-                    <span className="block font-din-display font-bold text-white uppercase text-lg group-hover:text-ot-orange transition-colors">
-                      {category.name}
-                    </span>
-                    {category._count && (
-                      <span className="block mt-1 text-xs text-[#a9a5bb]">
-                        {category._count.zones > 0 && `${category._count.zones} zona${category._count.zones !== 1 ? 's' : ''}`}
-                        {category._count.zones > 0 && category._count.registrations > 0 && ' · '}
-                        {category._count.registrations > 0 && `${category._count.registrations} inscripto${category._count.registrations !== 1 ? 's' : ''}`}
-                      </span>
-                    )}
-                  </div>
-                  <ChevronRight
-                    className="h-5 w-5 shrink-0 text-[#4e4585] group-hover:text-ot-orange transition-colors"
+              return (
+                <Link
+                  key={category.id}
+                  href={`/torneos/${tournamentSlug}/${category.slug ?? category.id}`}
+                  className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-lg ring-1 ring-white/5 transition-shadow hover:shadow-[0_18px_40px_-12px_rgba(0,0,0,0.6)]"
+                >
+                  {/* Background image (wrapper handles the smooth transform) */}
+                  <div
+                    className="absolute inset-0 transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                     aria-hidden
+                  >
+                    <Image
+                      src="/images/basket-category-bg.webp"
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover"
+                    />
+                  </div>
+
+                  {/* Color tint per index */}
+                  <div
+                    className="absolute inset-0 mix-blend-multiply opacity-80"
+                    style={{
+                      background: isOrange
+                        ? 'linear-gradient(135deg, rgba(255,59,47,0.55) 0%, rgba(24,21,37,0.95) 100%)'
+                        : 'linear-gradient(135deg, rgba(78,69,133,0.55) 0%, rgba(24,21,37,0.95) 100%)',
+                    }}
                   />
-                </div>
-              </Link>
-            ))}
+
+                  {/* Bottom shading for legibility */}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        'linear-gradient(180deg, rgba(24,21,37,0) 35%, rgba(24,21,37,0.85) 100%)',
+                    }}
+                  />
+
+                  {/* Top accent bar */}
+                  <div
+                    className={`absolute left-0 right-0 top-0 h-[3px] transition-colors ${
+                      isOrange ? 'bg-ot-orange' : 'bg-[#7a6dca]'
+                    } group-hover:bg-ot-orange`}
+                  />
+
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-col gap-3 p-5 md:p-6">
+                    <h3 className="font-din-display text-2xl md:text-3xl font-bold uppercase leading-tight tracking-tight text-white">
+                      {category.name}
+                    </h3>
+
+                    {(zones > 0 || registrations > 0) && (
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-white/70">
+                        {zones > 0 && (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="inline-block h-1 w-1 rounded-full bg-ot-orange" />
+                            {zones} zona{zones !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {registrations > 0 && (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Users className="h-3.5 w-3.5 text-white/50" aria-hidden />
+                            {registrations} inscripto{registrations !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="mt-1 inline-flex items-center gap-1.5 font-din-display text-sm font-semibold uppercase tracking-wide text-ot-orange">
+                      Ver categoría
+                      <ArrowRight
+                        className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-1"
+                        aria-hidden
+                      />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

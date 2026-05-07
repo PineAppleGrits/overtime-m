@@ -37,7 +37,7 @@ export function FixtureView({ rounds }: { rounds: Round[] }) {
       </h3>
 
       {/* Round selector — PlayoffPicker style */}
-      <div className="flex w-full h-[50px] px-4 sm:px-6 rounded-sm bg-[#2b161f] items-center mb-6">
+      <div className="flex w-full h-[50px] px-4 sm:px-6 gap-3 sm:gap-4 rounded-sm bg-[#2b161f] items-center mb-6">
         <button
           onClick={() => setActiveRound(Math.max(0, activeRound - 1))}
           disabled={activeRound === 0}
