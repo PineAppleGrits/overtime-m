@@ -36,6 +36,7 @@ export const ErrorCode = {
   // ── Partidos ────────────────────────────────────────────────────
   MATCH_SCORE_UPDATE_FAILED: 'MATCH_SCORE_UPDATE_FAILED',
   MATCH_STATUS_CHANGE_FAILED: 'MATCH_STATUS_CHANGE_FAILED',
+  MATCH_STATS_UPSERT_FAILED: 'MATCH_STATS_UPSERT_FAILED',
 
   // ── Blacklist ───────────────────────────────────────────────────
   BLACKLIST_ADD_FAILED: 'BLACKLIST_ADD_FAILED',

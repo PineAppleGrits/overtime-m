@@ -27,6 +27,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 
   [ErrorCode.MATCH_SCORE_UPDATE_FAILED]: 'No se pudo actualizar el marcador',
   [ErrorCode.MATCH_STATUS_CHANGE_FAILED]: 'No se pudo cambiar el estado del partido',
+  [ErrorCode.MATCH_STATS_UPSERT_FAILED]: 'No se pudieron guardar las stats del partido',
 
   [ErrorCode.BLACKLIST_ADD_FAILED]: 'No se pudo agregar a la lista negra',
   [ErrorCode.BLACKLIST_REMOVE_FAILED]: 'No se pudo eliminar de la lista negra',

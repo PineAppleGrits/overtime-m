@@ -1,7 +1,11 @@
 import { hasAdminRole } from '@/lib/auth/hasAdminRole'
 import { getProfile } from '@/lib/auth/session'
 import { MatchPreview } from '@/modules/common/components/MatchPreview'
-import { getMockPlayerStats, getMockTeamStats } from '@/mock/playerStats.mock'
+import playerStatsService from '@/modules/match/PlayerStatsService'
+import type {
+  TeamPlayerStatRow,
+  TeamStatsResponse,
+} from '@/modules/match/PlayerStatsService'
 import teamService from '@/modules/team/TeamService'
 import { Settings, Star, UserPlus } from 'lucide-react'
 import Link from 'next/link'
@@ -65,6 +69,31 @@ async function getTeamMatchPreviews(id: string) {
   }
 }
 
+const EMPTY_TEAM_STATS: TeamStatsResponse = {
+  playedMatches: 0,
+  won: 0,
+  lost: 0,
+  pointsFor: 0,
+  pointsAgainst: 0,
+}
+
+async function getTeamStatsSafe(id: string): Promise<TeamStatsResponse> {
+  try {
+    return await playerStatsService.getTeamStats(id)
+  } catch {
+    return EMPTY_TEAM_STATS
+  }
+}
+
+async function getPlayerStatsByProfile(id: string): Promise<Record<string, TeamPlayerStatRow>> {
+  try {
+    const rows = await playerStatsService.getTeamPlayerStats(id)
+    return Object.fromEntries(rows.map((r) => [r.profileId, r]))
+  } catch {
+    return {}
+  }
+}
+
 function avg(total: number, played: number): string {
   if (!played || played === 0) return '-'
   return (total / played).toFixed(1).replace(/\.0$/, '')
@@ -72,19 +101,17 @@ function avg(total: number, played: number): string {
 
 export default async function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [team, profile, matchPreviews] = await Promise.all([
+  const [team, profile, matchPreviews, teamStats, playerStats] = await Promise.all([
     getTeam(id),
     getProfile(),
     getTeamMatchPreviews(id),
+    getTeamStatsSafe(id),
+    getPlayerStatsByProfile(id),
   ])
 
   if (!team) notFound()
 
   const activeMembers = team.members.filter((m) => m.isActive)
-
-  // TODO: Reemplazar por llamada a API cuando GET /teams/:id/stats esté disponible
-  const teamStats = getMockTeamStats(id)
-  const playerStats = getMockPlayerStats(id)
   const { lastMatch, nextMatch } = matchPreviews
 
   const isAdmin = profile ? hasAdminRole(profile) : false
@@ -249,7 +276,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                 const isMemberCaptain = member.profile.id === team.captainId
                 const isMemberCreator = member.profile.id === team.creatorId
                 const stats = playerStats[member.profile.id]
-                const photoSrc = stats?.picture ?? DEFAULT_PLAYER_PHOTO
+                const photoSrc = stats?.profileAvatarUrl ?? member.profile.avatarUrl ?? DEFAULT_PLAYER_PHOTO
 
                 return (
                   <div

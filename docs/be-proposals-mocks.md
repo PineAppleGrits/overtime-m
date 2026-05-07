@@ -6,6 +6,12 @@ Cada mock de `apps/web/mock/` requiere un endpoint para ser retirado. Algunos en
 
 **Última actualización**: 2026-05-07.
 
+> **Estado al 2026-05-07**:
+> - BE-MOCK-001, 002, 003, 004 → ✅ implementados (commits `08acb5e`, `63cda63`).
+> - BE-MOCK-005 → ✅ implementado (commit `6ecf276`). DP cerrada: carga manual desde admin → match detail.
+> - BE-MOCK-006 → mocks huérfanos sin uso, quedan en `apps/web/mock/` como referencia.
+> - Pendiente schema-side: agregar `Match.roundNumber Int?` para mejorar el agrupamiento de fixture (BE-MOCK-002 opción A) — hoy se usa `matchDate` como proxy.
+
 ---
 
 ## BE-MOCK-001 — `GET /teams/:teamId/matches?type=last|next`
