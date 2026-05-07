@@ -46,7 +46,7 @@ export function FixtureView({ rounds }: { rounds: Round[] }) {
         >
           ‹
         </button>
-        <div className="flex-1 h-full flex justify-start overflow-x-auto">
+        <div className="flex-1 min-w-0 h-full flex justify-start overflow-x-auto">
           {rounds.map((round, idx) => (
             <button
               key={round.name}

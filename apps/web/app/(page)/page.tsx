@@ -11,6 +11,7 @@ import {
   BarChart3,
   Target,
 } from "lucide-react"
+import { useAuth } from "@/providers/AuthProvider"
 
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null)
@@ -81,6 +82,8 @@ function SkewedButton({
 
 export default function Home() {
   const scrollRef = useScrollReveal()
+  const { user } = useAuth()
+  const isLoggedIn = !!user
 
   return (
     <div ref={scrollRef} className="min-h-screen bg-ot-background text-white overflow-hidden">
@@ -153,7 +156,11 @@ export default function Home() {
               style={{ animation: "fadeInUp 0.8s 0.9s cubic-bezier(0.16,1,0.3,1) both" }}
             >
               <SkewedButton href="/torneos">Ver torneos</SkewedButton>
-              <SkewedButton href="/auth/login" variant="ghost">Iniciar sesión</SkewedButton>
+              {isLoggedIn ? (
+                <SkewedButton href="/profile/equipos" variant="ghost">Ver mis equipos</SkewedButton>
+              ) : (
+                <SkewedButton href="/auth/login" variant="ghost">Iniciar sesión</SkewedButton>
+              )}
             </div>
           </div>
         </div>
@@ -603,7 +610,11 @@ export default function Home() {
 
             <div className="mt-8 md:mt-12 flex flex-wrap items-center gap-3 md:gap-4">
               <SkewedButton href="/torneos">Inscribite ahora</SkewedButton>
-              <SkewedButton href="/auth/login" variant="ghost">Mi cuenta</SkewedButton>
+              {isLoggedIn ? (
+                <SkewedButton href="/profile/equipos" variant="ghost">Ver mis equipos</SkewedButton>
+              ) : (
+                <SkewedButton href="/auth/login" variant="ghost">Mi cuenta</SkewedButton>
+              )}
             </div>
 
             {/* Trust signals — inline, minimal */}

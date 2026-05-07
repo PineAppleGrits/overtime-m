@@ -188,7 +188,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
       {(lastMatch || nextMatch) && (
         <div className="flex flex-wrap justify-center gap-12 bg-ot-background px-4 pt-12">
           {lastMatch && (
-            <div className="flex flex-col gap-3 items-center">
+            <div className="flex flex-col gap-3 items-center w-full max-w-[450px]">
               <span className="text-ot-orange text-sm text-center font-din-display font-bold uppercase tracking-wider">
                 Último partido
               </span>
@@ -196,7 +196,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
             </div>
           )}
           {nextMatch && (
-            <div className="flex flex-col gap-3 items-center">
+            <div className="flex flex-col gap-3 items-center w-full max-w-[450px]">
               <span className="text-ot-orange text-sm text-center font-din-display font-bold uppercase tracking-wider">
                 Próximo partido
               </span>
