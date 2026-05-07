@@ -845,4 +845,114 @@ export class TeamsService {
 
     return { assetId: asset.id, url };
   }
+
+  /**
+   * Devuelve el último partido finalizado y/o el próximo programado del team,
+   * con relaciones tournament/category/venue/teams pobladas para que el FE
+   * no tenga que hacer llamadas adicionales (consume `MatchPreviewData`).
+   *
+   * - `type='last'` → solo `lastMatch`.
+   * - `type='next'` → solo `nextMatch`.
+   * - sin `type` → ambos.
+   *
+   * RN: No filtra por `matchType` — incluye partidos regulares, playoff y amistosos
+   * (todos los oficiales del team). Si en el futuro se quiere distinguir, agregar un
+   * filtro `?matchType=regular`.
+   */
+  async findTeamMatches(teamId: string, type?: 'last' | 'next') {
+    // Verificamos que el team exista (404 si no).
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!team) throw new NotFoundException('Team not found');
+
+    const include = {
+      homeTeam: { select: { id: true, name: true, logoUrl: true } },
+      awayTeam: { select: { id: true, name: true, logoUrl: true } },
+      venue: { select: { id: true, name: true } },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          tournament: { select: { id: true, name: true, slug: true } },
+        },
+      },
+    } as const;
+
+    const teamFilter = {
+      OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+      deletedAt: null,
+    };
+
+    const wantsLast = !type || type === 'last';
+    const wantsNext = !type || type === 'next';
+
+    const [last, next] = await Promise.all([
+      wantsLast
+        ? this.prisma.match.findFirst({
+            where: { ...teamFilter, status: 'finalizado' },
+            orderBy: { matchDate: 'desc' },
+            include,
+          })
+        : Promise.resolve(null),
+      wantsNext
+        ? this.prisma.match.findFirst({
+            where: { ...teamFilter, status: { in: ['programado', 'reprogramado'] } },
+            orderBy: { matchDate: 'asc' },
+            include,
+          })
+        : Promise.resolve(null),
+    ]);
+
+    return {
+      lastMatch: last ? this.toMatchPreview(last) : null,
+      nextMatch: next ? this.toMatchPreview(next) : null,
+    };
+  }
+
+  private toMatchPreview(match: {
+    id: string;
+    matchDate: Date;
+    matchType: string;
+    homeScore: number;
+    awayScore: number;
+    homeTeam: { id: string; name: string; logoUrl: string | null } | null;
+    awayTeam: { id: string; name: string; logoUrl: string | null } | null;
+    venue: { id: string; name: string } | null;
+    category: {
+      id: string;
+      name: string;
+      slug: string | null;
+      tournament: { id: string; name: string; slug: string } | null;
+    } | null;
+    status: string;
+  }) {
+    const hasResult = match.status === 'finalizado';
+    return {
+      id: match.id,
+      tournamentSlug: match.category?.tournament?.slug ?? null,
+      categorySlug: match.category?.slug ?? null,
+      date: match.matchDate.toISOString(),
+      location: match.venue?.name ?? null,
+      matchType: match.matchType,
+      team1: match.homeTeam
+        ? {
+            id: match.homeTeam.id,
+            name: match.homeTeam.name,
+            logoUrl: match.homeTeam.logoUrl,
+          }
+        : null,
+      team2: match.awayTeam
+        ? {
+            id: match.awayTeam.id,
+            name: match.awayTeam.name,
+            logoUrl: match.awayTeam.logoUrl,
+          }
+        : null,
+      team1Score: hasResult ? match.homeScore : null,
+      team2Score: hasResult ? match.awayScore : null,
+    };
+  }
 }

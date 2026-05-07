@@ -1,6 +1,6 @@
 import { hasAdminRole } from '@/lib/auth/hasAdminRole'
 import { getProfile } from '@/lib/auth/session'
-import { getMockTeamMatches, MatchPreview } from '@/modules/common/components/MatchPreview'
+import { MatchPreview } from '@/modules/common/components/MatchPreview'
 import { getMockPlayerStats, getMockTeamStats } from '@/modules/team/mock/playerStats.mock'
 import teamService from '@/modules/team/TeamService'
 import { Settings, Star, UserPlus } from 'lucide-react'
@@ -57,6 +57,14 @@ async function getTeam(id: string): Promise<TeamDetail | null> {
   }
 }
 
+async function getTeamMatchPreviews(id: string) {
+  try {
+    return await teamService.getTeamMatches(id)
+  } catch {
+    return { lastMatch: null, nextMatch: null }
+  }
+}
+
 function avg(total: number, played: number): string {
   if (!played || played === 0) return '-'
   return (total / played).toFixed(1).replace(/\.0$/, '')
@@ -64,7 +72,11 @@ function avg(total: number, played: number): string {
 
 export default async function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [team, profile] = await Promise.all([getTeam(id), getProfile()])
+  const [team, profile, matchPreviews] = await Promise.all([
+    getTeam(id),
+    getProfile(),
+    getTeamMatchPreviews(id),
+  ])
 
   if (!team) notFound()
 
@@ -73,8 +85,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
   // TODO: Reemplazar por llamada a API cuando GET /teams/:id/stats esté disponible
   const teamStats = getMockTeamStats(id)
   const playerStats = getMockPlayerStats(id)
-  // TODO: Reemplazar por llamada a API cuando GET /teams/:id/matches esté disponible
-  const { lastMatch, nextMatch } = getMockTeamMatches(id)
+  const { lastMatch, nextMatch } = matchPreviews
 
   const isAdmin = profile ? hasAdminRole(profile) : false
   const isCreator = profile?.id === team.creatorId

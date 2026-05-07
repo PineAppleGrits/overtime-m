@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { matchTypeLabel } from './matchTypeLabel'
 import type { MatchPreviewData } from './types'
 
 interface Props {
@@ -76,7 +77,7 @@ export function MatchPreview({ match }: Props) {
           </div>
           <div className="w-[35%] text-center">
             <h3 className="font-din-display text-[12px] font-bold uppercase text-[#a9a5bb]">
-              {match.matchType}
+              {matchTypeLabel(match.matchType)}
             </h3>
           </div>
           <div className="w-[33%] text-center overflow-hidden">

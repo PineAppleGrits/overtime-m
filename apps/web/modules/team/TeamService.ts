@@ -6,10 +6,16 @@ import type {
 } from "@overtime-mono/shared/teams/contracts"
 import { Service } from "../common/services/Service"
 import { PaginationParams } from "../common/dto"
+import type { MatchPreviewData } from "../common/components/MatchPreview/types"
 
 interface CreateFranchiseDto {
   name: string
   logoUrl?: string
+}
+
+export interface TeamMatchesResponse {
+  lastMatch: MatchPreviewData | null
+  nextMatch: MatchPreviewData | null
 }
 
 class TeamService extends Service {
@@ -60,6 +66,20 @@ class TeamService extends Service {
 
   async assignCaptain(teamId: string, playerId: string) {
     const { data } = await this.client.patch(`/teams/${teamId}/captain/${playerId}`)
+    return data
+  }
+
+  /**
+   * Último partido finalizado y/o próximo programado del team.
+   * - sin `type`: ambos.
+   * - `type='last'`: solo lastMatch.
+   * - `type='next'`: solo nextMatch.
+   */
+  async getTeamMatches(teamId: string, type?: 'last' | 'next') {
+    const { data } = await this.client.get<TeamMatchesResponse>(
+      `/teams/${teamId}/matches`,
+      type ? { params: { type } } : undefined,
+    )
     return data
   }
 }

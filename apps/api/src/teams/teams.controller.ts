@@ -96,6 +96,24 @@ export class TeamsController {
     return this.teamsService.remove(id);
   }
 
+  @Public()
+  @Get(':id/matches')
+  @ApiOperation({
+    summary:
+      'Último partido finalizado y/o próximo programado del team. Soporta ?type=last|next; sin type devuelve ambos. Pensado para previews públicos en perfil de equipo.',
+  })
+  findTeamMatches(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('type') type?: string,
+  ) {
+    if (type && type !== 'last' && type !== 'next') {
+      throw new BadRequestException(
+        'Query param "type" debe ser uno de: last, next',
+      );
+    }
+    return this.teamsService.findTeamMatches(id, type as 'last' | 'next' | undefined);
+  }
+
   @Get(':id/roster-status')
   @ApiOperation({
     summary:
