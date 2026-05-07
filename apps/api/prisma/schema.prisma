@@ -24,61 +24,63 @@ enum ProfileRole {
 
 // Profile: Persona (con o sin cuenta). Stub sin supabaseUserId/email para lista de buena fe; al registrarse se asocia por DNI.
 model Profile {
-  id                 String    @id @default(uuid())
-  supabaseUserId     String?   @unique
-  email              String?   @unique
-  name               String
-  phone              String?   @unique
-  phoneVerified      Boolean   @default(false)
-  documentNumber     String?    @unique
-  documentVerified   Boolean   @default(false)
-  documentVerifiedBy String?
-  documentVerifiedAt DateTime?
-  dateOfBirth        DateTime?
+  id                    String      @id @default(uuid())
+  supabaseUserId        String?     @unique
+  email                 String?     @unique
+  name                  String
+  phone                 String?     @unique
+  phoneVerified         Boolean     @default(false)
+  documentNumber        String?     @unique
+  documentVerified      Boolean     @default(false)
+  documentVerifiedBy    String?
+  documentVerifiedAt    DateTime?
+  dateOfBirth           DateTime?
   // Legacy URLs (compatibilidad híbrida — RN-008 versionado pasa a usar MediaAsset)
-  avatarUrl              String?
-  medicalCertificateUrl  String?
-  swornStatementUrl      String?
+  avatarUrl             String?
+  medicalCertificateUrl String?
+  swornStatementUrl     String?
   // Punteros a MediaAsset (PR0 — nueva ruta de uploads)
-  avatarAssetId          String?
-  avatarAsset            MediaAsset? @relation("ProfileAvatar", fields: [avatarAssetId], references: [id])
-  currentMedicalAssetId  String?
-  currentMedicalAsset    MediaAsset? @relation("ProfileMedical", fields: [currentMedicalAssetId], references: [id])
-  currentSwornAssetId    String?
-  currentSwornAsset      MediaAsset? @relation("ProfileSworn", fields: [currentSwornAssetId], references: [id])
-  dniPhotoAssetId        String?
-  dniPhotoAsset          MediaAsset? @relation("ProfileDni", fields: [dniPhotoAssetId], references: [id])
-  role               ProfileRole   @default(player)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  deletedAt          DateTime?
+  avatarAssetId         String?
+  avatarAsset           MediaAsset? @relation("ProfileAvatar", fields: [avatarAssetId], references: [id])
+  currentMedicalAssetId String?
+  currentMedicalAsset   MediaAsset? @relation("ProfileMedical", fields: [currentMedicalAssetId], references: [id])
+  currentSwornAssetId   String?
+  currentSwornAsset     MediaAsset? @relation("ProfileSworn", fields: [currentSwornAssetId], references: [id])
+  dniPhotoAssetId       String?
+  dniPhotoAsset         MediaAsset? @relation("ProfileDni", fields: [dniPhotoAssetId], references: [id])
+  role                  ProfileRole @default(player)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  deletedAt             DateTime?
 
-  franchisesOwned       Franchise[]
-  teamsCreated          Team[]                @relation("TeamCreator")
-  teamsCaptainOf        Team[]                @relation("TeamCaptain")
-  teamMemberships       ProfileTeam[]
-  matchRosters          MatchRoster[]
-  assignedMatches       MatchStaff[]          @relation("AssignedBy")
-  registrations         Registration[]        @relation("RequestedBy")
-  approvedRegistrations Registration[]        @relation("ApprovedBy")
-  registrationRosterEntries RegistrationRosterEntry[] @relation("RegistrationRosterProfile")
+  franchisesOwned             Franchise[]
+  teamsCreated                Team[]                    @relation("TeamCreator")
+  teamsCaptainOf              Team[]                    @relation("TeamCaptain")
+  teamMemberships             ProfileTeam[]
+  matchRosters                MatchRoster[]
+  assignedMatches             MatchStaff[]              @relation("AssignedBy")
+  registrations               Registration[]            @relation("RequestedBy")
+  approvedRegistrations       Registration[]            @relation("ApprovedBy")
+  registrationRosterEntries   RegistrationRosterEntry[] @relation("RegistrationRosterProfile")
   registrationRosterAdditions RegistrationRosterEntry[] @relation("RegistrationRosterAddedBy")
-  payments              Payment[]
-  matchAnnouncements    MatchAnnouncement[]
-  blacklistEntries      BlacklistEntry[]
-  blacklistsIssued      BlacklistEntry[]             @relation("BlacklistBlockedBy")
-  blacklistsLifted      BlacklistEntry[]             @relation("BlacklistLiftedBy")
-  sanctions             Sanction[]                   @relation("SanctionTargetProfile")
-  sanctionsCreated      Sanction[]                   @relation("SanctionCreatedBy")
-  sanctionsResolved     Sanction[]                   @relation("SanctionResolvedBy")
+  payments                    Payment[]
+  matchAnnouncements          MatchAnnouncement[]
+  blacklistEntries            BlacklistEntry[]
+  blacklistsIssued            BlacklistEntry[]          @relation("BlacklistBlockedBy")
+  blacklistsLifted            BlacklistEntry[]          @relation("BlacklistLiftedBy")
+  sanctions                   Sanction[]                @relation("SanctionTargetProfile")
+  sanctionsCreated            Sanction[]                @relation("SanctionCreatedBy")
+  sanctionsResolved           Sanction[]                @relation("SanctionResolvedBy")
   // PR0 — nuevas relaciones inversas
-  mediaAssetsUploaded   MediaAsset[]                 @relation("MediaAssetUploadedBy")
-  debtsAsTarget         Debt[]                       @relation("DebtTargetProfile")
-  debtsCreated          Debt[]                       @relation("DebtCreatedBy")
-  debtAudits            DebtAudit[]
-  teamCategoryLevelsGranted TeamCategoryLevel[]
-  friendliesCreated     Friendly[]                   @relation("FriendlyCreatedBy")
-  friendliesGenerated   Friendly[]                   @relation("FriendlyGeneratedBy")
+  mediaAssetsUploaded         MediaAsset[]              @relation("MediaAssetUploadedBy")
+  debtsAsTarget               Debt[]                    @relation("DebtTargetProfile")
+  debtsCreated                Debt[]                    @relation("DebtCreatedBy")
+  debtAudits                  DebtAudit[]
+  teamCategoryLevelsGranted   TeamCategoryLevel[]
+  friendliesCreated           Friendly[]                @relation("FriendlyCreatedBy")
+  friendliesGenerated         Friendly[]                @relation("FriendlyGeneratedBy")
+  matchPlayerStats            MatchPlayerStat[]
+  matchPlayerStatsCreated     MatchPlayerStat[]         @relation("MatchPlayerStatCreatedBy")
 
   @@index([deletedAt, name])
   @@index([deletedAt, email])
@@ -114,8 +116,8 @@ enum MediaCategory {
 // se reconstruye consultando MediaAsset por (profileId, category, uploadedAt DESC).
 model MediaAsset {
   id                  String          @id @default(uuid())
-  bucket              String          // 'public' | 'private' (en línea con Supabase bucket name)
-  storageKey          String          // path dentro del bucket
+  bucket              String // 'public' | 'private' (en línea con Supabase bucket name)
+  storageKey          String // path dentro del bucket
   contentType         String
   sizeBytes           Int
   sha256              String
@@ -124,18 +126,18 @@ model MediaAsset {
   uploadedBy          Profile         @relation("MediaAssetUploadedBy", fields: [uploadedByProfileId], references: [id])
   visibility          MediaVisibility
   category            MediaCategory
-  metadata            Json?           // year (apto), debtId, sanctionId, profileId, etc.
-  scheduledDeletionAt DateTime?       // RN-060 — marca para borrado automático
+  metadata            Json? // year (apto), debtId, sanctionId, profileId, etc.
+  scheduledDeletionAt DateTime? // RN-060 — marca para borrado automático
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   deletedAt           DateTime?
 
   // Relaciones inversas (entidades que apuntan a este asset)
-  profileAvatars         Profile[]   @relation("ProfileAvatar")
-  profileMedicals        Profile[]   @relation("ProfileMedical")
-  profileSworns          Profile[]   @relation("ProfileSworn")
-  profileDniPhotos       Profile[]   @relation("ProfileDni")
-  teamLogos              Team[]      @relation("TeamLogo")
+  profileAvatars   Profile[] @relation("ProfileAvatar")
+  profileMedicals  Profile[] @relation("ProfileMedical")
+  profileSworns    Profile[] @relation("ProfileSworn")
+  profileDniPhotos Profile[] @relation("ProfileDni")
+  teamLogos        Team[]    @relation("TeamLogo")
 
   @@unique([bucket, storageKey])
   @@index([uploadedByProfileId])
@@ -157,10 +159,10 @@ model Sport {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  teams        Team[]
-  tournaments  Tournament[]
+  teams          Team[]
+  tournaments    Tournament[]
   categoryLevels CategoryLevel[]
-  friendlies   Friendly[]
+  friendlies     Friendly[]
 
   @@map("sports")
 }
@@ -183,38 +185,39 @@ model Franchise {
 }
 
 model Team {
-  id          String    @id @default(uuid())
+  id          String      @id @default(uuid())
   name        String
-  slug        String    @unique
-  logoUrl     String?   // legacy, mantener por compat híbrida
+  slug        String      @unique
+  logoUrl     String? // legacy, mantener por compat híbrida
   logoAssetId String?
   logoAsset   MediaAsset? @relation("TeamLogo", fields: [logoAssetId], references: [id])
   sportId     String
-  sport       Sport     @relation(fields: [sportId], references: [id])
+  sport       Sport       @relation(fields: [sportId], references: [id])
   franchiseId String?
-  franchise   Franchise? @relation(fields: [franchiseId], references: [id])
+  franchise   Franchise?  @relation(fields: [franchiseId], references: [id])
   creatorId   String?
-  creator     Profile?  @relation("TeamCreator", fields: [creatorId], references: [id])
+  creator     Profile?    @relation("TeamCreator", fields: [creatorId], references: [id])
   captainId   String?
-  captain     Profile?  @relation("TeamCaptain", fields: [captainId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  captain     Profile?    @relation("TeamCaptain", fields: [captainId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   deletedAt   DateTime?
 
-  members         ProfileTeam[]
-  teamZones       TeamZone[]
-  homeMatches     Match[]        @relation("HomeTeam")
-  awayMatches     Match[]        @relation("AwayTeam")
-  registrations   Registration[]
-  sanctions       Sanction[]     @relation("SanctionTargetTeam")
+  members           ProfileTeam[]
+  teamZones         TeamZone[]
+  homeMatches       Match[]             @relation("HomeTeam")
+  awayMatches       Match[]             @relation("AwayTeam")
+  registrations     Registration[]
+  sanctions         Sanction[]          @relation("SanctionTargetTeam")
   // PR0 — nuevas relaciones
-  categoryLevels  TeamCategoryLevel[]
-  homeFriendlies  Friendly[]     @relation("FriendlyHome")
-  awayFriendlies  Friendly[]     @relation("FriendlyAway")
-  homePlayoffSeries PlayoffSeries[] @relation("PlayoffSeriesHome")
-  awayPlayoffSeries PlayoffSeries[] @relation("PlayoffSeriesAway")
-  wonPlayoffSeries  PlayoffSeries[] @relation("PlayoffSeriesWinner")
-  debts             Debt[]         @relation("DebtTargetTeam")
+  categoryLevels    TeamCategoryLevel[]
+  homeFriendlies    Friendly[]          @relation("FriendlyHome")
+  awayFriendlies    Friendly[]          @relation("FriendlyAway")
+  homePlayoffSeries PlayoffSeries[]     @relation("PlayoffSeriesHome")
+  awayPlayoffSeries PlayoffSeries[]     @relation("PlayoffSeriesAway")
+  wonPlayoffSeries  PlayoffSeries[]     @relation("PlayoffSeriesWinner")
+  debts             Debt[]              @relation("DebtTargetTeam")
+  matchPlayerStats  MatchPlayerStat[]   @relation("TeamMatchPlayerStats")
 
   @@index([franchiseId])
   @@map("teams")
@@ -247,9 +250,9 @@ model CategoryLevel {
   id          String   @id @default(uuid())
   sportId     String
   sport       Sport    @relation(fields: [sportId], references: [id])
-  code        String   // 'A' | 'B' | 'C' | 'D' ...
+  code        String // 'A' | 'B' | 'C' | 'D' ...
   displayName String
-  rank        Int      // 1 = más alto, números mayores = niveles inferiores
+  rank        Int // 1 = más alto, números mayores = niveles inferiores
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -318,7 +321,7 @@ model Tournament {
   sport                           Sport            @relation(fields: [sportId], references: [id])
   status                          TournamentStatus @default(DRAFT)
   fixtureFormat                   FixtureFormat    @default(SINGLE_ROUND)
-  modality                        String?          // '3v3' | '5v5' (libre por ahora; strategy lo lee)
+  modality                        String? // '3v3' | '5v5' (libre por ahora; strategy lo lee)
   startDate                       DateTime?
   endDate                         DateTime?
   registrationStartDate           DateTime?
@@ -327,8 +330,8 @@ model Tournament {
   teamOperationsCloseAt           DateTime?
   insurancePerPlayer              Float?
   // PR0 — nuevos campos
-  promotionPlayoffFormat          PlayoffFormat    @default(BO1)  // RN-058 repechaje
-  earlyCancellationThresholdHours Int?             // DP-013 — cuando se decida
+  promotionPlayoffFormat          PlayoffFormat    @default(BO1) // RN-058 repechaje
+  earlyCancellationThresholdHours Int? // DP-013 — cuando se decida
   createdAt                       DateTime         @default(now())
   updatedAt                       DateTime         @updatedAt
   deletedAt                       DateTime?
@@ -345,15 +348,15 @@ model Tournament {
 }
 
 model TournamentRegistrationPricing {
-  id          String    @id @default(uuid())
-  tournamentId String
-  tournament  Tournament @relation(fields: [tournamentId], references: [id])
-  validFrom   DateTime
-  validTo     DateTime
+  id             String     @id @default(uuid())
+  tournamentId   String
+  tournament     Tournament @relation(fields: [tournamentId], references: [id])
+  validFrom      DateTime
+  validTo        DateTime
   entryFeeAmount Float
-  currency    String    @default("ARS")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  currency       String     @default("ARS")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   @@index([tournamentId])
   @@index([tournamentId, validFrom, validTo])
@@ -361,33 +364,33 @@ model TournamentRegistrationPricing {
 }
 
 model Category {
-  id                   String            @id @default(uuid())
+  id                   String             @id @default(uuid())
   tournamentId         String
-  tournament           Tournament        @relation(fields: [tournamentId], references: [id])
+  tournament           Tournament         @relation(fields: [tournamentId], references: [id])
   name                 String
   slug                 String?
   maxTeams             Int?
   teamsPerZone         Int?
-  status               CategoryStatus    @default(OPEN)
+  status               CategoryStatus     @default(OPEN)
   substatus            CategorySubstatus?
   // PR0 — nivel global y config de playoffs
   categoryLevelId      String?
-  categoryLevel        CategoryLevel?    @relation(fields: [categoryLevelId], references: [id])
-  zonesCount           Int               @default(1)   // 1 o 2 en v1 (DP-003)
-  qualifierCount       Int?              // total de clasificados a playoffs
-  qualifiersPerZone    Int?              // si hay zonas, cuántos por zona
-  hasPlayIn            Boolean           @default(false)  // DP-014
-  hasThirdPlaceMatch   Boolean           @default(false)
-  playoffFormatByRound Json?             // { quarterfinal: 'BO3', semifinal: 'BO3', final: 'BO5', thirdPlace: 'BO1', playIn: 'BO1' }
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  categoryLevel        CategoryLevel?     @relation(fields: [categoryLevelId], references: [id])
+  zonesCount           Int                @default(1) // 1 o 2 en v1 (DP-003)
+  qualifierCount       Int? // total de clasificados a playoffs
+  qualifiersPerZone    Int? // si hay zonas, cuántos por zona
+  hasPlayIn            Boolean            @default(false) // DP-014
+  hasThirdPlaceMatch   Boolean            @default(false)
+  playoffFormatByRound Json? // { quarterfinal: 'BO3', semifinal: 'BO3', final: 'BO5', thirdPlace: 'BO1', playIn: 'BO1' }
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
   deletedAt            DateTime?
 
-  zones          Zone[]
-  matches        Match[]
-  registrations  Registration[]
-  sanctions      Sanction[]
-  playoffSeries  PlayoffSeries[]
+  zones         Zone[]
+  matches       Match[]
+  registrations Registration[]
+  sanctions     Sanction[]
+  playoffSeries PlayoffSeries[]
 
   @@unique([tournamentId, slug])
   @@index([tournamentId])
@@ -456,40 +459,41 @@ model Venue {
 // ============================================
 
 model Match {
-  id             String    @id @default(uuid())
-  homeTeamId     String?
-  homeTeam       Team?     @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeamId     String?
-  awayTeam       Team?     @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  categoryId     String?
-  category       Category? @relation(fields: [categoryId], references: [id])
-  zoneId         String?
-  zone           Zone?     @relation(fields: [zoneId], references: [id])
-  venueId        String?
-  venue          Venue?    @relation(fields: [venueId], references: [id])
-  matchDate      DateTime
-  matchTime      String?
-  status         String
-  matchType      String    // 'regular' | 'playoff' | 'friendly' | 'play_in' | 'promotion_playoff'
-  homeScore      Int       @default(0)
-  awayScore      Int       @default(0)
-  costPerTeam    Float?
+  id               String         @id @default(uuid())
+  homeTeamId       String?
+  homeTeam         Team?          @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId       String?
+  awayTeam         Team?          @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  categoryId       String?
+  category         Category?      @relation(fields: [categoryId], references: [id])
+  zoneId           String?
+  zone             Zone?          @relation(fields: [zoneId], references: [id])
+  venueId          String?
+  venue            Venue?         @relation(fields: [venueId], references: [id])
+  matchDate        DateTime
+  matchTime        String?
+  status           String
+  matchType        String // 'regular' | 'playoff' | 'friendly' | 'play_in' | 'promotion_playoff'
+  homeScore        Int            @default(0)
+  awayScore        Int            @default(0)
+  costPerTeam      Float?
   // PR0 — vínculo con serie de playoff
   seriesId         String?
   series           PlayoffSeries? @relation(fields: [seriesId], references: [id])
   seriesGameNumber Int?
   playoffStage     PlayoffRound?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   deletedAt        DateTime?
 
-  matchStaff      MatchStaff[]
-  roster          MatchRoster[]
-  payments        Payment[]
-  announcements   MatchAnnouncement[]
-  sanctions       Sanction[]
-  debts           Debt[]
-  resultingFriendly Friendly? @relation("FriendlyResultingMatch")
+  matchStaff        MatchStaff[]
+  roster            MatchRoster[]
+  payments          Payment[]
+  announcements     MatchAnnouncement[]
+  sanctions         Sanction[]
+  debts             Debt[]
+  resultingFriendly Friendly?           @relation("FriendlyResultingMatch")
+  playerStats       MatchPlayerStat[]
 
   @@index([homeTeamId])
   @@index([awayTeamId])
@@ -503,14 +507,57 @@ model Match {
   @@map("matches")
 }
 
+/// Estadísticas individuales de un jugador en un partido (BE-MOCK-005).
+/// Se cargan manualmente por admin/oficial_de_mesa después del partido
+/// (DP cerrado: carga manual, no parser de PDF). Una fila por (match, profile).
+/// `points` es denormalizado al escribir = pt1 + 2*pt2 + 3*pt3 — facilita lecturas
+/// agregadas a nivel team/profile sin recomputar.
+model MatchPlayerStat {
+  id        String  @id @default(uuid())
+  matchId   String
+  match     Match   @relation(fields: [matchId], references: [id])
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id])
+  teamId    String
+  team      Team    @relation("TeamMatchPlayerStats", fields: [teamId], references: [id])
+
+  // Counts (RN no exige tracking de intentos, pero los dejamos opcionales por extensibilidad).
+  pt1       Int @default(0)
+  pt1Att    Int @default(0)
+  pt2       Int @default(0)
+  pt2Att    Int @default(0)
+  pt3       Int @default(0)
+  pt3Att    Int @default(0)
+  fouls     Int @default(0)
+  steals    Int @default(0)
+  rebounds  Int @default(0)
+  assists   Int @default(0)
+  turnovers Int @default(0)
+  blocks    Int @default(0)
+
+  // Denormalizado para evitar recomputar al agregar.
+  points Int @default(0)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  createdByProfileId String?
+  createdBy          Profile? @relation("MatchPlayerStatCreatedBy", fields: [createdByProfileId], references: [id])
+
+  @@unique([matchId, profileId])
+  @@index([profileId])
+  @@index([teamId])
+  @@index([matchId])
+  @@map("match_player_stats")
+}
+
 model MatchRoster {
-  id          String   @id @default(uuid())
-  matchId     String
-  match       Match    @relation(fields: [matchId], references: [id])
-  profileId   String
-  profile     Profile  @relation(fields: [profileId], references: [id])
+  id           String   @id @default(uuid())
+  matchId      String
+  match        Match    @relation(fields: [matchId], references: [id])
+  profileId    String
+  profile      Profile  @relation(fields: [profileId], references: [id])
   jerseyNumber Int
-  createdAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   @@unique([matchId, profileId])
   @@index([matchId])
@@ -554,8 +601,8 @@ enum PlayoffFormat {
 }
 
 enum PlayoffSeriesStatus {
-  PENDING       // sin equipos asignados (esperando alimentadores)
-  READY         // equipos definidos, sin matches generados
+  PENDING // sin equipos asignados (esperando alimentadores)
+  READY // equipos definidos, sin matches generados
   IN_PROGRESS
   COMPLETED
 }
@@ -567,7 +614,7 @@ model PlayoffSeries {
   categoryId         String
   category           Category            @relation(fields: [categoryId], references: [id])
   round              PlayoffRound
-  bracketPosition    Int                 // 1, 2, 3, 4 dentro de la ronda
+  bracketPosition    Int // 1, 2, 3, 4 dentro de la ronda
   format             PlayoffFormat
   homeTeamId         String?
   homeTeam           Team?               @relation("PlayoffSeriesHome", fields: [homeTeamId], references: [id])
@@ -585,7 +632,7 @@ model PlayoffSeries {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 
-  matches PlayoffSeriesMatch[]
+  matches       PlayoffSeriesMatch[]
   matchesDirect Match[]
 
   @@unique([categoryId, round, bracketPosition])
@@ -598,10 +645,10 @@ model PlayoffSeries {
 // agregar metadata por match-en-serie a futuro. Por ahora Match.seriesId alcanza.
 // (Se mantiene como referencia conceptual; no se persiste data en esta versión.)
 model PlayoffSeriesMatch {
-  id              String        @id @default(uuid())
-  seriesId        String
-  series          PlayoffSeries @relation(fields: [seriesId], references: [id])
-  matchId         String        @unique
+  id       String        @id @default(uuid())
+  seriesId String
+  series   PlayoffSeries @relation(fields: [seriesId], references: [id])
+  matchId  String        @unique
   // Evitamos relación recíproca con Match para no introducir un join obligatorio.
   // Match.seriesId ya cubre el caso normal; este modelo queda reservado para metadata futura.
 
@@ -673,24 +720,24 @@ model MatchStaff {
 // ============================================
 
 model Registration {
-  id               String    @id @default(uuid())
-  teamId           String
-  team             Team      @relation(fields: [teamId], references: [id])
-  tournamentId     String
-  tournament       Tournament @relation(fields: [tournamentId], references: [id])
-  categoryId       String
-  category         Category  @relation(fields: [categoryId], references: [id])
-  status           String
-  requestedBy      String
-  requester        Profile   @relation("RequestedBy", fields: [requestedBy], references: [id])
-  approvedBy       String?
-  approver         Profile?  @relation("ApprovedBy", fields: [approvedBy], references: [id])
-  approvedAt       DateTime?
-  rejectedAt       DateTime?
-  rejectionReason  String?
-  paymentProofUrl  String?  // legacy — nuevos uploads pasan por MediaAsset
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id              String     @id @default(uuid())
+  teamId          String
+  team            Team       @relation(fields: [teamId], references: [id])
+  tournamentId    String
+  tournament      Tournament @relation(fields: [tournamentId], references: [id])
+  categoryId      String
+  category        Category   @relation(fields: [categoryId], references: [id])
+  status          String
+  requestedBy     String
+  requester       Profile    @relation("RequestedBy", fields: [requestedBy], references: [id])
+  approvedBy      String?
+  approver        Profile?   @relation("ApprovedBy", fields: [approvedBy], references: [id])
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  paymentProofUrl String? // legacy — nuevos uploads pasan por MediaAsset
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   payments      Payment[]
   rosterEntries RegistrationRosterEntry[]
@@ -748,7 +795,7 @@ model Friendly {
   id                        String         @id @default(uuid())
   sportId                   String
   sport                     Sport          @relation(fields: [sportId], references: [id])
-  modality                  String         // '3v3' | '5v5'
+  modality                  String // '3v3' | '5v5'
   homeTeamId                String
   homeTeam                  Team           @relation("FriendlyHome", fields: [homeTeamId], references: [id])
   awayTeamId                String
@@ -792,26 +839,26 @@ model Friendly {
 // ============================================
 
 enum DebtType {
-  REGISTRATION_FEE          // RN-014, RN-015 — inscripción torneo
-  INSURANCE                 // RN-015, RN-017 — seguro por jugador
-  LATE_ROSTER_FEE           // RN-042 — alta jugador con torneo iniciado
-  MATCH_FEE                 // costo del partido (split entre 2 equipos)
-  FRIENDLY_DEPOSIT          // RN-022 — seña amistoso
-  MISSED_MATCH_FINE         // RN-025 — multa por no presentarse
-  LATE_NOTICE_FINE          // RN-027 — multa por modificación post-fecha
+  REGISTRATION_FEE // RN-014, RN-015 — inscripción torneo
+  INSURANCE // RN-015, RN-017 — seguro por jugador
+  LATE_ROSTER_FEE // RN-042 — alta jugador con torneo iniciado
+  MATCH_FEE // costo del partido (split entre 2 equipos)
+  FRIENDLY_DEPOSIT // RN-022 — seña amistoso
+  MISSED_MATCH_FINE // RN-025 — multa por no presentarse
+  LATE_NOTICE_FINE // RN-027 — multa por modificación post-fecha
   LATE_PAYMENT_DAILY_CHARGE // RN-029 — arancel diario por atraso
-  OVERDUE_INTEREST          // RN-028 — interés por deuda vencida
-  AJC_FEE                   // RN-030 — habilitación anticipada
-  OTHER_MANUAL              // admin crea ad-hoc
+  OVERDUE_INTEREST // RN-028 — interés por deuda vencida
+  AJC_FEE // RN-030 — habilitación anticipada
+  OTHER_MANUAL // admin crea ad-hoc
 }
 
 enum DebtStatus {
   APPROVED
   PARTIALLY_PAID
   PAID
-  DELETED_BY_ERROR     // RN-031
-  DELETED_WITH_RECORD  // RN-031
-  CANCELLED            // ej. seguro reusado RN-017
+  DELETED_BY_ERROR // RN-031
+  DELETED_WITH_RECORD // RN-031
+  CANCELLED // ej. seguro reusado RN-017
 }
 
 // Debt — toda obligación cobrable (inscripción, seguro, multa, interés, AJC, seña...).
@@ -821,7 +868,7 @@ model Debt {
   id                 String        @id @default(uuid())
   type               DebtType
   status             DebtStatus    @default(APPROVED)
-  concept            String        // descripción legible (RN-028 exige descripción identificadora)
+  concept            String // descripción legible (RN-028 exige descripción identificadora)
   originAmount       Decimal       @db.Decimal(12, 2)
   currentBalance     Decimal       @db.Decimal(12, 2)
   currency           String        @default("ARS")
@@ -934,7 +981,7 @@ model BlacklistEntry {
   documentNumber      String
   profileNameSnapshot String
   reason              String
-  attachmentUrls      String[]         @default([])
+  attachmentUrls      String[]        @default([])
   status              BlacklistStatus @default(ACTIVE)
   blockedByProfileId  String
   blockedBy           Profile         @relation("BlacklistBlockedBy", fields: [blockedByProfileId], references: [id])

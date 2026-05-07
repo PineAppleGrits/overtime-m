@@ -14,6 +14,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TeamsService } from './teams.service';
+import { MatchPlayerStatsService } from '../matches/match-player-stats.service';
 import { Admin } from '../common/decorators/admin.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
@@ -40,7 +41,10 @@ interface UploadedFileShape {
 @ApiTags('teams')
 @Controller('teams')
 export class TeamsController {
-  constructor(private readonly teamsService: TeamsService) {}
+  constructor(
+    private readonly teamsService: TeamsService,
+    private readonly matchPlayerStatsService: MatchPlayerStatsService,
+  ) {}
 
   @Post()
   create(
@@ -124,6 +128,26 @@ export class TeamsController {
     @CurrentUser() user: { id: string; role?: string | null } | undefined,
   ) {
     return this.teamsService.getBalance(id, user?.id ?? '', user?.role);
+  }
+
+  @Public()
+  @Get(':id/stats')
+  @ApiOperation({
+    summary:
+      'Stats agregadas del team: PJ, PG, PP, PF, PC. Calculadas desde Match.homeScore/awayScore en partidos finalizados (BE-MOCK-005).',
+  })
+  getTeamStats(@Param('id', ParseUUIDPipe) id: string) {
+    return this.matchPlayerStatsService.aggregateTeamTotals(id);
+  }
+
+  @Public()
+  @Get(':id/player-stats')
+  @ApiOperation({
+    summary:
+      'Stats agregadas por jugador del team — suma de todos los MatchPlayerStat con teamId=X (BE-MOCK-005).',
+  })
+  getPlayerStats(@Param('id', ParseUUIDPipe) id: string) {
+    return this.matchPlayerStatsService.aggregatePlayerTotalsByTeam(id);
   }
 
   @Get(':id/roster-status')

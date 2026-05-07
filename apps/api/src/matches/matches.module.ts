@@ -5,6 +5,8 @@ import { DatabaseModule } from '../database/database.module';
 import { EligibilityModule } from '../eligibility/eligibility.module';
 import { VenuesModule } from '../venues/venues.module';
 import { DebtsModule } from '../debts/debts.module';
+import { MatchPlayerStatsService } from './match-player-stats.service';
+import { MatchPlayerStatsController } from './match-player-stats.controller';
 // W3.1 — clean architecture for lifecycle/playoff-aware use cases
 import { MATCH_REPOSITORY } from './application/ports/match-repository.port';
 import { DEBTS_CHECK_PORT } from './application/ports/debts-check.port';
@@ -41,10 +43,15 @@ import { MatchLifecycleController } from './presentation/controllers/match-lifec
  */
 @Module({
   imports: [DatabaseModule, VenuesModule, EligibilityModule, DebtsModule],
-  controllers: [MatchesController, MatchLifecycleController],
+  controllers: [
+    MatchesController,
+    MatchLifecycleController,
+    MatchPlayerStatsController,
+  ],
   providers: [
     MatchesService,
     MatchLifecycleService,
+    MatchPlayerStatsService,
     StartMatchUseCase,
     FinishMatchUseCase,
     CancelMatchByTeamUseCase,
@@ -57,6 +64,6 @@ import { MatchLifecycleController } from './presentation/controllers/match-lifec
     { provide: DEBTS_CHECK_PORT, useClass: DebtsCheckAdapter },
     { provide: STAFF_CHECK_PORT, useClass: StaffCheckAdapter },
   ],
-  exports: [MatchesService, MatchLifecycleService],
+  exports: [MatchesService, MatchLifecycleService, MatchPlayerStatsService],
 })
 export class MatchesModule {}
