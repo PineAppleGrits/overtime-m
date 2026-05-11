@@ -7,6 +7,7 @@ export type Tournament = {
     registrationEndDate?: string | null;
     categories: Category[];
     hidden: boolean;
+    status?: string | null;
 }
 
 export type Category = {

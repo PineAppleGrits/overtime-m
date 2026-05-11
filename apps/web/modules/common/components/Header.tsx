@@ -6,6 +6,7 @@ import { UserMenu } from "@/modules/common/components/UserMenu";
 import { MobileNav } from "@/modules/common/components/MobileNav";
 import { HeaderClientWrapper } from "./HeaderClientWrapper";
 import { NotificationBell } from "@/modules/notifications/NotificationBell";
+import { isPubliclyVisibleTournament } from "@/modules/tournament/constants";
 
 const navItem: NavItem[] = [
     { id: "inicio", name: "inicio", href: "/" },
@@ -15,7 +16,7 @@ const navItem: NavItem[] = [
 ]
 
 const tournamentsToNavItems = (tournaments: Tournament[]): NavItem[] => {
-    return tournaments.filter((tournament) => !tournament.hidden).map((tournament) => ({
+    return tournaments.filter(isPubliclyVisibleTournament).map((tournament) => ({
         id: tournament.id,
         name: tournament.name,
         href: `/torneos/${tournament.slug}`,
