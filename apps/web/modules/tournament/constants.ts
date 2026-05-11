@@ -1,19 +1,19 @@
-export const TOURNAMENT_STATUS = {
-  DRAFT: 'draft',
-  VISIBLE: 'visible',
-  INVISIBLE: 'invisible',
-  INSCRIPCION_CERRADA: 'inscripcion_cerrada',
-  FINALIZADO: 'finalizado',
-  ARCHIVADO: 'archivado',
-} as const
+import { TournamentStatus } from '@overtime-mono/shared'
 
-export type TournamentStatus =
-  (typeof TOURNAMENT_STATUS)[keyof typeof TOURNAMENT_STATUS]
+export { TournamentStatus }
 
 export const PUBLIC_TOURNAMENT_STATUSES: readonly TournamentStatus[] = [
-  TOURNAMENT_STATUS.VISIBLE,
-  TOURNAMENT_STATUS.INSCRIPCION_CERRADA,
-  TOURNAMENT_STATUS.FINALIZADO,
+  TournamentStatus.OPEN,
+  TournamentStatus.CLOSED,
+  TournamentStatus.READY_TO_SHIP,
+  TournamentStatus.IN_PROGRESS,
+  TournamentStatus.FINISHED,
+] as const
+
+const HIDDEN_TOURNAMENT_STATUSES: readonly TournamentStatus[] = [
+  TournamentStatus.DRAFT,
+  TournamentStatus.ARCHIVED,
+  TournamentStatus.CANCELLED,
 ] as const
 
 export function isPubliclyVisibleTournament(
@@ -21,7 +21,19 @@ export function isPubliclyVisibleTournament(
 ): boolean {
   if (!tournament || tournament.hidden) return false
   if (!tournament.status) return true
-  return (PUBLIC_TOURNAMENT_STATUSES as readonly string[]).includes(
+  return !(HIDDEN_TOURNAMENT_STATUSES as readonly string[]).includes(
     tournament.status,
   )
+}
+
+export function hasPublicFixture(status?: string | null): boolean {
+  if (!status) return false
+  return (
+    status === TournamentStatus.IN_PROGRESS ||
+    status === TournamentStatus.FINISHED
+  )
+}
+
+export function isRegistrationOpen(status?: string | null): boolean {
+  return status === TournamentStatus.OPEN
 }
