@@ -8,6 +8,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { PrismaService } from '../database/prisma.service';
+import {
+  AuthProfileEntity,
+  AuthProfileResponse,
+  PlayerProfileSummary,
+} from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -52,7 +57,7 @@ export class AuthService {
   async createPlayerProfile(
     supabaseUserId: string,
     playerData: { firstName: string; lastName: string },
-  ): Promise<any> {
+  ): Promise<PlayerProfileSummary | null> {
     const profile = await this.prisma.profile.findUnique({
       where: { supabaseUserId },
     });
@@ -96,7 +101,7 @@ export class AuthService {
   /**
    * Obtiene el perfil completo del usuario actual
    */
-  async getProfile(supabaseUserId: string): Promise<any> {
+  async getProfile(supabaseUserId: string): Promise<AuthProfileResponse> {
     const profile = await this.prisma.profile.findUnique({
       where: { supabaseUserId },
     });
@@ -108,7 +113,7 @@ export class AuthService {
     return this.formatProfileResponse(profile);
   }
 
-  private formatProfileResponse(profile: any): any {
+  private formatProfileResponse(profile: AuthProfileEntity): AuthProfileResponse {
     const hasPlayerProfile = profile.role === 'player';
     return {
       id: profile.id,
@@ -137,7 +142,7 @@ export class AuthService {
   async setDocumentNumber(
     supabaseUserId: string,
     documentNumber: string,
-  ): Promise<Record<string, unknown>> {
+  ): Promise<AuthProfileResponse> {
     const profile = await this.prisma.profile.findUnique({
       where: { supabaseUserId },
     });
@@ -169,7 +174,7 @@ export class AuthService {
   async adminUpdateDocumentNumber(
     profileId: string,
     documentNumber: string,
-  ): Promise<Record<string, unknown>> {
+  ): Promise<AuthProfileResponse> {
     const profile = await this.prisma.profile.findUnique({
       where: { id: profileId },
     });

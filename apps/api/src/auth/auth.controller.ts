@@ -7,12 +7,13 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CreatePlayerProfileDto } from '@overtime-mono/shared';
 import { IsString, IsNotEmpty, Matches } from 'class-validator';
+import { AuthFacadeService } from './application/services/auth-facade.service';
+import type { CurrentAuthUser } from './auth.types';
 
 class UpdateDocumentNumberDto {
   @IsString()
@@ -25,7 +26,7 @@ class UpdateDocumentNumberDto {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthFacadeService) {}
 
   /**
    * Obtiene el perfil del usuario autenticado
@@ -37,7 +38,7 @@ export class AuthController {
    * - playerId: ID del Player si existe
    */
   @Get('profile')
-  async getProfile(@CurrentUser() user: any) {
+  async getProfile(@CurrentUser() user: CurrentAuthUser) {
     return {
       success: true,
       data: user,
@@ -50,11 +51,11 @@ export class AuthController {
    */
   @Patch('profile/document')
   async setDocumentNumber(
-    @CurrentUser() user: Record<string, unknown>,
+    @CurrentUser() user: CurrentAuthUser,
     @Body() dto: UpdateDocumentNumberDto,
   ) {
     const profile = await this.authService.setDocumentNumber(
-      user.supabaseUserId as string,
+      user.supabaseUserId,
       dto.documentNumber,
     );
 
@@ -96,16 +97,10 @@ export class AuthController {
    */
   @Post('create-player-profile')
   async createPlayerProfile(
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentAuthUser,
     @Body() dto: CreatePlayerProfileDto,
   ) {
-    const profile = await this.authService.createPlayerProfile(
-      user.supabaseUserId,
-      {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-      },
-    );
+    const profile = await this.authService.createPlayerProfile(user.supabaseUserId, dto);
 
     return {
       success: true,
