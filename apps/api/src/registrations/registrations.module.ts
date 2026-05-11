@@ -3,6 +3,7 @@ import { RegistrationsService } from './registrations.service';
 import { RegistrationsController } from './registrations.controller';
 import { DatabaseModule } from '../database/database.module';
 import { EligibilityModule } from '../eligibility/eligibility.module';
+import { RegistrationsService as ApplicationRegistrationsService } from './application/services/registrations.service';
 import { AddRegistrationRosterEntryUseCase } from './application/use-cases/add-registration-roster-entry.use-case';
 import { ApproveRegistrationUseCase } from './application/use-cases/approve-registration.use-case';
 import { CreateRegistrationUseCase } from './application/use-cases/create-registration.use-case';
@@ -18,6 +19,7 @@ import { RegistrationsFacadeService } from './application/services/registrations
   controllers: [RegistrationsController],
   providers: [
     RegistrationsService,
+    ApplicationRegistrationsService,
     RegistrationsFacadeService,
     CreateRegistrationUseCase,
     ListRegistrationsUseCase,

@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
-import { RegistrationsService } from './registrations.service';
 import { PrismaService } from '../database/prisma.service';
 import { EligibilityService } from '../eligibility/eligibility.service';
+import { RegistrationsService } from './application/services/registrations.service';
 
 describe('RegistrationsService', () => {
   const makeUuid = (index: number): string =>

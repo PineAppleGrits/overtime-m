@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { RegistrationsService } from '../../registrations.service';
+import { RegistrationsService } from '../services/registrations.service';
 
 @Injectable()
 export class GetRegistrationUseCase {
-  constructor(private readonly legacy: RegistrationsService) {}
+  constructor(private readonly registrations: RegistrationsService) {}
 
   async execute(id: string) {
-    return this.legacy.findOne(id);
+    return this.registrations.findOne(id);
   }
 }
