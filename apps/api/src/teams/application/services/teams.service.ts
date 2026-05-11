@@ -6,15 +6,14 @@ import {
   ForbiddenException,
   HttpStatus,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import {
   DebtStatus,
   DebtType,
   MediaCategory,
   MediaVisibility,
-  Prisma,
 } from '@prisma/client';
-import { PrismaService } from '../../../database/prisma.service';
 import { readFechasState } from '../../../sanctions/domain/rules/fechas-counting.rules';
 import type {
   CreateFranchiseSchemaDto,
@@ -25,24 +24,45 @@ import type {
   UpdateTeamSchemaDto,
 } from '@overtime-mono/shared';
 import { generateUniqueSlug } from '../../../common/utils/slug.util';
-import { EligibilityService } from '../../../eligibility/eligibility.service';
 import { BusinessError, ErrorCode } from '../../../common/errors';
-import { MediaAssetService } from '../../../common/storage/media-asset.service';
-import { SportRulesRegistry } from '../../../common/sport-rules/sport-rules.registry';
 import {
   Modality,
   SportCode,
 } from '../../../common/sport-rules/sport-rules.types';
+import {
+  TEAM_ELIGIBILITY_PORT,
+  type TeamEligibilityPort,
+} from '../ports/team-eligibility.port';
+import { TEAM_MEDIA_PORT, type TeamMediaPort } from '../ports/team-media.port';
+import {
+  TEAM_REPOSITORY,
+  type TeamMatchPreviewSource,
+  type TeamRepository,
+} from '../ports/team-repository.port';
+import {
+  TEAM_SPORT_RULES_PORT,
+  type TeamSportRulesPort,
+} from '../ports/team-sport-rules.port';
+import {
+  TEAM_TOURNAMENT_CONTEXT_PORT,
+  type TeamTournamentContextPort,
+} from '../ports/team-tournament-context.port';
 
 @Injectable()
 export class TeamsService {
   private readonly logger = new Logger(TeamsService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly eligibilityService: EligibilityService,
-    private readonly mediaAssets: MediaAssetService,
-    private readonly sportRules: SportRulesRegistry,
+    @Inject(TEAM_REPOSITORY)
+    private readonly repository: TeamRepository,
+    @Inject(TEAM_TOURNAMENT_CONTEXT_PORT)
+    private readonly tournamentContext: TeamTournamentContextPort,
+    @Inject(TEAM_ELIGIBILITY_PORT)
+    private readonly eligibility: TeamEligibilityPort,
+    @Inject(TEAM_MEDIA_PORT)
+    private readonly media: TeamMediaPort,
+    @Inject(TEAM_SPORT_RULES_PORT)
+    private readonly sportRules: TeamSportRulesPort,
   ) {}
 
   private async generateTeamSlug(
@@ -52,15 +72,7 @@ export class TeamsService {
     return generateUniqueSlug({
       value: name,
       exists: async (slug) => {
-        const existingTeam = await this.prisma.team.findFirst({
-          where: {
-            slug,
-            ...(excludeId ? { id: { not: excludeId } } : {}),
-          },
-          select: { id: true },
-        });
-
-        return Boolean(existingTeam);
+        return this.repository.isTeamSlugTaken(slug, excludeId);
       },
     });
   }
@@ -69,27 +81,14 @@ export class TeamsService {
     return generateUniqueSlug({
       value: name,
       exists: async (slug) => {
-        const existingFranchise = await this.prisma.franchise.findFirst({
-          where: { slug },
-          select: { id: true },
-        });
-
-        return Boolean(existingFranchise);
+        return this.repository.isFranchiseSlugTaken(slug);
       },
     });
   }
 
   private async getTournamentForTeamOperations(tournamentId: string) {
-    const tournament = await this.prisma.tournament.findUnique({
-      where: { id: tournamentId, deletedAt: null },
-      select: {
-        id: true,
-        name: true,
-        sportId: true,
-        teamOperationsOpenAt: true,
-        teamOperationsCloseAt: true,
-      },
-    });
+    const tournament =
+      await this.tournamentContext.findTournamentForOperations(tournamentId);
 
     if (!tournament) {
       throw new NotFoundException('Tournament not found');
@@ -126,14 +125,7 @@ export class TeamsService {
 
   async create(createTeamDto: CreateTeamSchemaDto, creatorId: string) {
     // RN-034 — DNI obligatorio y validado para crear equipo.
-    const creator = await this.prisma.profile.findUnique({
-      where: { id: creatorId },
-      select: {
-        id: true,
-        documentNumber: true,
-        documentVerified: true,
-      },
-    });
+    const creator = await this.repository.findCreatorProfileById(creatorId);
     if (!creator) {
       throw new NotFoundException('Creator profile not found');
     }
@@ -153,62 +145,25 @@ export class TeamsService {
     }
 
     // Verificar que el deporte existe
-    const sport = await this.prisma.sport.findUnique({
-      where: { id: createTeamDto.sportId },
-    });
+    const sport = await this.repository.findSportById(createTeamDto.sportId);
 
     if (!sport) {
       throw new NotFoundException('Sport not found');
     }
 
     if (createTeamDto.captainId) {
-      const captain = await this.prisma.profile.findUnique({
-        where: { id: createTeamDto.captainId },
-      });
+      const captain = await this.repository.findCaptainProfileById(
+        createTeamDto.captainId,
+      );
       if (!captain) {
         throw new NotFoundException('Captain not found');
       }
     }
 
-    const team = await this.prisma.team.create({
-      data: {
-        ...createTeamDto,
-        slug: await this.generateTeamSlug(createTeamDto.name),
-        creatorId,
-        members: {
-          create: { profileId: creatorId },
-        },
-      },
-      include: {
-        sport: true,
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        captain: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
-        },
-        members: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-      },
+    const team = await this.repository.createTeam({
+      ...createTeamDto,
+      slug: await this.generateTeamSlug(createTeamDto.name),
+      creatorId,
     });
 
     this.logger.log(`Team created: ${team.name}`);
@@ -233,169 +188,16 @@ export class TeamsService {
   }
 
   async findMine(profileId: string) {
-    const profile = await this.prisma.profile.findUnique({
-      where: { id: profileId },
-      select: { documentNumber: true },
-    });
-
-    const documentNumber = profile?.documentNumber ?? null;
-
-    const teams = await this.prisma.team.findMany({
-      where: {
-        deletedAt: null,
-        OR: [
-          { creatorId: profileId },
-          {
-            members: {
-              some: {
-                isActive: true,
-                profile: {
-                  OR: [
-                    { id: profileId },
-                    ...(documentNumber ? [{ documentNumber }] : []),
-                  ],
-                },
-              },
-            },
-          },
-        ],
-      },
-      include: {
-        sport: true,
-        franchise: {
-          select: { id: true, name: true, slug: true, logoUrl: true },
-        },
-        creator: { select: { id: true, name: true, email: true } },
-        captain: { select: { id: true, name: true, avatarUrl: true } },
-        members: {
-          where: { isActive: true },
-          include: {
-            profile: { select: { id: true, name: true, avatarUrl: true } },
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return teams;
+    const profile = await this.repository.findProfileDocumentNumber(profileId);
+    return this.repository.listMyTeams(profileId, profile?.documentNumber ?? null);
   }
 
   async findAll(paginationDto: PaginationSchemaDto) {
-    const {
-      page = 1,
-      limit = 10,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-    } = paginationDto;
-
-    const skip = (page - 1) * limit;
-
-    const [teams, total] = await Promise.all([
-      this.prisma.team.findMany({
-        where: { deletedAt: null },
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          sport: true,
-          creator: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          captain: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true,
-            },
-          },
-          members: {
-            include: {
-              profile: {
-                select: {
-                  id: true,
-                  name: true,
-                  avatarUrl: true,
-                  email: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-      this.prisma.team.count({
-        where: { deletedAt: null },
-      }),
-    ]);
-
-    return {
-      data: teams,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return this.repository.listTeams(paginationDto);
   }
 
   async findOne(id: string) {
-    const team = await this.prisma.team.findUnique({
-      where: { id, deletedAt: null },
-      include: {
-        sport: true,
-        franchise: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logoUrl: true,
-          },
-        },
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        captain: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
-        },
-        members: {
-          include: {
-            profile: true,
-          },
-        },
-        teamZones: {
-          include: {
-            zone: {
-              include: {
-                category: {
-                  include: {
-                    tournament: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        registrations: {
-          include: {
-            tournament: true,
-            category: true,
-          },
-        },
-      },
-    });
+    const team = await this.repository.findTeamDetailById(id);
 
     if (!team) {
       throw new NotFoundException(`Team with ID ${id} not found`);
@@ -409,9 +211,7 @@ export class TeamsService {
 
     // Si se está actualizando el deporte, verificar que existe
     if (updateTeamDto.sportId) {
-      const sport = await this.prisma.sport.findUnique({
-        where: { id: updateTeamDto.sportId },
-      });
+      const sport = await this.repository.findSportById(updateTeamDto.sportId);
 
       if (!sport) {
         throw new NotFoundException('Sport not found');
@@ -419,60 +219,27 @@ export class TeamsService {
     }
 
     if (updateTeamDto.captainId) {
-      const captain = await this.prisma.profile.findUnique({
-        where: { id: updateTeamDto.captainId },
-      });
+      const captain = await this.repository.findCaptainProfileById(
+        updateTeamDto.captainId,
+      );
       if (!captain) {
         throw new NotFoundException('Captain not found');
       }
-      const member = await this.prisma.profileTeam.findFirst({
-        where: {
-          teamId: id,
-          profileId: updateTeamDto.captainId,
-          isActive: true,
-        },
-      });
+      const member = await this.repository.findMembership(
+        id,
+        updateTeamDto.captainId,
+        true,
+      );
       if (!member) {
         throw new BadRequestException('Captain must be a member of the team');
       }
     }
 
-    const team = await this.prisma.team.update({
-      where: { id },
-      data: {
-        ...updateTeamDto,
-        slug: updateTeamDto.name
-          ? await this.generateTeamSlug(updateTeamDto.name, id)
-          : undefined,
-      },
-      include: {
-        sport: true,
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        captain: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-          },
-        },
-        members: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-                name: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-      },
+    const team = await this.repository.updateTeam(id, {
+      ...updateTeamDto,
+      slug: updateTeamDto.name
+        ? await this.generateTeamSlug(updateTeamDto.name, id)
+        : undefined,
     });
 
     this.logger.log(`Team updated: ${team.name}`);
@@ -483,10 +250,7 @@ export class TeamsService {
   async remove(id: string) {
     await this.findOne(id);
 
-    await this.prisma.team.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    await this.repository.softDeleteTeam(id);
 
     this.logger.log(`Team deleted: ${id}`);
 
@@ -496,50 +260,32 @@ export class TeamsService {
   async addPlayer(teamId: string, addPlayerDto: AddPlayerSchemaDto) {
     const team = await this.findOne(teamId);
 
-    const profile = await this.prisma.profile.findUnique({
-      where: { id: addPlayerDto.profileId },
-    });
+    const profile = await this.repository.findProfileById(addPlayerDto.profileId);
 
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
 
-    await this.eligibilityService.assertProfileNotBlacklisted(profile.id);
+    await this.eligibility.assertProfileNotBlacklisted(profile.id);
 
-    const existingMembership = await this.prisma.profileTeam.findFirst({
-      where: {
-        teamId,
-        profileId: addPlayerDto.profileId,
-      },
-    });
+    const existingMembership = await this.repository.findMembership(
+      teamId,
+      addPlayerDto.profileId,
+    );
 
     if (existingMembership) {
       if (!existingMembership.isActive) {
-        await this.prisma.profileTeam.update({
-          where: { id: existingMembership.id },
-          data: { isActive: true, joinedAt: new Date() },
-        });
+        await this.repository.reactivateMembership(existingMembership.id);
         return this.findOne(teamId);
       }
       throw new ConflictException('Profile already in team');
     }
 
     // RN-002 — un jugador no puede pertenecer activamente a otro equipo del mismo deporte.
-    const conflictingMembership = await this.prisma.profileTeam.findFirst({
-      where: {
-        profileId: addPlayerDto.profileId,
-        isActive: true,
-        teamId: { not: teamId },
-        team: {
-          sportId: team.sportId,
-          deletedAt: null,
-        },
-      },
-      include: {
-        team: {
-          select: { id: true, name: true, sportId: true },
-        },
-      },
+    const conflictingMembership = await this.repository.findConflictingMembership({
+      teamId,
+      profileId: addPlayerDto.profileId,
+      sportId: team.sportId as string,
     });
     if (conflictingMembership) {
       throw new BusinessError(
@@ -554,12 +300,7 @@ export class TeamsService {
       );
     }
 
-    await this.prisma.profileTeam.create({
-      data: {
-        teamId,
-        profileId: addPlayerDto.profileId,
-      },
-    });
+    await this.repository.createMembership(teamId, addPlayerDto.profileId);
 
     this.logger.log(`Profile ${profile.name} added to team ${team.name}`);
 
@@ -569,22 +310,13 @@ export class TeamsService {
   async removePlayer(teamId: string, profileId: string) {
     await this.findOne(teamId);
 
-    const membership = await this.prisma.profileTeam.findFirst({
-      where: {
-        teamId,
-        profileId,
-        isActive: true,
-      },
-    });
+    const membership = await this.repository.findMembership(teamId, profileId, true);
 
     if (!membership) {
       throw new NotFoundException('Profile not in team');
     }
 
-    await this.prisma.profileTeam.update({
-      where: { id: membership.id },
-      data: { isActive: false },
-    });
+    await this.repository.deactivateMembership(membership.id);
 
     this.logger.log(`Profile ${profileId} removed from team ${teamId}`);
 
@@ -594,50 +326,13 @@ export class TeamsService {
   async assignCaptain(teamId: string, profileId: string) {
     const team = await this.findOne(teamId);
 
-    const member = await this.prisma.profileTeam.findFirst({
-      where: {
-        teamId,
-        profileId,
-        isActive: true,
-      },
-    });
+    const member = await this.repository.findMembership(teamId, profileId, true);
 
     if (!member) {
       throw new BadRequestException('Captain must be a member of the team');
     }
 
-    const updatedTeam = await this.prisma.team.update({
-      where: { id: teamId },
-      data: { captainId: profileId },
-      include: {
-        sport: true,
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        captain: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-          },
-        },
-        members: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-                name: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const updatedTeam = await this.repository.assignCaptain(teamId, profileId);
 
     this.logger.log(`Captain assigned to team ${team.name}`);
 
@@ -649,16 +344,7 @@ export class TeamsService {
     dto: CreateFranchiseSchemaDto,
     ownerId: string,
   ) {
-    const team = await this.prisma.team.findUnique({
-      where: { id: teamId, deletedAt: null },
-      select: {
-        id: true,
-        name: true,
-        logoUrl: true,
-        creatorId: true,
-        franchiseId: true,
-      },
-    });
+    const team = await this.repository.findPromotionCandidate(teamId);
 
     if (!team) {
       throw new NotFoundException('Team not found');
@@ -674,65 +360,12 @@ export class TeamsService {
       throw new ConflictException('Team is already part of a franchise');
     }
 
-    const promotedTeam = await this.prisma.$transaction(async (tx) => {
-      const franchise = await tx.franchise.create({
-        data: {
-          name: dto.name,
-          slug: await this.generateFranchiseSlug(dto.name),
-          logoUrl: dto.logoUrl,
-          ownerId,
-        },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          logoUrl: true,
-          ownerId: true,
-          createdAt: true,
-        },
-      });
-
-      const updatedTeam = await tx.team.update({
-        where: { id: teamId },
-        data: {
-          franchiseId: franchise.id,
-        },
-        include: {
-          sport: true,
-          franchise: true,
-          creator: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          captain: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true,
-            },
-          },
-          members: {
-            where: { isActive: true },
-            include: {
-              profile: {
-                select: {
-                  id: true,
-                  name: true,
-                  avatarUrl: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      return {
-        franchise,
-        team: updatedTeam,
-      };
+    const promotedTeam = await this.repository.promoteToFranchise({
+      teamId,
+      name: dto.name,
+      slug: await this.generateFranchiseSlug(dto.name),
+      logoUrl: dto.logoUrl,
+      ownerId,
     });
 
     this.logger.log(
@@ -751,19 +384,13 @@ export class TeamsService {
     teamId: string,
     modality: Modality,
   ): Promise<TeamRosterStatusDto> {
-    const team = await this.prisma.team.findUnique({
-      where: { id: teamId, deletedAt: null },
-      select: {
-        id: true,
-        sport: { select: { code: true } },
-      },
-    });
+    const team = await this.repository.findSportCodeByTeamId(teamId);
     if (!team) {
       throw new NotFoundException(`Team with ID ${teamId} not found`);
     }
 
     const sportCode = team.sport.code as SportCode;
-    const rules = this.sportRules.tryGet(sportCode, modality);
+    const rules = this.sportRules.getRosterBounds(sportCode, modality);
     if (!rules) {
       throw new BusinessError(
         ErrorCode.SPORT_RULES_NOT_FOUND,
@@ -773,11 +400,9 @@ export class TeamsService {
       );
     }
 
-    const count = await this.prisma.profileTeam.count({
-      where: { teamId, isActive: true },
-    });
+    const count = await this.repository.countActiveTeamMembers(teamId);
 
-    const { rosterMin, rosterMax } = rules.roster;
+    const { rosterMin, rosterMax } = rules;
     const isValid = count >= rosterMin && count <= rosterMax;
 
     return {
@@ -803,10 +428,7 @@ export class TeamsService {
       originalname: string;
     },
   ): Promise<{ assetId: string; url: string }> {
-    const team = await this.prisma.team.findUnique({
-      where: { id: teamId, deletedAt: null },
-      select: { id: true, name: true, logoAssetId: true },
-    });
+    const team = await this.repository.findLogoByTeamId(teamId);
     if (!team) {
       throw new NotFoundException(`Team with ID ${teamId} not found`);
     }
@@ -819,7 +441,7 @@ export class TeamsService {
       );
     }
 
-    const asset = await this.mediaAssets.upload({
+    const asset = await this.media.upload({
       uploadedByProfileId: uploaderId,
       category: MediaCategory.TEAM_LOGO,
       visibility: MediaVisibility.PUBLIC,
@@ -832,14 +454,11 @@ export class TeamsService {
 
     const previousAssetId = team.logoAssetId;
 
-    await this.prisma.team.update({
-      where: { id: teamId },
-      data: { logoAssetId: asset.id },
-    });
+    await this.repository.updateTeamLogoAsset(teamId, asset.id);
 
     if (previousAssetId && previousAssetId !== asset.id) {
       try {
-        await this.mediaAssets.delete(previousAssetId);
+        await this.media.delete(previousAssetId);
       } catch (err) {
         this.logger.warn(
           `Failed to delete previous logo asset ${previousAssetId} for team ${teamId}`,
@@ -847,7 +466,7 @@ export class TeamsService {
       }
     }
 
-    const url = await this.mediaAssets.getAccessUrl(asset);
+    const url = await this.media.getAccessUrl(asset);
 
     this.logger.log(`Logo uploaded for team ${team.name} (${teamId})`);
 
@@ -869,49 +488,15 @@ export class TeamsService {
    */
   async findTeamMatches(teamId: string, type?: 'last' | 'next') {
     // Verificamos que el team exista (404 si no).
-    const team = await this.prisma.team.findUnique({
-      where: { id: teamId, deletedAt: null },
-      select: { id: true },
-    });
+    const team = await this.repository.findTeamExists(teamId);
     if (!team) throw new NotFoundException('Team not found');
-
-    const include = {
-      homeTeam: { select: { id: true, name: true, logoUrl: true } },
-      awayTeam: { select: { id: true, name: true, logoUrl: true } },
-      venue: { select: { id: true, name: true } },
-      category: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          tournament: { select: { id: true, name: true, slug: true } },
-        },
-      },
-    } as const;
-
-    const teamFilter = {
-      OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
-      deletedAt: null,
-    };
 
     const wantsLast = !type || type === 'last';
     const wantsNext = !type || type === 'next';
 
     const [last, next] = await Promise.all([
-      wantsLast
-        ? this.prisma.match.findFirst({
-            where: { ...teamFilter, status: 'finalizado' },
-            orderBy: { matchDate: 'desc' },
-            include,
-          })
-        : Promise.resolve(null),
-      wantsNext
-        ? this.prisma.match.findFirst({
-            where: { ...teamFilter, status: { in: ['programado', 'reprogramado'] } },
-            orderBy: { matchDate: 'asc' },
-            include,
-          })
-        : Promise.resolve(null),
+      wantsLast ? this.repository.findLastMatchPreview(teamId) : Promise.resolve(null),
+      wantsNext ? this.repository.findNextMatchPreview(teamId) : Promise.resolve(null),
     ]);
 
     return {
@@ -920,23 +505,7 @@ export class TeamsService {
     };
   }
 
-  private toMatchPreview(match: {
-    id: string;
-    matchDate: Date;
-    matchType: string;
-    homeScore: number;
-    awayScore: number;
-    homeTeam: { id: string; name: string; logoUrl: string | null } | null;
-    awayTeam: { id: string; name: string; logoUrl: string | null } | null;
-    venue: { id: string; name: string } | null;
-    category: {
-      id: string;
-      name: string;
-      slug: string | null;
-      tournament: { id: string; name: string; slug: string } | null;
-    } | null;
-    status: string;
-  }) {
+  private toMatchPreview(match: TeamMatchPreviewSource) {
     const hasResult = match.status === 'finalizado';
     return {
       id: match.id,
@@ -990,10 +559,7 @@ export class TeamsService {
     currentUserId: string,
     currentUserRole: string | null | undefined,
   ) {
-    const team = await this.prisma.team.findUnique({
-      where: { id: teamId, deletedAt: null },
-      select: { id: true, creatorId: true, captainId: true },
-    });
+    const team = await this.repository.findBalanceAccess(teamId);
     if (!team) {
       throw new NotFoundException('Team not found');
     }
@@ -1016,32 +582,11 @@ export class TeamsService {
 
     // Una sola query para todas las Debts del team — luego agrupamos en memoria
     // para construir totales globales y desgloses por registration.
-    const debts = await this.prisma.debt.findMany({
-      where: {
-        teamId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        type: true,
-        status: true,
-        originAmount: true,
-        currentBalance: true,
-        registrationId: true,
-        payments: {
-          select: {
-            id: true,
-            amount: true,
-            status: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
-    });
+    const debts = await this.repository.findDebtsByTeamId(teamId);
 
     // Acumuladores globales.
-    const decimalToNumber = (d: Prisma.Decimal): number => Number(d.toString());
+    const decimalToNumber = (d: { toString(): string }): number =>
+      Number(d.toString());
 
     let totalDebt = 0;
     let totalPaid = 0;
@@ -1070,42 +615,19 @@ export class TeamsService {
       debtsByRegistration.set(debt.registrationId, list);
     }
 
-    const registrationRecords = await this.prisma.registration.findMany({
-      where: { teamId },
-      select: {
-        id: true,
-        tournament: { select: { name: true } },
-        category: { select: { name: true } },
-      },
-    });
+    const registrationRecords =
+      await this.repository.findRegistrationSummariesByTeamId(teamId);
 
     // playersCount es un proxy del roster actual del team (no hay snapshot por
     // registration en el schema). TODO: si en el futuro RegistrationRosterEntry
     // se materializa por inscripción, derivar de ahí en lugar del roster activo.
-    const activePlayersCount = await this.prisma.profileTeam.count({
-      where: { teamId, isActive: true },
-    });
+    const activePlayersCount = await this.repository.countActiveTeamMembers(teamId);
 
     // Para resolver voucherUrl tomamos el último Payment con un MediaAsset
     // category=PAYMENT_PROOF asociado vía metadata.paymentId. Buscamos los
     // assets en una sola query y los mapeamos por paymentId.
     const allPaymentIds = debts.flatMap((d) => d.payments.map((p) => p.id));
-    const proofAssets = allPaymentIds.length
-      ? await this.prisma.mediaAsset.findMany({
-          where: {
-            category: MediaCategory.PAYMENT_PROOF,
-            deletedAt: null,
-            metadata: { path: ['paymentId'], string_contains: '' },
-          },
-          select: {
-            id: true,
-            bucket: true,
-            storageKey: true,
-            metadata: true,
-            createdAt: true,
-          },
-        })
-      : [];
+    const proofAssets = await this.repository.findPaymentProofAssets(allPaymentIds);
     const voucherByPaymentId = new Map<string, { url: string; createdAt: Date }>();
     for (const asset of proofAssets) {
       const meta = asset.metadata as { paymentId?: string } | null;
@@ -1207,49 +729,26 @@ export class TeamsService {
 
     // Suspensiones — sanciones DISCIPLINARY activas a profiles del roster activo
     // del team. La FE sólo muestra suspensiones de jugadores (no del team).
-    const activeRosterIds = await this.prisma.profileTeam.findMany({
-      where: { teamId, isActive: true },
-      select: { profileId: true },
-    });
-    const profileIds = activeRosterIds.map((m) => m.profileId);
+    const profileIds = await this.repository.findActiveRosterProfileIds(teamId);
 
-    const suspensions = profileIds.length
-      ? await this.prisma.sanction
-          .findMany({
-            where: {
-              targetType: 'PROFILE',
-              kind: 'DISCIPLINARY',
-              targetProfileId: { in: profileIds },
-            },
-            select: {
-              id: true,
-              targetProfileId: true,
-              status: true,
-              reason: true,
-              notes: true,
-              endsAt: true,
-              targetProfile: { select: { id: true, name: true } },
-            },
-          })
-          .then((rows) =>
-            rows.map((s) => {
-              const fechas = readFechasState(s.notes);
-              const totalGames = fechas?.totalFechas ?? 0;
-              const remainingGames = fechas
-                ? Math.max(0, fechas.totalFechas - fechas.fechasCumplidas)
-                : 0;
-              return {
-                profileId: s.targetProfileId ?? '',
-                playerName: s.targetProfile?.name ?? '',
-                reason: s.reason,
-                totalGames,
-                remainingGames,
-                endDate: s.endsAt ? s.endsAt.toISOString() : '',
-                isActive: s.status === 'ACTIVE',
-              };
-            }),
-          )
-      : [];
+    const suspensions = (
+      await this.repository.findActiveProfileSanctions(profileIds)
+    ).map((s) => {
+      const fechas = readFechasState(s.notes);
+      const totalGames = fechas?.totalFechas ?? 0;
+      const remainingGames = fechas
+        ? Math.max(0, fechas.totalFechas - fechas.fechasCumplidas)
+        : 0;
+      return {
+        profileId: s.targetProfileId ?? '',
+        playerName: s.targetProfile?.name ?? '',
+        reason: s.reason,
+        totalGames,
+        remainingGames,
+        endDate: s.endsAt ? s.endsAt.toISOString() : '',
+        isActive: s.status === 'ACTIVE',
+      };
+    });
 
     return {
       totalDebt,

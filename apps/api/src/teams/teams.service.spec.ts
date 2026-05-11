@@ -1,68 +1,93 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../database/prisma.service';
-import { EligibilityService } from '../eligibility/eligibility.service';
 import { BusinessError, ErrorCode } from '../common/errors';
-import { MediaAssetService } from '../common/storage/media-asset.service';
-import { SportRulesRegistry } from '../common/sport-rules/sport-rules.registry';
+import type { TeamEligibilityPort } from './application/ports/team-eligibility.port';
+import type { TeamMediaPort } from './application/ports/team-media.port';
+import type { TeamRepository } from './application/ports/team-repository.port';
+import type { TeamSportRulesPort } from './application/ports/team-sport-rules.port';
+import type { TeamTournamentContextPort } from './application/ports/team-tournament-context.port';
 import { TeamsService } from './application/services/teams.service';
 
 describe('TeamsService', () => {
   const makeUuid = (index: number): string =>
     `00000000-0000-4000-8000-${index.toString().padStart(12, '0')}`;
 
-  const createPrismaMock = () =>
+  const createRepositoryMock = (): jest.Mocked<TeamRepository> =>
     ({
-      tournament: {
-        findUnique: jest.fn(),
-      },
-      profile: {
-        findUnique: jest.fn(),
-      },
-      profileTeam: {
-        findFirst: jest.fn(),
-        count: jest.fn(),
-        create: jest.fn(),
-      },
-      team: {
-        findUnique: jest.fn(),
-        findFirst: jest.fn(),
-        update: jest.fn(),
-      },
-      franchise: {
-        create: jest.fn(),
-        findFirst: jest.fn(),
-      },
-      $transaction: jest.fn(),
-    }) as unknown as PrismaService;
+      isTeamSlugTaken: jest.fn(),
+      isFranchiseSlugTaken: jest.fn(),
+      findCreatorProfileById: jest.fn(),
+      findSportById: jest.fn(),
+      findCaptainProfileById: jest.fn(),
+      createTeam: jest.fn(),
+      findProfileDocumentNumber: jest.fn(),
+      listMyTeams: jest.fn(),
+      listTeams: jest.fn(),
+      findTeamDetailById: jest.fn(),
+      updateTeam: jest.fn(),
+      softDeleteTeam: jest.fn(),
+      findProfileById: jest.fn(),
+      findMembership: jest.fn(),
+      reactivateMembership: jest.fn(),
+      findConflictingMembership: jest.fn(),
+      createMembership: jest.fn(),
+      deactivateMembership: jest.fn(),
+      assignCaptain: jest.fn(),
+      findPromotionCandidate: jest.fn(),
+      promoteToFranchise: jest.fn(),
+      findSportCodeByTeamId: jest.fn(),
+      countActiveTeamMembers: jest.fn(),
+      findLogoByTeamId: jest.fn(),
+      updateTeamLogoAsset: jest.fn(),
+      findTeamExists: jest.fn(),
+      findLastMatchPreview: jest.fn(),
+      findNextMatchPreview: jest.fn(),
+      findBalanceAccess: jest.fn(),
+      findDebtsByTeamId: jest.fn(),
+      findRegistrationSummariesByTeamId: jest.fn(),
+      findPaymentProofAssets: jest.fn(),
+      findActiveRosterProfileIds: jest.fn(),
+      findActiveProfileSanctions: jest.fn(),
+    });
 
-  const createEligibilityMock = () =>
+  const createTournamentContextMock = (): jest.Mocked<TeamTournamentContextPort> =>
+    ({
+      findTournamentForOperations: jest.fn(),
+    });
+
+  const createEligibilityMock = (): jest.Mocked<TeamEligibilityPort> =>
     ({
       assertProfileNotBlacklisted: jest.fn(),
-    }) as unknown as EligibilityService;
+    });
 
-  const createMediaAssetsMock = () =>
+  const createMediaMock = (): jest.Mocked<TeamMediaPort> =>
     ({
       upload: jest.fn(),
       getAccessUrl: jest.fn(),
       delete: jest.fn(),
-    }) as unknown as MediaAssetService;
+    });
 
-  const createSportRulesMock = () => new SportRulesRegistry();
+  const createSportRulesMock = (): jest.Mocked<TeamSportRulesPort> =>
+    ({
+      getRosterBounds: jest.fn(),
+    });
 
   const buildService = (
-    prisma: PrismaService,
-    eligibility: EligibilityService = createEligibilityMock(),
+    repository: TeamRepository,
+    tournamentContext: TeamTournamentContextPort = createTournamentContextMock(),
+    eligibility: TeamEligibilityPort = createEligibilityMock(),
   ) =>
     new TeamsService(
-      prisma,
+      repository,
+      tournamentContext,
       eligibility,
-      createMediaAssetsMock(),
+      createMediaMock(),
       createSportRulesMock(),
     );
 
   it('rejects tournament-scoped team creation before the operational window opens', async () => {
-    const prisma = createPrismaMock();
-    prisma.tournament.findUnique = jest.fn().mockResolvedValue({
+    const repository = createRepositoryMock();
+    const tournamentContext = createTournamentContextMock();
+    tournamentContext.findTournamentForOperations.mockResolvedValue({
       id: makeUuid(1),
       name: 'Clausura 2026',
       sportId: makeUuid(2),
@@ -70,7 +95,7 @@ describe('TeamsService', () => {
       teamOperationsCloseAt: null,
     });
 
-    const service = buildService(prisma);
+    const service = buildService(repository, tournamentContext);
 
     await expect(
       service.createForTournament(
@@ -85,17 +110,16 @@ describe('TeamsService', () => {
   });
 
   it('rejects promoting a team when the current user is not the creator', async () => {
-    const prisma = createPrismaMock();
-    prisma.team.findUnique = jest.fn().mockResolvedValue({
+    const repository = createRepositoryMock();
+    repository.findPromotionCandidate.mockResolvedValue({
       id: makeUuid(10),
       name: 'Team Overtime',
       logoUrl: null,
       creatorId: makeUuid(111),
       franchiseId: null,
     });
-    prisma.franchise.findFirst = jest.fn().mockResolvedValue(null);
 
-    const service = buildService(prisma);
+    const service = buildService(repository);
 
     await expect(
       service.promoteToFranchise(
@@ -109,19 +133,20 @@ describe('TeamsService', () => {
   });
 
   it('rejects adding a blacklisted player to a team', async () => {
-    const prisma = createPrismaMock();
+    const repository = createRepositoryMock();
     const eligibility = createEligibilityMock();
-    prisma.team.findUnique = jest.fn().mockResolvedValue({
+    repository.findTeamDetailById.mockResolvedValue({
       id: makeUuid(1),
       name: 'Team Overtime',
       sport: {},
+      sportId: makeUuid(70),
       creator: null,
       captain: null,
       members: [],
       teamZones: [],
       registrations: [],
     });
-    prisma.profile.findUnique = jest.fn().mockResolvedValue({
+    repository.findProfileById.mockResolvedValue({
       id: makeUuid(2),
       name: 'Jugador Bloqueado',
     });
@@ -129,7 +154,7 @@ describe('TeamsService', () => {
       new ConflictException('blocked'),
     );
 
-    const service = buildService(prisma, eligibility);
+    const service = buildService(repository, createTournamentContextMock(), eligibility);
 
     await expect(
       service.addPlayer(makeUuid(1), {
@@ -139,14 +164,14 @@ describe('TeamsService', () => {
   });
 
   it('blocks team creation when the creator has no DNI loaded (RN-034)', async () => {
-    const prisma = createPrismaMock();
-    prisma.profile.findUnique = jest.fn().mockResolvedValue({
+    const repository = createRepositoryMock();
+    repository.findCreatorProfileById.mockResolvedValue({
       id: makeUuid(50),
       documentNumber: null,
       documentVerified: false,
     });
 
-    const service = buildService(prisma);
+    const service = buildService(repository);
 
     await expect(
       service.create(
@@ -159,14 +184,14 @@ describe('TeamsService', () => {
   });
 
   it('blocks team creation when the creator DNI is not verified (RN-034)', async () => {
-    const prisma = createPrismaMock();
-    prisma.profile.findUnique = jest.fn().mockResolvedValue({
+    const repository = createRepositoryMock();
+    repository.findCreatorProfileById.mockResolvedValue({
       id: makeUuid(51),
       documentNumber: '12345678',
       documentVerified: false,
     });
 
-    const service = buildService(prisma);
+    const service = buildService(repository);
 
     await expect(
       service.create(
@@ -179,8 +204,8 @@ describe('TeamsService', () => {
   });
 
   it('blocks adding a player that already plays in another team of the same sport (RN-002)', async () => {
-    const prisma = createPrismaMock();
-    prisma.team.findUnique = jest.fn().mockResolvedValue({
+    const repository = createRepositoryMock();
+    repository.findTeamDetailById.mockResolvedValue({
       id: makeUuid(60),
       name: 'Equipo destino',
       sportId: makeUuid(70),
@@ -191,25 +216,25 @@ describe('TeamsService', () => {
       teamZones: [],
       registrations: [],
     });
-    prisma.profile.findUnique = jest.fn().mockResolvedValue({
+    repository.findProfileById.mockResolvedValue({
       id: makeUuid(80),
       name: 'Jugador',
     });
-    (prisma.profileTeam.findFirst as jest.Mock)
+    (repository.findMembership as jest.Mock)
       // primer findFirst: existingMembership en este equipo
       .mockResolvedValueOnce(null)
-      // segundo findFirst: conflicto en otro equipo del mismo deporte
-      .mockResolvedValueOnce({
-        id: makeUuid(90),
-        teamId: makeUuid(91),
-        team: {
-          id: makeUuid(91),
-          name: 'Otro equipo',
-          sportId: makeUuid(70),
-        },
-      });
+      // no hay membership activa en el equipo destino
+      .mockResolvedValueOnce(null);
+    repository.findConflictingMembership.mockResolvedValue({
+      id: makeUuid(90),
+      team: {
+        id: makeUuid(91),
+        name: 'Otro equipo',
+        sportId: makeUuid(70),
+      },
+    });
 
-    const service = buildService(prisma);
+    const service = buildService(repository);
 
     await expect(
       service.addPlayer(makeUuid(60), { profileId: makeUuid(80) }),
