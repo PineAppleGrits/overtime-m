@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { TeamsService } from './teams.service';
 import { MatchPlayerStatsService } from '../matches/match-player-stats.service';
 import { Admin } from '../common/decorators/admin.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -30,6 +29,7 @@ import {
   BASKETBALL_MODALITIES,
   Modality,
 } from '../common/sport-rules/sport-rules.types';
+import { TeamsFacadeService } from './application/services/teams-facade.service';
 
 interface UploadedFileShape {
   buffer: Buffer;
@@ -42,7 +42,7 @@ interface UploadedFileShape {
 @Controller('teams')
 export class TeamsController {
   constructor(
-    private readonly teamsService: TeamsService,
+    private readonly teamsService: TeamsFacadeService,
     private readonly matchPlayerStatsService: MatchPlayerStatsService,
   ) {}
 

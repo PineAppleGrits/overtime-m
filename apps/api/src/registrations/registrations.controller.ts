@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
-import { RegistrationsService } from './registrations.service';
 import { ApproveRegistrationDto, PaginationDto } from '@overtime-mono/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -24,11 +23,12 @@ import {
   AddRegistrationRosterEntryBodyDto,
   CreateRegistrationBodyDto,
 } from './dto/registration-request.dto';
+import { RegistrationsFacadeService } from './application/services/registrations-facade.service';
 
 @ApiTags('registrations')
 @Controller('registrations')
 export class RegistrationsController {
-  constructor(private readonly registrationsService: RegistrationsService) {}
+  constructor(private readonly registrationsService: RegistrationsFacadeService) {}
 
   @Post()
   create(

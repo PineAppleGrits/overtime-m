@@ -3,12 +3,12 @@ import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
 import { CreateTeamBodyDto } from './dto/team-request.dto';
-import { TeamsService } from './teams.service';
+import { TeamsFacadeService } from './application/services/teams-facade.service';
 
 @ApiTags('teams')
 @Controller('tournaments/:tournamentId/teams')
 export class TournamentTeamsController {
-  constructor(private readonly teamsService: TeamsService) {}
+  constructor(private readonly teamsService: TeamsFacadeService) {}
 
   @Post()
   create(
