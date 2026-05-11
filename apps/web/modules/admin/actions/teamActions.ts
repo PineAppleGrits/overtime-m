@@ -5,8 +5,11 @@ import teamService from '@/modules/team/TeamService'
 import { normalizeTeamPayload } from '@/modules/team/team-payload'
 import { createTeamSchema, updateTeamSchema, deleteTeamSchema, addPlayerToTeamSchema, removePlayerFromTeamSchema } from '../schemas/teamSchemas'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 export async function createTeamAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = createTeamSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   try {
@@ -17,6 +20,8 @@ export async function createTeamAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateTeamAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updateTeamSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   const { id, ...data } = parsed.data
@@ -29,6 +34,8 @@ export async function updateTeamAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteTeamAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = deleteTeamSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   try {
@@ -39,6 +46,8 @@ export async function deleteTeamAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function addPlayerToTeamAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = addPlayerToTeamSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   try {
@@ -49,6 +58,8 @@ export async function addPlayerToTeamAction(input: unknown): Promise<ActionResul
 }
 
 export async function removePlayerFromTeamAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = removePlayerFromTeamSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   try {

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import authService from '../AuthService'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 interface ActionResult {
   success: boolean
@@ -11,6 +12,8 @@ interface ActionResult {
 export async function updateDocumentNumberAction(
   documentNumber: string
 ): Promise<ActionResult> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const trimmed = documentNumber.trim()
 
   if (!/^\d{7,8}$/.test(trimmed)) {

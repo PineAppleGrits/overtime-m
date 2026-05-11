@@ -33,11 +33,11 @@ export function SkeletonListOfTournaments() {
               {/* Meta row */}
               <div className="mt-3 flex gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-3.5 w-3.5 rounded-sm bg-white/8" />
+                  <div className="size-3.5 rounded-sm bg-white/8" />
                   <div className="h-3 w-36 rounded-sm bg-white/5" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-3.5 w-3.5 rounded-sm bg-white/8" />
+                  <div className="size-3.5 rounded-sm bg-white/8" />
                   <div className="h-3 w-20 rounded-sm bg-white/5" />
                 </div>
               </div>
@@ -52,7 +52,7 @@ export function SkeletonListOfTournaments() {
 
             {/* Right: arrow placeholder */}
             <div className="shrink-0 sm:pr-2">
-              <div className="h-10 w-10 rounded-sm bg-[#3b336a]/20" />
+              <div className="size-10 rounded-sm bg-[#3b336a]/20" />
             </div>
           </div>
         </div>

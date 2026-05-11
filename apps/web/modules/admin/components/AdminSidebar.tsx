@@ -222,13 +222,13 @@ export function AdminSidebar() {
           <button
             onClick={() => setCollapsed(!collapsed)}
             className={cn(
-              'h-7 w-7 rounded-lg flex items-center justify-center text-white/25 hover:text-white/60 transition-all shrink-0',
+              'size-7 rounded-lg flex items-center justify-center text-white/25 hover:text-white/60 transition-all shrink-0',
               collapsed
                 ? 'absolute -right-3.5 top-[22px] bg-[#1a1730] hover:bg-[#252140] border border-white/[0.12] rounded-full shadow-lg z-10'
                 : 'hover:bg-white/[0.08]'
             )}
           >
-            {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+            {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronLeft className="size-3.5" />}
           </button>
         </div>
 
@@ -275,13 +275,13 @@ export function AdminSidebar() {
                             collapsed && 'justify-center px-0 w-10 mx-auto'
                           )}
                         >
-                          <Icon className="h-4 w-4 shrink-0" />
+                          <Icon className="size-4 shrink-0" />
                           {!collapsed && (
                             <>
                               <span className="flex-1 text-left">{item.label}</span>
                               <ChevronDown
                                 className={cn(
-                                  'h-3.5 w-3.5 text-white/25 transition-transform duration-200',
+                                  'size-3.5 text-white/25 transition-transform duration-200',
                                   isExpanded && 'rotate-180'
                                 )}
                               />
@@ -299,7 +299,7 @@ export function AdminSidebar() {
                             collapsed && 'justify-center px-0 w-10 mx-auto'
                           )}
                         >
-                          <Icon className="h-4 w-4 shrink-0" />
+                          <Icon className="size-4 shrink-0" />
                           {!collapsed && <span>{item.label}</span>}
                         </Link>
                       )
@@ -361,7 +361,7 @@ export function AdminSidebar() {
                   href="/"
                   className="flex h-9 w-10 mx-auto items-center justify-center rounded-lg text-white/25 hover:text-white/55 hover:bg-white/[0.06] transition-all"
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="size-4" />
                 </Link>
               </TooltipTrigger>
               <TooltipContent side="right" className="bg-[#0f0d1c] text-white border-white/10 text-xs">
@@ -373,7 +373,7 @@ export function AdminSidebar() {
               href="/"
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-[12px] text-white/30 hover:text-white/55 hover:bg-white/[0.06] transition-all"
             >
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="size-3.5" />
               <span>Volver al sitio</span>
             </Link>
           )}

@@ -110,10 +110,10 @@ export default function ProfileInfoPage() {
               alt={profile.name}
               width={64}
               height={64}
-              className="h-16 w-16 rounded-full"
+              className="size-16 rounded-full"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ot-orange text-2xl font-bold text-white">
+            <div className="flex size-16 items-center justify-center rounded-full bg-ot-orange text-2xl font-bold text-white">
               {profile?.name?.charAt(0).toUpperCase()}
             </div>
           )}
@@ -126,12 +126,12 @@ export default function ProfileInfoPage() {
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2">
             <InfoItem
-              icon={<Mail className="h-4 w-4 text-ot-orange" />}
+              icon={<Mail className="size-4 text-ot-orange" />}
               label="Email"
               value={profile?.email ?? '-'}
             />
             <InfoItem
-              icon={<IdCard className="h-4 w-4 text-ot-orange" />}
+              icon={<IdCard className="size-4 text-ot-orange" />}
               label="DNI"
               value={profile?.documentNumber ?? 'Sin completar'}
             />
@@ -144,24 +144,24 @@ export default function ProfileInfoPage() {
         <Card className="border-ot-light-blue/50 bg-ot-dark-blue/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg text-white">
-              <ShieldCheck className="h-5 w-5 text-ot-orange" />
+              <ShieldCheck className="size-5 text-ot-orange" />
               Estado del jugador
             </CardTitle>
           </CardHeader>
           <CardContent>
             {checkingBlacklist ? (
               <div className="flex items-center gap-2 text-white/50">
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
                 <span className="text-sm">Verificando estado...</span>
               </div>
             ) : blacklistStatus.checked && blacklistStatus.isBlacklisted ? (
               <div className="space-y-4">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1 text-sm font-medium text-red-400">
-                  <ShieldBan className="h-3.5 w-3.5" />
+                  <ShieldBan className="size-3.5" />
                   No habilitado
                 </span>
                 <div className="flex gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-400" />
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-red-300">
                       Tu cuenta se encuentra inhabilitada para participar en torneos.
@@ -182,7 +182,7 @@ export default function ProfileInfoPage() {
             ) : (
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/20 px-3 py-1 text-sm font-medium text-green-400">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <CheckCircle2 className="size-3.5" />
                   Habilitado
                 </span>
                 <span className="text-sm text-white/50">
@@ -198,7 +198,7 @@ export default function ProfileInfoPage() {
       <Card className="border-ot-light-blue/50 bg-ot-dark-blue/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg text-white">
-            <IdCard className="h-5 w-5 text-ot-orange" />
+            <IdCard className="size-5 text-ot-orange" />
             Documento Nacional de Identidad (DNI)
           </CardTitle>
           <CardDescription className="text-white/60">
@@ -210,7 +210,7 @@ export default function ProfileInfoPage() {
         <CardContent className="space-y-4">
           {!dniIsSet && (
             <div className="flex gap-3 rounded-lg border border-ot-orange/30 bg-ot-orange/10 p-3">
-              <Info className="mt-0.5 h-4 w-4 shrink-0 text-ot-orange" />
+              <Info className="mt-0.5 size-4 shrink-0 text-ot-orange" />
               <p className="text-sm text-white/80">
                 Ingresá tu DNI real y correcto. Una vez guardado, no vas a poder
                 modificarlo. Si necesitás cambiarlo, vas a tener que contactar a un
@@ -229,7 +229,7 @@ export default function ProfileInfoPage() {
                   className="border-ot-light-blue bg-ot-dark-blue/50 text-white/60"
                   aria-label="Número de documento"
                 />
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-green-500" aria-hidden="true" />
+                <CheckCircle2 className="size-5 shrink-0 text-green-500" aria-hidden="true" />
               </div>
               <p className="text-xs text-white/50">
                 Para modificar este valor, contactá a un administrador.

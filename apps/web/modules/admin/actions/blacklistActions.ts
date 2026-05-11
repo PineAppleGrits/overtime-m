@@ -5,8 +5,11 @@ import blacklistService from '@/modules/blacklist/BlacklistService'
 import { ErrorCode, actionFailure } from '@/modules/common/errors'
 import { createBlacklistSchema, toggleBlacklistSchema, deleteBlacklistSchema } from '../schemas/blacklistSchemas'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 export async function createBlacklistAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = createBlacklistSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -20,6 +23,8 @@ export async function createBlacklistAction(input: unknown): Promise<ActionResul
 }
 
 export async function toggleBlacklistAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = toggleBlacklistSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -33,6 +38,8 @@ export async function toggleBlacklistAction(input: unknown): Promise<ActionResul
 }
 
 export async function deleteBlacklistAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = deleteBlacklistSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -46,6 +53,8 @@ export async function deleteBlacklistAction(input: unknown): Promise<ActionResul
 }
 
 export async function checkPlayerAction(dni: string): Promise<{ success: boolean; data?: { isBlacklisted: boolean; reason: string | null }; error?: string }> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   try {
     const response = await blacklistService.checkPlayer(dni)
     return {

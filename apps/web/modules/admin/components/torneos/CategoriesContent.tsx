@@ -91,7 +91,7 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
       <div>
         <PageHeader title="Categorías y Zonas" backHref={`/admin/torneos/${tournamentId}`} />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar las categorías</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
         </div>
@@ -113,7 +113,7 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
         actions={
           <Button variant="outline" size="sm" asChild>
             <Link href={`/admin/torneos/${tournamentId}/inscripciones`}>
-              <ListChecks className="mr-1.5 h-3.5 w-3.5" />
+              <ListChecks className="mr-1.5 size-3.5" />
               Inscripciones
             </Link>
           </Button>
@@ -140,25 +140,25 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
               <Card key={cat.id}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand(cat.id)}>
-                      {expanded.has(cat.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    <Button variant="ghost" size="icon" className="size-6" onClick={() => toggleExpand(cat.id)}>
+                      {expanded.has(cat.id) ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
                     </Button>
                     <CardTitle className="text-lg">{cat.name}</CardTitle>
                     <Badge variant="outline">{cat.zones.length} zonas</Badge>
                     <Badge variant="secondary" className="gap-1">
-                      <Users className="h-3 w-3" />
+                      <Users className="size-3" />
                       {teamCount}
                     </Badge>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(cat)}>
-                      <Pencil className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(cat)}>
+                      <Pencil className="size-4" />
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => { setZoneDialog(cat.id); setZoneName('') }}>
-                      <Plus className="mr-1 h-3 w-3" />Zona
+                      <Plus className="mr-1 size-3" />Zona
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDeleteId(cat.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                    <Button variant="ghost" size="icon" className="size-8" onClick={() => setDeleteId(cat.id)}>
+                      <Trash2 className="size-4 text-destructive" />
                     </Button>
                   </div>
                 </CardHeader>
@@ -190,8 +190,8 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
                                   )}
                                 </div>
                               )}
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteZoneAct.execute({ categoryId: cat.id, zoneId: zone.id })}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                              <Button variant="ghost" size="icon" className="size-8" onClick={() => deleteZoneAct.execute({ categoryId: cat.id, zoneId: zone.id })}>
+                                <Trash2 className="size-4 text-destructive" />
                               </Button>
                             </div>
                           </div>
@@ -223,7 +223,7 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
               onClick={() => createCategoryAct.execute({ tournamentId, name: catForm.name })}
               disabled={createCategoryAct.isPending || !catForm.name}
             >
-              {createCategoryAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Crear
+              {createCategoryAct.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}Crear
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -249,7 +249,7 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
               })}
               disabled={updateCategoryAct.isPending || !editForm.name}
             >
-              {updateCategoryAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Guardar
+              {updateCategoryAct.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}Guardar
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -277,7 +277,7 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
           <DialogFooter>
             <Button variant="outline" onClick={() => setZoneDialog(null)}>Cancelar</Button>
             <Button onClick={() => zoneDialog && createZoneAct.execute({ categoryId: zoneDialog, name: zoneName })} disabled={createZoneAct.isPending || !zoneName}>
-              {createZoneAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Crear
+              {createZoneAct.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}Crear
             </Button>
           </DialogFooter>
         </DialogContent>

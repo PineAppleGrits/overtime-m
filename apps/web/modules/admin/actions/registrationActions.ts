@@ -5,8 +5,11 @@ import registrationService from '@/modules/registration/RegistrationService'
 import { ErrorCode, actionFailure } from '@/modules/common/errors'
 import { approveRegistrationSchema, rejectRegistrationSchema } from '../schemas/registrationSchemas'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 export async function approveRegistrationAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = approveRegistrationSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT)
   try {
@@ -20,6 +23,8 @@ export async function approveRegistrationAction(input: unknown): Promise<ActionR
 }
 
 export async function rejectRegistrationAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = rejectRegistrationSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT)
   try {

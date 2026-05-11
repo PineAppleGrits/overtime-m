@@ -74,7 +74,7 @@ function DateField({ label, value, onChange, minDate }: {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className={cn('w-full justify-start text-left font-normal h-9 border-[#e8e6e1]', !value && 'text-[#9b99a6]')}>
-            <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+            <CalendarIcon className="mr-2 size-3.5" />
             {value ? format(value, 'PPP', { locale: es }) : 'Sin definir'}
           </Button>
         </PopoverTrigger>
@@ -165,7 +165,7 @@ function ArancelesTab({ tournament }: { tournament: AdminTournament }) {
             onClick={addPricingRow}
             className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#ff3b2f] hover:text-[#e5352a] transition-colors"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="size-3.5" />
             Agregar periodo
           </button>
         </div>
@@ -223,9 +223,9 @@ function ArancelesTab({ tournament }: { tournament: AdminTournament }) {
                 <button
                   type="button"
                   onClick={() => removePricingRow(row.id)}
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-red-50 transition-colors self-end"
+                  className="size-9 inline-flex items-center justify-center rounded-md hover:bg-red-50 transition-colors self-end"
                 >
-                  <X className="h-3.5 w-3.5 text-[#c4c2cc] hover:text-destructive" />
+                  <X className="size-3.5 text-[#c4c2cc] hover:text-destructive" />
                 </button>
               )}
             </div>
@@ -373,7 +373,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
       <div>
         <PageHeader title="Torneo" backHref="/admin/torneos" />
         <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-[#6b6a72]">Error al cargar el torneo</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
         </div>
@@ -474,18 +474,18 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                     size="sm"
                     className="bg-[#ff3b2f] hover:bg-[#e5352a] text-white"
                   >
-                    {updateAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {updateAction.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
                     Guardar cambios
                   </Button>
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[#6b6a72]">Nombre</Label>
-                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border-[#e8e6e1] h-9" />
+                    <Input value={form.name} onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} className="border-[#e8e6e1] h-9" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[#6b6a72]">Descripción</Label>
-                    <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="border-[#e8e6e1] resize-none" />
+                    <Textarea value={form.description} onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} rows={3} className="border-[#e8e6e1] resize-none" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[#6b6a72]">Disciplina</Label>
@@ -515,7 +515,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button type="button" className="text-[#c4c2cc] hover:text-[#6b6a72] cursor-help">
-                              <HelpCircle className="h-3 w-3" />
+                              <HelpCircle className="size-3" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs text-left">
@@ -526,7 +526,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                       </div>
                       <Select
                         value={form.fixtureFormat}
-                        onValueChange={(v) => setForm({ ...form, fixtureFormat: v as 'SINGLE_ROUND' | 'DOUBLE_ROUND' })}
+                        onValueChange={(v) => setForm(prev => ({ ...prev, fixtureFormat: v as 'SINGLE_ROUND' | 'DOUBLE_ROUND' }))}
                       >
                         <SelectTrigger className="border-[#e8e6e1] h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -541,7 +541,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button type="button" className="text-[#c4c2cc] hover:text-[#6b6a72] cursor-help">
-                              <HelpCircle className="h-3 w-3" />
+                              <HelpCircle className="size-3" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs text-left">
@@ -555,7 +555,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                         return (
                           <Select
                             value={form.modality || undefined}
-                            onValueChange={(v) => setForm({ ...form, modality: v })}
+                            onValueChange={(v) => setForm(prev => ({ ...prev, modality: v }))}
                             disabled={opts.length === 0}
                           >
                             <SelectTrigger className="border-[#e8e6e1] h-9">
@@ -586,7 +586,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                   <DateField label="Inicio" value={form.startDate} onChange={(d) => {
                     setForm((p) => ({ ...p, startDate: d, endDate: d && p.endDate && p.endDate < d ? undefined : p.endDate }))
                   }} />
-                  <DateField label="Fin" value={form.endDate} onChange={(d) => setForm({ ...form, endDate: d })} minDate={form.startDate} />
+                  <DateField label="Fin" value={form.endDate} onChange={(d) => setForm(prev => ({ ...prev, endDate: d }))} minDate={form.startDate} />
                 </div>
 
                 <div className="border-t border-[#f0efe9] my-6" />
@@ -596,7 +596,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                   <DateField label="Apertura" value={form.registrationStartDate} onChange={(d) => {
                     setForm((p) => ({ ...p, registrationStartDate: d, registrationEndDate: d && p.registrationEndDate && p.registrationEndDate < d ? undefined : p.registrationEndDate }))
                   }} />
-                  <DateField label="Cierre" value={form.registrationEndDate} onChange={(d) => setForm({ ...form, registrationEndDate: d })} minDate={form.registrationStartDate} />
+                  <DateField label="Cierre" value={form.registrationEndDate} onChange={(d) => setForm(prev => ({ ...prev, registrationEndDate: d }))} minDate={form.registrationStartDate} />
                 </div>
               </section>
             </div>
@@ -610,7 +610,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                   onClick={() => setCatDialog(true)}
                   className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#ff3b2f] hover:text-[#e5352a] transition-colors"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="size-3.5" />
                   Nueva
                 </button>
               </div>
@@ -643,7 +643,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                             <span>{cat.zones.length} zonas</span>
                             <span>·</span>
                             <span className="inline-flex items-center gap-1">
-                              <Users className="h-3 w-3" />{teamCount} equipos
+                              <Users className="size-3" />{teamCount} equipos
                             </span>
                           </div>
                         </div>
@@ -651,23 +651,23 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                           <button
                             type="button"
                             onClick={() => openEditCat(cat)}
-                            className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-[#f0efe9] transition-colors"
+                            className="size-7 inline-flex items-center justify-center rounded-md hover:bg-[#f0efe9] transition-colors"
                           >
-                            <Pencil className="h-3.5 w-3.5 text-[#6b6a72]" />
+                            <Pencil className="size-3.5 text-[#6b6a72]" />
                           </button>
                           <button
                             type="button"
                             onClick={() => setDeleteCatId(cat.id)}
-                            className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-red-50 transition-colors"
+                            className="size-7 inline-flex items-center justify-center rounded-md hover:bg-red-50 transition-colors"
                           >
-                            <Trash2 className="h-3.5 w-3.5 text-[#c4c2cc] hover:text-destructive" />
+                            <Trash2 className="size-3.5 text-[#c4c2cc] hover:text-destructive" />
                           </button>
                         </div>
                         <Link
                           href={`/admin/torneos/${tournamentId}/categorias/${cat.id}`}
                           className="shrink-0 text-[#c4c2cc] group-hover:text-[#9b99a6] transition-colors"
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="size-4" />
                         </Link>
                       </div>
                     )
@@ -708,7 +708,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
               onClick={() => createCatAct.execute({ tournamentId, name: catForm.name })}
               className="bg-[#ff3b2f] hover:bg-[#e5352a] text-white"
             >
-              {createCatAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Crear
+              {createCatAct.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}Crear
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -730,7 +730,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
               onClick={() => editCat && updateCatAct.execute({ tournamentId, categoryId: editCat.id, name: editCatForm.name })}
               className="bg-[#ff3b2f] hover:bg-[#e5352a] text-white"
             >
-              {updateCatAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Guardar
+              {updateCatAct.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}Guardar
             </Button>
           </DialogFooter>
         </DialogContent>

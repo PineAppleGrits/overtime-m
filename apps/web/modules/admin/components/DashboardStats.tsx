@@ -41,8 +41,8 @@ export async function DashboardStats() {
   if (stats.allFailed) {
     return (
       <div className="rounded-xl border border-destructive/20 bg-red-50 p-5 flex items-start gap-4">
-        <div className="h-9 w-9 rounded-full bg-destructive/10 flex items-center justify-center shrink-0 mt-0.5">
-          <AlertTriangle className="h-4.5 w-4.5 text-destructive" />
+        <div className="size-9 rounded-full bg-destructive/10 flex items-center justify-center shrink-0 mt-0.5">
+          <AlertTriangle className="size-4.5 text-destructive" />
         </div>
         <div>
           <p className="font-semibold text-destructive text-sm">
@@ -122,15 +122,15 @@ export async function DashboardStats() {
                 </p>
               </div>
               <div
-                className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110"
+                className="size-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110"
                 style={{ backgroundColor: item.iconBg }}
               >
-                <Icon className="h-5 w-5" style={{ color: item.iconColor }} />
+                <Icon className="size-5" style={{ color: item.iconColor }} />
               </div>
             </div>
             {item.highlight && (
               <div className="mt-3 flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span className="text-[11px] text-amber-600 font-medium">Requieren atención</span>
               </div>
             )}

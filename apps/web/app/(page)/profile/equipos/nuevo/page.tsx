@@ -23,7 +23,7 @@ export default async function NuevoEquipoPage() {
           href="/profile/equipos"
           className="flex items-center gap-1 text-sm text-white/40 hover:text-white/70 transition-colors"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="size-4" />
           Mis equipos
         </Link>
       </div>

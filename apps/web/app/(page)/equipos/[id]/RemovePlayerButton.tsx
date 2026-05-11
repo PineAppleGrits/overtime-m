@@ -36,7 +36,7 @@ export function RemovePlayerButton({ teamId, profileId, playerName }: RemovePlay
         onClick={() => setOpen(true)}
         disabled={isPending}
       >
-        <Trash2 className="h-3 w-3" />
+        <Trash2 className="size-3" />
       </button>
       <ConfirmDialog
         open={open}

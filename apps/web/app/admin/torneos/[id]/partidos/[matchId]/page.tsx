@@ -62,21 +62,21 @@ export default async function AdminMatchDetailPage({
   // Cargar el match real para conocer homeTeamId/awayTeamId. Si falla, dejamos
   // que MatchStatsSection muestre vacío y MatchDetailContent siga con su mock
   // visual hasta que el resto del detalle se conecte.
-  let homeTeamId: string | null = null
-  let awayTeamId: string | null = null
-  try {
-    const match = await matchService.getMatchById(matchId)
-    const m = match?.data ?? match
-    homeTeamId = m?.homeTeamId ?? m?.homeTeam?.id ?? null
-    awayTeamId = m?.awayTeamId ?? m?.awayTeam?.id ?? null
-  } catch (error) {
-    console.error('Failed to fetch match:', error)
-  }
+  const [matchResult, initialStats] = await Promise.all([
+    matchService.getMatchById(matchId).catch((error) => {
+      console.error('Failed to fetch match:', error)
+      return null
+    }),
+    fetchInitialStats(matchId),
+  ])
 
-  const [homeTeam, awayTeam, initialStats] = await Promise.all([
+  const m = matchResult?.data ?? matchResult
+  const homeTeamId: string | null = m?.homeTeamId ?? m?.homeTeam?.id ?? null
+  const awayTeamId: string | null = m?.awayTeamId ?? m?.awayTeam?.id ?? null
+
+  const [homeTeam, awayTeam] = await Promise.all([
     fetchTeamRoster(homeTeamId),
     fetchTeamRoster(awayTeamId),
-    fetchInitialStats(matchId),
   ])
 
   return (

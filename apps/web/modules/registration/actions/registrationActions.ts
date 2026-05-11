@@ -5,6 +5,7 @@ import { z } from 'zod'
 import registrationService from '@/modules/registration/RegistrationService'
 import teamService from '@/modules/team/TeamService'
 import type { ActionResult } from '@/modules/admin/actions/types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 const MIN_ROSTER_SIZE = 8
 
@@ -22,6 +23,8 @@ export async function createRegistrationWithPlayersAction(
   tournamentSlug: string,
   categorySlug: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const parsed = createRegistrationSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message }
 
@@ -90,6 +93,8 @@ export async function createMultiRegistrationAction(
   tournamentSlug: string,
   categorySlug: string,
 ): Promise<ActionResult<{ ids: string[] }>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const parsed = createMultiRegistrationSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message }
 
@@ -153,6 +158,8 @@ export async function uploadPaymentVoucherAction(
   // el archivo se sube directamente a Supabase Storage desde el cliente
   voucherUrl: string,
 ): Promise<ActionResult<void>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   void registrationId
   void voucherUrl
   // TODO: PATCH /registrations/:id/voucher

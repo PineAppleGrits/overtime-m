@@ -58,10 +58,10 @@ function TeamCard({
           <img
             src={team.logoUrl}
             alt={team.name}
-            className="h-12 w-12 rounded-xl object-cover shrink-0"
+            className="size-12 rounded-xl object-cover shrink-0"
           />
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/8 text-lg font-bold text-white/40">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/8 text-lg font-bold text-white/40">
             {team.name.charAt(0).toUpperCase()}
           </div>
         )}
@@ -72,7 +72,7 @@ function TeamCard({
             <p className="font-semibold text-white truncate">{team.name}</p>
             {isCaptain && (
               <span className="flex items-center gap-1 rounded-full bg-ot-orange/20 px-2 py-0.5 text-[10px] font-semibold text-ot-orange">
-                <Star className="h-2.5 w-2.5" />
+                <Star className="size-2.5" />
                 Delegado
               </span>
             )}
@@ -94,20 +94,20 @@ function TeamCard({
                   src={m.profile.avatarUrl}
                   alt={m.profile.name}
                   title={m.profile.name}
-                  className="h-7 w-7 rounded-full border-2 border-[#0d0c14] object-cover"
+                  className="size-7 rounded-full border-2 border-[#0d0c14] object-cover"
                 />
               ) : (
                 <div
                   key={m.profile.id}
                   title={m.profile.name}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0d0c14] bg-white/15 text-[10px] font-semibold text-white/70"
+                  className="flex size-7 items-center justify-center rounded-full border-2 border-[#0d0c14] bg-white/15 text-[10px] font-semibold text-white/70"
                 >
                   {m.profile.name.charAt(0).toUpperCase()}
                 </div>
               )
             )}
             {team.members.length > 4 && (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0d0c14] bg-white/10 text-[10px] font-semibold text-white/50">
+              <div className="flex size-7 items-center justify-center rounded-full border-2 border-[#0d0c14] bg-white/10 text-[10px] font-semibold text-white/50">
                 +{team.members.length - 4}
               </div>
             )}
@@ -121,7 +121,7 @@ function TeamCard({
             href={`/equipos/${team.id}/gestionar`}
             className="inline-flex items-center gap-1.5 rounded-lg border border-ot-light-blue/40 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-medium text-white/70 hover:text-white transition-colors"
           >
-            <Settings className="h-3 w-3" />
+            <Settings className="size-3" />
             Gestionar
           </Link>
         </div>
@@ -159,8 +159,8 @@ export default async function ProfileTeamsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-white">
-            <Users className="h-5 w-5 text-ot-orange" />
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+            <Users className="size-5 text-ot-orange" />
             Mis equipos
           </h2>
           <p className="mt-0.5 text-sm text-white/50">
@@ -171,15 +171,15 @@ export default async function ProfileTeamsPage() {
           href="/profile/equipos/nuevo"
           className="flex items-center gap-2 rounded-lg bg-ot-orange px-4 py-2 text-sm font-semibold text-white hover:bg-ot-orange/90 transition-colors"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="size-4" />
           Crear equipo
         </Link>
       </div>
 
       {!hasAnyTeam ? (
         <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 py-14 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
-            <Shield className="h-6 w-6 text-white/20" />
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-white/5">
+            <Shield className="size-6 text-white/20" />
           </div>
           <p className="text-sm font-medium text-white/50">No tenés equipos todavía</p>
           <p className="mt-1 text-xs text-white/30">
@@ -189,7 +189,7 @@ export default async function ProfileTeamsPage() {
             href="/profile/equipos/nuevo"
             className="mt-5 inline-flex items-center gap-2 rounded-lg border border-ot-orange/40 px-4 py-2 text-sm text-ot-orange hover:bg-ot-orange/10 transition-colors"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="size-4" />
             Crear equipo
           </Link>
         </div>
@@ -199,7 +199,7 @@ export default async function ProfileTeamsPage() {
           {Object.values(franchiseGroups).length > 0 && (
             <div className="space-y-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-white/60 uppercase tracking-wider">
-                <Building2 className="h-4 w-4" />
+                <Building2 className="size-4" />
                 Franquicias
               </h3>
               <div className="space-y-4">
@@ -212,10 +212,10 @@ export default async function ProfileTeamsPage() {
                         <img
                           src={franchise.logoUrl}
                           alt={franchise.name}
-                          className="h-10 w-10 rounded-lg object-cover shrink-0"
+                          className="size-10 rounded-lg object-cover shrink-0"
                         />
                       ) : (
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ot-orange/20 text-base font-bold text-ot-orange">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-ot-orange/20 text-base font-bold text-ot-orange">
                           {franchise.name.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -244,7 +244,7 @@ export default async function ProfileTeamsPage() {
             <div className="space-y-3">
               {franchiseGroups && Object.values(franchiseGroups).length > 0 && (
                 <h3 className="flex items-center gap-2 text-sm font-semibold text-white/60 uppercase tracking-wider">
-                  <Shield className="h-4 w-4" />
+                  <Shield className="size-4" />
                   Equipos independientes
                 </h3>
               )}

@@ -96,14 +96,14 @@ function TeamBadge({
         <img
           src={team.badge}
           alt={team.name}
-          className="w-full h-full object-contain"
+          className="size-full object-contain"
         />
       ) : (
-        <div className="relative w-full h-full">
+        <div className="relative size-full">
           <img
             src="/badge-placeholder.png"
             alt={team.name}
-            className="w-full h-full object-contain"
+            className="size-full object-contain"
           />
           <span className="absolute inset-0 flex items-center justify-center font-din-display font-bold text-ot-blanco text-xl drop-shadow-md">
             {getInitials(team.name)}
@@ -200,7 +200,7 @@ function ScoreTable({
                     <img
                       src="/logos-iconos/Jugador del partido.png"
                       alt="MVP"
-                      className="w-4 h-4 mr-1 lg:mr-3"
+                      className="size-4 mr-1 lg:mr-3"
                     />
                   )}
                 </div>
@@ -427,7 +427,7 @@ export default async function MatchPage({
       </div>
 
       {/* Mobile header bar */}
-      <h1 className="bg-ot-negro-texto text-center uppercase w-full py-5 font-din-display font-bold text-sm text-ot-orange lg:hidden">
+      <h1 className="bg-ot-negro-texto text-center uppercase w-full py-5 font-din-display font-semibold text-sm text-ot-orange lg:hidden">
         ESTADÍSTICAS DE PARTIDO
       </h1>
 
@@ -447,9 +447,9 @@ export default async function MatchPage({
         </div>
 
         {/* Big triangle — desktop */}
-        <div className="hidden lg:block absolute border-gradient top-0 w-0 h-0 border-l-400 border-l-transparent border-r-400 border-r-transparent border-t-360 z-10 border-t-ot-negro-texto left-1/2 -translate-x-1/2 gradient-negro-texto-dark-up" />
+        <div className="hidden lg:block absolute border-gradient top-0 size-0 border-l-400 border-l-transparent border-r-400 border-r-transparent border-t-360 z-10 border-t-ot-negro-texto left-1/2 -translate-x-1/2 gradient-negro-texto-dark-up" />
         {/* Small triangle — desktop */}
-        <div className="hidden lg:block absolute border-gradient top-0 w-0 h-0 border-l-80 border-l-transparent border-r-80 border-r-transparent border-t-75 border-t-ot-dark-blue left-1/2 -translate-x-1/2 z-20" />
+        <div className="hidden lg:block absolute border-gradient top-0 size-0 border-l-80 border-l-transparent border-r-80 border-r-transparent border-t-75 border-t-ot-dark-blue left-1/2 -translate-x-1/2 z-20" />
 
         {/* Mini triangle image — mobile */}
         <img
@@ -553,7 +553,7 @@ export default async function MatchPage({
           <div className="z-20 font-946-latin text-ot-orange text-6xl font-bold w-1/2 text-center relative">
             {match.team1.score}
           </div>
-          <div className="z-20 h-0.5 w-0.5 rounded-full bg-ot-violeta self-center absolute left-1/2 -translate-x-1/2" />
+          <div className="z-20 size-0.5 rounded-full bg-ot-violeta self-center absolute left-1/2 -translate-x-1/2" />
           <div className="z-20 font-946-latin text-ot-blanco text-6xl font-bold w-1/2 text-center relative">
             {match.team2.score}
           </div>
@@ -582,19 +582,19 @@ export default async function MatchPage({
               <TeamBadge
                 team={match.team1}
                 href={`/equipos/${match.team1.id}`}
-                className="z-20 w-36 h-36 aspect-square"
+                className="z-20 size-36 aspect-square"
               />
               <div className="z-20 font-946-latin text-ot-orange text-6xl font-bold text-center w-40 relative">
                 {match.team1.score}
               </div>
-              <div className="z-20 h-1 w-1 rounded-full bg-ot-violeta self-center" />
+              <div className="z-20 size-1 rounded-full bg-ot-violeta self-center" />
               <div className="z-20 font-946-latin text-ot-blanco text-6xl font-bold text-center w-40">
                 {match.team2.score}
               </div>
               <TeamBadge
                 team={match.team2}
                 href={`/equipos/${match.team2.id}`}
-                className="z-20 w-36 h-36 aspect-square"
+                className="z-20 size-36 aspect-square"
               />
             </div>
 

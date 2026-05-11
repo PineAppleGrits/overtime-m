@@ -18,7 +18,7 @@ export function CopyButtonClient({ text }: { text: string }) {
       onClick={handleCopy}
       className="inline-flex items-center gap-1 text-xs text-ot-orange hover:text-ot-orange/80 transition-colors cursor-pointer shrink-0"
     >
-      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
       {copied ? "Copiado" : "Copiar"}
     </button>
   )

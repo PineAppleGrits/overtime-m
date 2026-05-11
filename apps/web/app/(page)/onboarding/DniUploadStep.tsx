@@ -79,7 +79,7 @@ export function DniUploadStep({
           </div>
         ) : (
           <>
-            <Upload className="mb-3 h-10 w-10 text-white/30" />
+            <Upload className="mb-3 size-10 text-white/30" />
             <p className="text-sm font-semibold text-white/70">
               Arrastrá o hacé clic para subir el frente de tu DNI
             </p>
@@ -108,7 +108,7 @@ export function DniUploadStep({
       >
         {processing ? (
           <>
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="size-5 animate-spin" />
             Procesando tu DNI...
           </>
         ) : (

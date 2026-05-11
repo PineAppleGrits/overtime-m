@@ -76,7 +76,7 @@ export function MatchPreview({ match }: Props) {
             </p>
           </div>
           <div className="w-[35%] text-center">
-            <h3 className="font-din-display text-[12px] font-bold uppercase text-[#a9a5bb]">
+            <h3 className="font-din-display text-[12px] font-semibold uppercase text-[#a9a5bb]">
               {matchTypeLabel(match.matchType)}
             </h3>
           </div>
@@ -117,7 +117,7 @@ export function MatchPreview({ match }: Props) {
             <img
               src={match.team1.logoUrl ?? DEFAULT_BADGE}
               alt={match.team1.name}
-              className="object-contain w-12 h-12 sm:w-15 sm:h-15"
+              className="object-contain size-12 sm:size-15"
             />
           </div>
 
@@ -137,7 +137,7 @@ export function MatchPreview({ match }: Props) {
             <img
               src={match.team2.logoUrl ?? DEFAULT_BADGE}
               alt={match.team2.name}
-              className="object-contain w-12 h-12 sm:w-15 sm:h-15"
+              className="object-contain size-12 sm:size-15"
             />
           </div>
         </div>

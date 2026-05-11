@@ -66,7 +66,7 @@ export function SettingsForm({ teamId, teamName, sportName, franchiseName }: Set
     <div className="space-y-6">
       {/* Información básica */}
       <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-6">
-        <h2 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4">
+        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
           Información básica
         </h2>
         <form onSubmit={handleSubmit(onSubmitName)} className="space-y-4">
@@ -114,8 +114,8 @@ export function SettingsForm({ teamId, teamName, sportName, franchiseName }: Set
 
       {/* Zona de peligro */}
       <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-6">
-        <h2 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-red-400" />
+        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <AlertTriangle className="size-4 text-red-400" />
           Zona de peligro
         </h2>
         <p className="text-sm text-white/50 mb-3">

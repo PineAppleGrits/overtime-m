@@ -45,7 +45,7 @@ export function MyTeamTab({
       {/* Balance / Deudas */}
       <section className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-5">
         <h3 className="flex items-center gap-2 font-din-display text-lg font-semibold text-white mb-4">
-          <DollarSign className="h-5 w-5 text-ot-orange" />
+          <DollarSign className="size-5 text-ot-orange" />
           Balance del equipo
         </h3>
 
@@ -86,7 +86,7 @@ export function MyTeamTab({
       {/* Plantel */}
       <section className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-5">
         <h3 className="flex items-center gap-2 font-din-display text-lg font-semibold text-white mb-4">
-          <Users className="h-5 w-5 text-ot-orange" />
+          <Users className="size-5 text-ot-orange" />
           Plantel
         </h3>
 
@@ -122,7 +122,7 @@ export function MyTeamTab({
                 >
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ot-orange/20 text-xs font-bold text-ot-orange">
+                      <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-ot-orange/20 text-xs font-bold text-ot-orange">
                         {player.name.charAt(0)}
                       </div>
                       <span className="font-semibold text-white whitespace-nowrap">
@@ -157,7 +157,7 @@ export function MyTeamTab({
         <div className="flex flex-wrap gap-3">
           {/* TODO: implementar búsqueda y agregado de jugadores */}
           <button className="inline-flex items-center gap-2 rounded-lg border border-ot-orange/40 px-4 py-2.5 text-sm font-semibold text-ot-orange hover:bg-ot-orange/10 transition-colors cursor-pointer">
-            <UserPlus className="h-4 w-4" />
+            <UserPlus className="size-4" />
             Agregar jugador
           </button>
         </div>

@@ -77,7 +77,7 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
       <div>
         <PageHeader title="Configuración del sitio" description="Personaliza la apariencia, datos de contacto y métodos de pago" />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar la configuración</p>
         </div>
       </div>
@@ -90,9 +90,9 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
 
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="general" className="flex items-center gap-1"><Globe className="h-4 w-4" />General</TabsTrigger>
-          <TabsTrigger value="social" className="flex items-center gap-1"><Share2 className="h-4 w-4" />Redes sociales</TabsTrigger>
-          <TabsTrigger value="payment" className="flex items-center gap-1"><CreditCard className="h-4 w-4" />Pagos</TabsTrigger>
+          <TabsTrigger value="general" className="flex items-center gap-1"><Globe className="size-4" />General</TabsTrigger>
+          <TabsTrigger value="social" className="flex items-center gap-1"><Share2 className="size-4" />Redes sociales</TabsTrigger>
+          <TabsTrigger value="payment" className="flex items-center gap-1"><CreditCard className="size-4" />Pagos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -103,34 +103,34 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
                 <CardDescription>Nombre, descripción y aspecto del sitio</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2"><Label htmlFor="cfg-siteName">Nombre del sitio</Label><Input id="cfg-siteName" value={generalForm.siteName} onChange={(e) => setGeneralForm({ ...generalForm, siteName: e.target.value })} /></div>
-                <div className="space-y-2"><Label htmlFor="cfg-siteDescription">Descripción</Label><Textarea id="cfg-siteDescription" value={generalForm.siteDescription} onChange={(e) => setGeneralForm({ ...generalForm, siteDescription: e.target.value })} /></div>
-                <div className="space-y-2"><Label htmlFor="cfg-logoUrl">URL del logo</Label><Input id="cfg-logoUrl" value={generalForm.logoUrl} onChange={(e) => setGeneralForm({ ...generalForm, logoUrl: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-siteName">Nombre del sitio</Label><Input id="cfg-siteName" value={generalForm.siteName} onChange={(e) => setGeneralForm(prev => ({ ...prev, siteName: e.target.value }))} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-siteDescription">Descripción</Label><Textarea id="cfg-siteDescription" value={generalForm.siteDescription} onChange={(e) => setGeneralForm(prev => ({ ...prev, siteDescription: e.target.value }))} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-logoUrl">URL del logo</Label><Input id="cfg-logoUrl" value={generalForm.logoUrl} onChange={(e) => setGeneralForm(prev => ({ ...prev, logoUrl: e.target.value }))} /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Color primario</Label>
                     <div className="flex gap-2">
-                      <Input type="color" className="h-10 w-14 p-1" value={generalForm.primaryColor || '#ff3b2f'} onChange={(e) => setGeneralForm({ ...generalForm, primaryColor: e.target.value })} />
-                      <Input value={generalForm.primaryColor} onChange={(e) => setGeneralForm({ ...generalForm, primaryColor: e.target.value })} placeholder="#ff3b2f" />
+                      <Input type="color" className="h-10 w-14 p-1" value={generalForm.primaryColor || '#ff3b2f'} onChange={(e) => setGeneralForm(prev => ({ ...prev, primaryColor: e.target.value }))} />
+                      <Input value={generalForm.primaryColor} onChange={(e) => setGeneralForm(prev => ({ ...prev, primaryColor: e.target.value }))} placeholder="#ff3b2f" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Color secundario</Label>
                     <div className="flex gap-2">
-                      <Input type="color" className="h-10 w-14 p-1" value={generalForm.secondaryColor || '#292548'} onChange={(e) => setGeneralForm({ ...generalForm, secondaryColor: e.target.value })} />
-                      <Input value={generalForm.secondaryColor} onChange={(e) => setGeneralForm({ ...generalForm, secondaryColor: e.target.value })} placeholder="#292548" />
+                      <Input type="color" className="h-10 w-14 p-1" value={generalForm.secondaryColor || '#292548'} onChange={(e) => setGeneralForm(prev => ({ ...prev, secondaryColor: e.target.value }))} />
+                      <Input value={generalForm.secondaryColor} onChange={(e) => setGeneralForm(prev => ({ ...prev, secondaryColor: e.target.value }))} placeholder="#292548" />
                     </div>
                   </div>
                 </div>
                 <Separator />
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label htmlFor="cfg-contactEmail">Email de contacto</Label><Input id="cfg-contactEmail" type="email" value={generalForm.contactEmail} onChange={(e) => setGeneralForm({ ...generalForm, contactEmail: e.target.value })} /></div>
-                  <div className="space-y-2"><Label htmlFor="cfg-contactPhone">Teléfono de contacto</Label><Input id="cfg-contactPhone" value={generalForm.contactPhone} onChange={(e) => setGeneralForm({ ...generalForm, contactPhone: e.target.value })} /></div>
+                  <div className="space-y-2"><Label htmlFor="cfg-contactEmail">Email de contacto</Label><Input id="cfg-contactEmail" type="email" value={generalForm.contactEmail} onChange={(e) => setGeneralForm(prev => ({ ...prev, contactEmail: e.target.value }))} /></div>
+                  <div className="space-y-2"><Label htmlFor="cfg-contactPhone">Teléfono de contacto</Label><Input id="cfg-contactPhone" value={generalForm.contactPhone} onChange={(e) => setGeneralForm(prev => ({ ...prev, contactPhone: e.target.value }))} /></div>
                 </div>
               </CardContent>
             </Card>
             <Button onClick={() => generalAction.execute(generalForm)} disabled={generalAction.isPending}>
-              {generalAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {generalAction.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Guardar configuración general
             </Button>
           </div>
@@ -141,14 +141,14 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
             <Card>
               <CardHeader><CardTitle>Redes sociales</CardTitle><CardDescription>Links a las redes sociales que se muestran en el sitio</CardDescription></CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2"><Label htmlFor="cfg-instagram">Instagram</Label><Input id="cfg-instagram" placeholder="https://instagram.com/..." value={socialForm.instagram} onChange={(e) => setSocialForm({ ...socialForm, instagram: e.target.value })} /></div>
-                <div className="space-y-2"><Label htmlFor="cfg-facebook">Facebook</Label><Input id="cfg-facebook" placeholder="https://facebook.com/..." value={socialForm.facebook} onChange={(e) => setSocialForm({ ...socialForm, facebook: e.target.value })} /></div>
-                <div className="space-y-2"><Label htmlFor="cfg-twitter">Twitter / X</Label><Input id="cfg-twitter" placeholder="https://twitter.com/..." value={socialForm.twitter} onChange={(e) => setSocialForm({ ...socialForm, twitter: e.target.value })} /></div>
-                <div className="space-y-2"><Label htmlFor="cfg-youtube">YouTube</Label><Input id="cfg-youtube" placeholder="https://youtube.com/..." value={socialForm.youtube} onChange={(e) => setSocialForm({ ...socialForm, youtube: e.target.value })} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-instagram">Instagram</Label><Input id="cfg-instagram" placeholder="https://instagram.com/..." value={socialForm.instagram} onChange={(e) => setSocialForm(prev => ({ ...prev, instagram: e.target.value }))} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-facebook">Facebook</Label><Input id="cfg-facebook" placeholder="https://facebook.com/..." value={socialForm.facebook} onChange={(e) => setSocialForm(prev => ({ ...prev, facebook: e.target.value }))} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-twitter">Twitter / X</Label><Input id="cfg-twitter" placeholder="https://twitter.com/..." value={socialForm.twitter} onChange={(e) => setSocialForm(prev => ({ ...prev, twitter: e.target.value }))} /></div>
+                <div className="space-y-2"><Label htmlFor="cfg-youtube">YouTube</Label><Input id="cfg-youtube" placeholder="https://youtube.com/..." value={socialForm.youtube} onChange={(e) => setSocialForm(prev => ({ ...prev, youtube: e.target.value }))} /></div>
               </CardContent>
             </Card>
             <Button onClick={() => socialAction.execute({ socialMedia: socialForm })} disabled={socialAction.isPending}>
-              {socialAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {socialAction.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Guardar redes sociales
             </Button>
           </div>
@@ -165,33 +165,33 @@ export function ConfiguracionContent({ initialData }: ConfiguracionContentProps)
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div><Label className="text-base">Efectivo</Label><p className="text-sm text-muted-foreground">Pago en persona</p></div>
-                    <Switch checked={paymentForm.cashEnabled} onCheckedChange={(checked) => setPaymentForm({ ...paymentForm, cashEnabled: checked })} />
+                    <Switch checked={paymentForm.cashEnabled} onCheckedChange={(checked) => setPaymentForm(prev => ({ ...prev, cashEnabled: checked }))} />
                   </div>
                   <Separator />
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div><Label className="text-base">Transferencia bancaria</Label><p className="text-sm text-muted-foreground">Transferencia o depósito</p></div>
-                      <Switch checked={paymentForm.bankTransferEnabled} onCheckedChange={(checked) => setPaymentForm({ ...paymentForm, bankTransferEnabled: checked })} />
+                      <Switch checked={paymentForm.bankTransferEnabled} onCheckedChange={(checked) => setPaymentForm(prev => ({ ...prev, bankTransferEnabled: checked }))} />
                     </div>
                     {paymentForm.bankTransferEnabled && (
-                      <div className="space-y-2"><Label>Datos bancarios</Label><Textarea placeholder="CBU, alias, titular..." value={paymentForm.bankTransferDetails} onChange={(e) => setPaymentForm({ ...paymentForm, bankTransferDetails: e.target.value })} /></div>
+                      <div className="space-y-2"><Label>Datos bancarios</Label><Textarea placeholder="CBU, alias, titular..." value={paymentForm.bankTransferDetails} onChange={(e) => setPaymentForm(prev => ({ ...prev, bankTransferDetails: e.target.value }))} /></div>
                     )}
                   </div>
                   <Separator />
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div><Label className="text-base">Mercado Pago</Label><p className="text-sm text-muted-foreground">Pago online integrado</p></div>
-                      <Switch checked={paymentForm.mercadoPagoEnabled} onCheckedChange={(checked) => setPaymentForm({ ...paymentForm, mercadoPagoEnabled: checked })} />
+                      <Switch checked={paymentForm.mercadoPagoEnabled} onCheckedChange={(checked) => setPaymentForm(prev => ({ ...prev, mercadoPagoEnabled: checked }))} />
                     </div>
                     {paymentForm.mercadoPagoEnabled && (
-                      <div className="space-y-2"><Label>Public Key de Mercado Pago</Label><Input placeholder="APP_USR-..." value={paymentForm.mercadoPagoPublicKey} onChange={(e) => setPaymentForm({ ...paymentForm, mercadoPagoPublicKey: e.target.value })} /></div>
+                      <div className="space-y-2"><Label>Public Key de Mercado Pago</Label><Input placeholder="APP_USR-..." value={paymentForm.mercadoPagoPublicKey} onChange={(e) => setPaymentForm(prev => ({ ...prev, mercadoPagoPublicKey: e.target.value }))} /></div>
                     )}
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Button onClick={() => paymentAction.execute({ paymentConfig: paymentForm })} disabled={paymentAction.isPending}>
-              {paymentAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {paymentAction.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Guardar configuración de pagos
             </Button>
           </div>

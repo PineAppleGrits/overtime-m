@@ -55,7 +55,7 @@ export function TournamentRegistrationsContent({ tournamentId, initialData }: To
       <div>
         <PageHeader title="Inscripciones" description="" backHref={`/admin/torneos/${tournamentId}`} />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar las inscripciones</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
         </div>
@@ -75,12 +75,12 @@ export function TournamentRegistrationsContent({ tournamentId, initialData }: To
       key: 'actions', label: '', className: 'w-10',
       render: (r) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {r.status === 'pending' && (
               <>
-                <DropdownMenuItem onClick={() => approveAct.execute({ tournamentId, registrationId: r.id })}><Check className="mr-2 h-4 w-4" />Aprobar</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setRejectId(r.id)}><X className="mr-2 h-4 w-4" />Rechazar</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => approveAct.execute({ tournamentId, registrationId: r.id })}><Check className="mr-2 size-4" />Aprobar</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setRejectId(r.id)}><X className="mr-2 size-4" />Rechazar</DropdownMenuItem>
               </>
             )}
           </DropdownMenuContent>

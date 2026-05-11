@@ -107,7 +107,7 @@ function RegistrationCard({
         {registration.voucherUrl === null &&
           registration.status === 'pending_payment' && (
             <button className="flex items-center gap-1.5 rounded-lg border border-ot-orange/40 px-3 py-1.5 text-xs text-ot-orange hover:bg-ot-orange/10 transition-colors cursor-pointer">
-              <Upload className="h-3 w-3" />
+              <Upload className="size-3" />
               Subir comprobante
             </button>
           )}
@@ -152,7 +152,11 @@ export default async function TeamBalancePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [team, profile] = await Promise.all([getTeam(id), getProfile()])
+  const [team, profile, balance] = await Promise.all([
+    getTeam(id),
+    getProfile(),
+    getTeamBalance(id),
+  ])
 
   if (!team) notFound()
 
@@ -162,8 +166,6 @@ export default async function TeamBalancePage({
 
   if (!isCaptain && !isCreator && !isAdmin) notFound()
 
-  const balance = await getTeamBalance(id)
-
   return (
     <div className="bg-ot-background text-white min-h-screen">
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
@@ -172,14 +174,14 @@ export default async function TeamBalancePage({
           href={`/equipos/${id}`}
           className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="size-4" />
           Volver al equipo
         </Link>
 
         {/* Title */}
         <div className="flex items-center gap-3">
-          <Wallet className="h-6 w-6 text-ot-orange" />
-          <h1 className="text-xl font-bold font-din-display">
+          <Wallet className="size-6 text-ot-orange" />
+          <h1 className="text-xl font-semibold font-din-display">
             Balance — {team.name}
           </h1>
         </div>
@@ -212,12 +214,12 @@ export default async function TeamBalancePage({
 
         {/* Inscripciones */}
         <section className="space-y-3">
-          <h2 className="text-ot-orange text-sm font-bold uppercase tracking-wider font-din-display">
+          <h2 className="text-ot-orange text-sm font-semibold uppercase tracking-wider font-din-display">
             Inscripciones
           </h2>
           {balance.registrations.length === 0 ? (
             <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 py-10 text-center">
-              <AlertCircle className="h-6 w-6 text-white/20 mx-auto mb-2" />
+              <AlertCircle className="size-6 text-white/20 mx-auto mb-2" />
               <p className="text-sm text-white/50">Sin inscripciones registradas</p>
             </div>
           ) : (
@@ -231,12 +233,12 @@ export default async function TeamBalancePage({
 
         {/* Suspensiones */}
         <section className="space-y-3">
-          <h2 className="text-ot-orange text-sm font-bold uppercase tracking-wider font-din-display">
+          <h2 className="text-ot-orange text-sm font-semibold uppercase tracking-wider font-din-display">
             Jugadores suspendidos
           </h2>
           {balance.suspensions.length === 0 ? (
             <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 py-10 text-center">
-              <ShieldCheck className="h-6 w-6 text-white/20 mx-auto mb-2" />
+              <ShieldCheck className="size-6 text-white/20 mx-auto mb-2" />
               <p className="text-sm text-white/50">Sin suspensiones activas</p>
             </div>
           ) : (

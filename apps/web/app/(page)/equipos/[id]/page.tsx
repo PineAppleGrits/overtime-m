@@ -145,17 +145,17 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
         )}
 
         {/* Badge overlaid at bottom center – with optional edit pencil */}
-        <div className="left-1/2 -translate-x-1/2 absolute -bottom-14 flex h-28 w-28 items-center justify-center rounded-full bg-[#181525] ring-4 ring-ot-background">
-          <div className="relative h-20 w-20">
+        <div className="left-1/2 -translate-x-1/2 absolute -bottom-14 flex size-28 items-center justify-center rounded-full bg-[#181525] ring-4 ring-ot-background">
+          <div className="relative size-20">
             {team.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={team.logoUrl}
                 alt={team.name}
-                className="h-20 w-20 rounded-full object-cover"
+                className="size-20 rounded-full object-cover"
               />
             ) : (
-              <div className="h-20 w-20 rounded-full bg-ot-dark-blue flex items-center justify-center">
+              <div className="size-20 rounded-full bg-ot-dark-blue flex items-center justify-center">
                 <span className="text-4xl font-bold text-white/30">
                   {team.name.charAt(0).toUpperCase()}
                 </span>
@@ -180,7 +180,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
               href={`/equipos/${id}/gestionar`}
               className="inline-flex items-center gap-1.5 mt-3 rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors"
             >
-              <Settings className="h-3.5 w-3.5" />
+              <Settings className="size-3.5" />
               Gestionar equipo
             </Link>
           )}
@@ -304,7 +304,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                             {/* Pill "Delegado" solo visible para miembros y staff */}
                             {canSeePlatformInfo && isMemberCaptain && (
                               <span className="flex items-center gap-0.5 rounded-full bg-ot-orange/20 px-1.5 py-0.5 text-[9px] font-bold text-ot-orange shrink-0">
-                                <Star className="h-2 w-2" />
+                                <Star className="size-2" />
                                 Del.
                               </span>
                             )}
@@ -394,7 +394,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                 teamId={id}
                 trigger={
                   <button className="flex items-center justify-center gap-1.5 w-full rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-blue-400 hover:bg-blue-500/20 transition-colors font-din-display cursor-pointer">
-                    <UserPlus className="h-3.5 w-3.5" />
+                    <UserPlus className="size-3.5" />
                     Agregar jugador
                   </button>
                 }
@@ -427,8 +427,8 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
             Participación en torneos
           </span>
           <div className="w-full max-w-sm px-2 space-y-2">
-            {team.teamZones.map((tz, i) => (
-              <div key={i} className="rounded-sm overflow-hidden">
+            {team.teamZones.map((tz) => (
+              <div key={`${tz.zone.category.tournament.name}-${tz.zone.category.name}-${tz.zone.name}`} className="rounded-sm overflow-hidden">
                 <div className="bg-ot-light-blue px-4 py-1.5">
                   <p className="text-[0.58rem] uppercase text-white/60 font-din-display">
                     {tz.zone.category.tournament.name}

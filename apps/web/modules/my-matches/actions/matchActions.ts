@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import myMatchesService from '../services/MyMatchesService'
 import { updateMatchScoreSchema, changeMatchStatusSchema } from '../schemas/matchSchemas'
 import { ErrorCode, actionFailure } from '@/modules/common/errors'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 interface ActionResult {
   success: boolean
@@ -17,6 +18,8 @@ interface ActionResult {
 export async function updateMatchScoreAction(
   input: unknown
 ): Promise<ActionResult> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const parsed = updateMatchScoreSchema.safeParse(input)
 
   if (!parsed.success) {
@@ -42,6 +45,8 @@ export async function updateMatchScoreAction(
 export async function changeMatchStatusAction(
   input: unknown
 ): Promise<ActionResult> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const parsed = changeMatchStatusSchema.safeParse(input)
 
   if (!parsed.success) {

@@ -252,9 +252,9 @@ export function MatchStatsSection({
           className="bg-[#ff3b2f] hover:bg-[#e5352a] text-white"
         >
           {pending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-2 size-4 animate-spin" />
           ) : (
-            <Save className="mr-2 h-4 w-4" />
+            <Save className="mr-2 size-4" />
           )}
           Guardar stats
         </Button>

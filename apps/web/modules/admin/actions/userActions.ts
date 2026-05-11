@@ -4,8 +4,11 @@ import { revalidatePath } from 'next/cache'
 import userService from '@/modules/user/UserService'
 import { createUserSchema, updateUserSchema, deleteUserSchema } from '../schemas/userSchemas'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 export async function createUserAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = createUserSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   const { email, phone, documentNumber, dateOfBirth, ...rest } = parsed.data
@@ -23,6 +26,8 @@ export async function createUserAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateUserAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updateUserSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   const { id, email, phone, documentNumber, dateOfBirth, ...rest } = parsed.data
@@ -40,6 +45,8 @@ export async function updateUserAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteUserAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = deleteUserSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   try {

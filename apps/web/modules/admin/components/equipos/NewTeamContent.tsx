@@ -60,23 +60,23 @@ export function NewTeamContent({ sports }: NewTeamContentProps) {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre del equipo *</Label>
-              <Input id="name" placeholder="Ej: Barcelona" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input id="name" placeholder="Ej: Barcelona" value={form.name} onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Categoría del equipo</Label>
-              <Input id="category" placeholder="Ej: A, B, C (opcional)" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+              <Input id="category" placeholder="Ej: A, B, C (opcional)" value={form.category} onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))} />
               <p className="text-xs text-muted-foreground">
                 Si el equipo tiene subcategorías, el nombre se mostrará como &quot;{form.name || 'Equipo'} {form.category || 'A'}&quot;
               </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="logoUrl">URL del logo</Label>
-              <Input id="logoUrl" placeholder="https://..." value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} />
+              <Input id="logoUrl" placeholder="https://..." value={form.logoUrl} onChange={(e) => setForm(prev => ({ ...prev, logoUrl: e.target.value }))} />
               <p className="text-xs text-muted-foreground">El logo puede ser compartido entre categorías del mismo equipo</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="sportId">Disciplina *</Label>
-              <Select value={form.sportId} onValueChange={(v) => setForm({ ...form, sportId: v })}>
+              <Select value={form.sportId} onValueChange={(v) => setForm(prev => ({ ...prev, sportId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar disciplina" /></SelectTrigger>
                 <SelectContent>
                   {sports.map((sport) => (
@@ -90,7 +90,7 @@ export function NewTeamContent({ sports }: NewTeamContentProps) {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={createAction.isPending}>
-            {createAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {createAction.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             Crear equipo
           </Button>
           <Button type="button" variant="outline" onClick={() => router.push('/admin/equipos')}>Cancelar</Button>

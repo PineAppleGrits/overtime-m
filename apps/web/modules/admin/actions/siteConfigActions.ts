@@ -9,8 +9,11 @@ import {
   updatePaymentConfigSchema,
 } from '../schemas/siteConfigSchemas'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 export async function updateGeneralConfigAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updateGeneralConfigSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -33,6 +36,8 @@ export async function updateGeneralConfigAction(input: unknown): Promise<ActionR
 }
 
 export async function updateSocialConfigAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updateSocialConfigSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -54,6 +59,8 @@ export async function updateSocialConfigAction(input: unknown): Promise<ActionRe
 }
 
 export async function updatePaymentConfigAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updatePaymentConfigSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {

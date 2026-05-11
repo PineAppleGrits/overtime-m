@@ -184,7 +184,7 @@ export function UserListContent({
       <div>
         <PageHeader title={title} description={description} />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar los datos</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
         </div>
@@ -232,16 +232,16 @@ export function UserListContent({
       render: (u) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones">
-              <MoreHorizontal className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="size-8" aria-label="Acciones">
+              <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => openEdit(u)}>
-              <Pencil className="mr-2 h-4 w-4" />Editar
+              <Pencil className="mr-2 size-4" />Editar
             </DropdownMenuItem>
             <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(u.id)}>
-              <Trash2 className="mr-2 h-4 w-4" />Eliminar
+              <Trash2 className="mr-2 size-4" />Eliminar
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -260,7 +260,7 @@ export function UserListContent({
 
       <div className="mb-4 flex gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por nombre o documento..."
             value={search}
@@ -307,7 +307,7 @@ export function UserListContent({
               <Input
                 id="user-name"
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Ej: Juan Pérez"
               />
             </div>
@@ -318,7 +318,7 @@ export function UserListContent({
                 <Label>Rol</Label>
                 <Select
                   value={form.role || availableRoles[0]}
-                  onValueChange={(v) => setForm({ ...form, role: v as ProfileRole })}
+                  onValueChange={(v) => setForm(prev => ({ ...prev, role: v as ProfileRole }))}
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -337,7 +337,7 @@ export function UserListContent({
                   id="user-email"
                   type="email"
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
@@ -345,7 +345,7 @@ export function UserListContent({
                 <Input
                   id="user-phone"
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
                 />
               </div>
             </div>
@@ -356,7 +356,7 @@ export function UserListContent({
                 <Input
                   id="user-documentNumber"
                   value={form.documentNumber}
-                  onChange={(e) => setForm({ ...form, documentNumber: e.target.value })}
+                  onChange={(e) => setForm(prev => ({ ...prev, documentNumber: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
@@ -365,7 +365,7 @@ export function UserListContent({
                   id="user-dateOfBirth"
                   type="date"
                   value={form.dateOfBirth}
-                  onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+                  onChange={(e) => setForm(prev => ({ ...prev, dateOfBirth: e.target.value }))}
                 />
               </div>
             </div>
@@ -378,7 +378,7 @@ export function UserListContent({
               disabled={createAction.isPending || updateAction.isPending}
             >
               {(createAction.isPending || updateAction.isPending) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
               )}
               {editingUser ? 'Guardar' : 'Crear'}
             </Button>

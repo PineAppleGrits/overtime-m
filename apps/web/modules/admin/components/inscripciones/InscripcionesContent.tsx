@@ -55,7 +55,7 @@ export function InscripcionesContent({ initialData }: InscripcionesContentProps)
       <div>
         <PageHeader title="Inscripciones" description="Todas las inscripciones de todos los torneos" />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" /><p className="text-muted-foreground">Error al cargar las inscripciones</p>
+          <AlertCircle className="size-8 text-destructive" /><p className="text-muted-foreground">Error al cargar las inscripciones</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
         </div>
       </div>
@@ -72,9 +72,9 @@ export function InscripcionesContent({ initialData }: InscripcionesContentProps)
       key: 'actions', label: '', className: 'w-10',
       render: (r) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8" aria-label="Acciones"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {r.status === 'pending' && (<><DropdownMenuItem onClick={() => approveAction.execute({ id: r.id })}><Check className="mr-2 h-4 w-4" />Aprobar</DropdownMenuItem><DropdownMenuItem onClick={() => rejectAction.execute({ id: r.id })}><X className="mr-2 h-4 w-4" />Rechazar</DropdownMenuItem></>)}
+            {r.status === 'pending' && (<><DropdownMenuItem onClick={() => approveAction.execute({ id: r.id })}><Check className="mr-2 size-4" />Aprobar</DropdownMenuItem><DropdownMenuItem onClick={() => rejectAction.execute({ id: r.id })}><X className="mr-2 size-4" />Rechazar</DropdownMenuItem></>)}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -85,7 +85,7 @@ export function InscripcionesContent({ initialData }: InscripcionesContentProps)
     <div>
       <PageHeader title="Inscripciones" description="Todas las inscripciones de todos los torneos" />
       <div className="mb-4 flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3">
-        <Info className="h-4 w-4 text-blue-500 shrink-0" />
+        <Info className="size-4 text-blue-500 shrink-0" />
         <p className="text-sm text-blue-700">Las inscripciones pasan por un proceso de revision. Cuando un equipo se inscribe, el estado es &quot;Pendiente&quot;. Podes aprobar o rechazar cada solicitud desde el menu de acciones.</p>
       </div>
       <div className="mb-4"><Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}><SelectTrigger className="w-[180px]" aria-label="Filtrar por estado"><SelectValue placeholder="Estado" /></SelectTrigger><SelectContent><SelectItem value="all">Todas</SelectItem><SelectItem value="pending">Pendientes</SelectItem><SelectItem value="approved">Aprobadas</SelectItem><SelectItem value="rejected">Rechazadas</SelectItem></SelectContent></Select></div>

@@ -71,7 +71,7 @@ export default async function AdminDashboardPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1
-            className="text-2xl font-bold text-[#0f0e13] tracking-tight"
+            className="text-2xl font-semibold text-[#0f0e13] tracking-tight"
             style={{ fontFamily: 'var(--font-din-display)' }}
           >
             Dashboard
@@ -84,7 +84,7 @@ export default async function AdminDashboardPage() {
           href="/admin/torneos/nuevo"
           className="inline-flex items-center gap-2 rounded-lg bg-[#ff3b2f] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-[#ff3b2f]/20 transition-all hover:bg-[#e0332a] hover:-translate-y-0.5 hover:shadow-md"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="size-4" />
           Nuevo torneo
         </Link>
       </div>
@@ -114,10 +114,10 @@ export default async function AdminDashboardPage() {
                 className="group flex items-center gap-4 rounded-xl border border-[#e8e6e1] bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-[#d4d1cc]"
               >
                 <div
-                  className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110"
+                  className="size-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110"
                   style={{ backgroundColor: action.bg }}
                 >
-                  <Icon className="h-5 w-5" style={{ color: action.color }} />
+                  <Icon className="size-5" style={{ color: action.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-[#0f0e13] leading-none">
@@ -127,7 +127,7 @@ export default async function AdminDashboardPage() {
                     {action.description}
                   </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-[#c4c2cc] shrink-0 transition-all duration-200 group-hover:text-[#9b99a6] group-hover:translate-x-0.5" />
+                <ArrowRight className="size-4 text-[#c4c2cc] shrink-0 transition-all duration-200 group-hover:text-[#9b99a6] group-hover:translate-x-0.5" />
               </Link>
             )
           })}

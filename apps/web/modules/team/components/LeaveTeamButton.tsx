@@ -58,7 +58,7 @@ export function LeaveTeamButton({ teamId, compact = false }: Props) {
         onClick={() => setConfirming(true)}
         className="flex items-center gap-1 text-[11px] text-red-400/40 hover:text-red-400 transition-colors"
       >
-        <LogOut className="h-3 w-3" />
+        <LogOut className="size-3" />
         Abandonar equipo
       </button>
     )
@@ -69,7 +69,7 @@ export function LeaveTeamButton({ teamId, compact = false }: Props) {
       onClick={() => setConfirming(true)}
       className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-xs font-medium text-red-400/60 hover:bg-red-500/10 hover:text-red-400 transition-colors"
     >
-      <LogOut className="h-3.5 w-3.5" />
+      <LogOut className="size-3.5" />
       Abandonar equipo
     </button>
   )

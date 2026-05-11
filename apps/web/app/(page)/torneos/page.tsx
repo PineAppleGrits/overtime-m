@@ -24,7 +24,7 @@ export default function TournamentsPage() {
                 />
 
                 <div className="relative ot-container py-12 md:py-16">
-                    <h1 className="text-4xl md:text-5xl font-bold uppercase font-din-display text-ot-orange tracking-tight">
+                    <h1 className="text-4xl md:text-5xl font-semibold uppercase font-din-display text-ot-orange tracking-tight">
                         Torneos
                     </h1>
                     <p className="mt-3 max-w-lg text-[#a9a5bb] text-base md:text-lg">

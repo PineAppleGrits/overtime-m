@@ -12,14 +12,7 @@ import { notFound } from "next/navigation"
 
 const EMPTY_STANDINGS: CategoryStandingsResponse = { zones: [] }
 const EMPTY_FIXTURE: CategoryFixtureResponse = { rounds: [] }
-
-async function getCategoryQueries(categoryId: string) {
-  const [standings, fixture] = await Promise.all([
-    categoryService.getCategoryStandings(categoryId).catch(() => EMPTY_STANDINGS),
-    categoryService.getCategoryFixture(categoryId).catch(() => EMPTY_FIXTURE),
-  ])
-  return { standings, fixture }
-}
+const EMPTY_REGISTRATIONS: { data: [] } = { data: [] }
 
 export default async function CategoryPage({
   params,
@@ -46,21 +39,20 @@ export default async function CategoryPage({
 
   if (!category || !tournament) notFound()
 
-  let registrations: {
+  const [registrationsResponse, standings, fixture] = await Promise.all([
+    RegistrationService.getRegistrations({ categoryId: category.id, limit: 500 }).catch(
+      () => EMPTY_REGISTRATIONS,
+    ),
+    categoryService.getCategoryStandings(category.id).catch(() => EMPTY_STANDINGS),
+    categoryService.getCategoryFixture(category.id).catch(() => EMPTY_FIXTURE),
+  ])
+
+  const registrations: {
     status?: string
     requester?: { id?: string }
     team?: { id?: string }
     rosterEntries?: { profileId?: string }[]
-  }[] = []
-  try {
-    const registrationsResponse = await RegistrationService.getRegistrations({
-      categoryId: category.id,
-      limit: 500,
-    })
-    registrations = registrationsResponse?.data ?? []
-  } catch {
-    // Registrations failed to load — page still renders without registration data
-  }
+  }[] = registrationsResponse?.data ?? []
 
   const myRegistration = profile
     ? registrations.find(
@@ -73,8 +65,6 @@ export default async function CategoryPage({
   const isMyTeamPlaying = !!myRegistration && myRegistration.status === 'approved'
   const isRequester = !!profile && myRegistration?.requester?.id === profile.id
   const canManageTeam = !!profile && (isRequester || hasAdminRole(profile))
-
-  const { standings, fixture } = await getCategoryQueries(category.id)
 
   return (
     <div className="min-h-screen bg-ot-background text-white">

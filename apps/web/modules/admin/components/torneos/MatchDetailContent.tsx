@@ -136,8 +136,8 @@ function TeamStatsTable({ team, isHome }: { team: TeamData; isHome: boolean }) {
       {/* Team header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0efe9]">
         <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-full ${accentBg} flex items-center justify-center`}>
-            <Users className="w-4 h-4 text-white" />
+          <div className={`size-8 rounded-full ${accentBg} flex items-center justify-center`}>
+            <Users className="size-4 text-white" />
           </div>
           <div>
             <h3 className="font-semibold text-[#0f0e13]">{team.name}</h3>
@@ -182,7 +182,7 @@ function TeamStatsTable({ team, isHome }: { team: TeamData; isHome: boolean }) {
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-[#0f0e13]">{player.name}</span>
                     {player.isCaptain && (
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded border border-[#e8e6e1] text-[10px] font-bold text-[#6b6a72]">
+                      <span className="inline-flex items-center justify-center size-5 rounded border border-[#e8e6e1] text-[10px] font-bold text-[#6b6a72]">
                         C
                       </span>
                     )}
@@ -257,7 +257,7 @@ export function MatchDetailContent({ tournamentId }: MatchDetailContentProps) {
             {publicMatchUrl && (
               <Button variant="outline" size="sm" asChild>
                 <Link href={publicMatchUrl} target="_blank">
-                  <ExternalLink className="mr-2 h-4 w-4" />
+                  <ExternalLink className="mr-2 size-4" />
                   Ver página pública
                 </Link>
               </Button>
@@ -271,10 +271,10 @@ export function MatchDetailContent({ tournamentId }: MatchDetailContentProps) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           {/* Home team */}
           <div className="flex-1 text-center">
-            <div className="w-16 h-16 mx-auto rounded-full bg-[#f7f6f4] flex items-center justify-center mb-2">
+            <div className="size-16 mx-auto rounded-full bg-[#f7f6f4] flex items-center justify-center mb-2">
               {match.homeTeam.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={match.homeTeam.logoUrl} alt={match.homeTeam.name} className="w-12 h-12 object-contain" />
+                <img src={match.homeTeam.logoUrl} alt={match.homeTeam.name} className="size-12 object-contain" />
               ) : (
                 <span className="text-lg font-bold text-[#9b99a6]">
                   {match.homeTeam.name.slice(0, 2).toUpperCase()}
@@ -299,10 +299,10 @@ export function MatchDetailContent({ tournamentId }: MatchDetailContentProps) {
 
           {/* Away team */}
           <div className="flex-1 text-center">
-            <div className="w-16 h-16 mx-auto rounded-full bg-[#f7f6f4] flex items-center justify-center mb-2">
+            <div className="size-16 mx-auto rounded-full bg-[#f7f6f4] flex items-center justify-center mb-2">
               {match.awayTeam.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={match.awayTeam.logoUrl} alt={match.awayTeam.name} className="w-12 h-12 object-contain" />
+                <img src={match.awayTeam.logoUrl} alt={match.awayTeam.name} className="size-12 object-contain" />
               ) : (
                 <span className="text-lg font-bold text-[#9b99a6]">
                   {match.awayTeam.name.slice(0, 2).toUpperCase()}
@@ -317,23 +317,23 @@ export function MatchDetailContent({ tournamentId }: MatchDetailContentProps) {
         {/* Meta info */}
         <div className="mt-5 pt-4 border-t border-[#f0efe9] flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#6b6a72]">
           <div className="flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 text-[#c4c2cc]" />
+            <Calendar className="size-4 text-[#c4c2cc]" />
             <span>{formatDate(match.matchDate)}</span>
           </div>
           {match.matchTime && (
             <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-[#c4c2cc]" />
+              <Clock className="size-4 text-[#c4c2cc]" />
               <span>{match.matchTime} hs</span>
             </div>
           )}
           {match.venue && (
             <div className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-[#c4c2cc]" />
+              <MapPin className="size-4 text-[#c4c2cc]" />
               <span>{match.venue.name}</span>
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <Trophy className="w-4 h-4 text-[#c4c2cc]" />
+            <Trophy className="size-4 text-[#c4c2cc]" />
             <span className="capitalize">{match.matchType}</span>
           </div>
         </div>

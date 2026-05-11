@@ -109,22 +109,22 @@ export function MatchAssignmentCard({ assignment }: MatchAssignmentCardProps) {
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
+                  <Calendar className="size-3.5" />
                   {formattedDate}
                 </span>
                 {match.matchTime && (
                   <span className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
+                    <Clock className="size-3.5" />
                     {match.matchTime}
                   </span>
                 )}
                 <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" />
+                  <MapPin className="size-3.5" />
                   {match.venueName}
                 </span>
                 {match.tournamentName && (
                   <span className="flex items-center gap-1">
-                    <Trophy className="h-3.5 w-3.5" />
+                    <Trophy className="size-3.5" />
                     {match.tournamentName}
                     {match.categoryName && ` · ${match.categoryName}`}
                   </span>
@@ -144,7 +144,7 @@ export function MatchAssignmentCard({ assignment }: MatchAssignmentCardProps) {
                     size="sm"
                     onClick={() => setScoreDialogOpen(true)}
                   >
-                    <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                    <Pencil className="mr-1.5 size-3.5" />
                     Marcador
                   </Button>
                 )}
@@ -154,7 +154,7 @@ export function MatchAssignmentCard({ assignment }: MatchAssignmentCardProps) {
                     size="sm"
                     onClick={() => setStatusDialogOpen(true)}
                   >
-                    <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                    <RefreshCw className="mr-1.5 size-3.5" />
                     Estado
                   </Button>
                 )}
@@ -198,7 +198,7 @@ export function MatchAssignmentCard({ assignment }: MatchAssignmentCardProps) {
               Cancelar
             </Button>
             <Button onClick={handleUpdateScore} disabled={saving}>
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
               Guardar
             </Button>
           </DialogFooter>
@@ -235,7 +235,7 @@ export function MatchAssignmentCard({ assignment }: MatchAssignmentCardProps) {
               Cancelar
             </Button>
             <Button onClick={handleChangeStatus} disabled={saving}>
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
               Confirmar
             </Button>
           </DialogFooter>

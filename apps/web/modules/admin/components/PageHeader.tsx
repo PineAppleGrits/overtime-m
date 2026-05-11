@@ -27,12 +27,12 @@ export function PageHeader({
         {backHref && (
           <Button variant="ghost" size="icon" asChild className="mt-0.5" aria-label="Volver">
             <Link href={backHref}>
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="size-4" />
             </Link>
           </Button>
         )}
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
           {description && (
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           )}
@@ -43,14 +43,14 @@ export function PageHeader({
         {createHref && (
           <Button asChild>
             <Link href={createHref}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 size-4" />
               {createLabel}
             </Link>
           </Button>
         )}
         {onCreateClick && (
           <Button onClick={onCreateClick}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 size-4" />
             {createLabel}
           </Button>
         )}

@@ -51,10 +51,10 @@ function RegistrationCard({ reg }: { reg: Registration }) {
             <img
               src={reg.team.logoUrl}
               alt={reg.team.name}
-              className="h-10 w-10 rounded-lg object-cover shrink-0"
+              className="size-10 rounded-lg object-cover shrink-0"
             />
           ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/8 text-base font-bold text-white/40">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/8 text-base font-bold text-white/40">
               {reg.team?.name?.charAt(0).toUpperCase() ?? '?'}
             </div>
           )}
@@ -74,7 +74,7 @@ function RegistrationCard({ reg }: { reg: Registration }) {
             status.className,
           )}
         >
-          <StatusIcon className="h-3 w-3" />
+          <StatusIcon className="size-3" />
           {status.label}
         </span>
       </div>
@@ -97,37 +97,39 @@ function RegistrationCard({ reg }: { reg: Registration }) {
   )
 }
 
-async function getMyRegistrations(): Promise<Registration[]> {
+async function getMyTeams(): Promise<{ id: string }[]> {
   try {
     const teams = await teamService.getMyTeams()
-    const myTeams: { id: string }[] = Array.isArray(teams) ? teams : (teams?.data ?? [])
-    if (myTeams.length === 0) return []
-
-    const results = await Promise.all(
-      myTeams.map((team) =>
-        registrationService
-          .getRegistrations({ teamId: team.id, limit: 50 })
-          .then((res) => (res?.data ?? []) as Registration[])
-          .catch(() => [] as Registration[]),
-      ),
-    )
-
-    const seen = new Set<string>()
-    return results.flat().filter((r) => {
-      if (seen.has(r.id)) return false
-      seen.add(r.id)
-      return true
-    })
+    return Array.isArray(teams) ? teams : (teams?.data ?? [])
   } catch {
     return []
   }
 }
 
+async function getRegistrationsForTeams(myTeams: { id: string }[]): Promise<Registration[]> {
+  if (myTeams.length === 0) return []
+  const results = await Promise.all(
+    myTeams.map((team) =>
+      registrationService
+        .getRegistrations({ teamId: team.id, limit: 50 })
+        .then((res) => (res?.data ?? []) as Registration[])
+        .catch(() => [] as Registration[]),
+    ),
+  )
+
+  const seen = new Set<string>()
+  return results.flat().filter((r) => {
+    if (seen.has(r.id)) return false
+    seen.add(r.id)
+    return true
+  })
+}
+
 export default async function ProfileTournamentsPage() {
-  const profile = await getProfile()
+  const [profile, myTeams] = await Promise.all([getProfile(), getMyTeams()])
   if (!profile) redirect('/auth/login')
 
-  const registrations = await getMyRegistrations()
+  const registrations = await getRegistrationsForTeams(myTeams)
 
   const pending = registrations.filter((r) => r.status === 'pending')
   const approved = registrations.filter((r) => r.status === 'approved')
@@ -136,8 +138,8 @@ export default async function ProfileTournamentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="flex items-center gap-2 text-lg font-bold text-white">
-          <Trophy className="h-5 w-5 text-ot-orange" />
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+          <Trophy className="size-5 text-ot-orange" />
           Mis torneos
         </h2>
         <p className="mt-0.5 text-sm text-white/50">
@@ -147,8 +149,8 @@ export default async function ProfileTournamentsPage() {
 
       {registrations.length === 0 ? (
         <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 py-14 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
-            <Trophy className="h-6 w-6 text-white/20" />
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-white/5">
+            <Trophy className="size-6 text-white/20" />
           </div>
           <p className="text-sm font-medium text-white/50">Todavía no participás en ningún torneo</p>
           <p className="mt-1 text-xs text-white/30">
@@ -166,7 +168,7 @@ export default async function ProfileTournamentsPage() {
           {pending.length > 0 && (
             <section className="space-y-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-white/60 uppercase tracking-wider">
-                <Clock className="h-4 w-4 text-amber-400" />
+                <Clock className="size-4 text-amber-400" />
                 En revisión ({pending.length})
               </h3>
               <div className="space-y-3">
@@ -178,7 +180,7 @@ export default async function ProfileTournamentsPage() {
           {approved.length > 0 && (
             <section className="space-y-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-white/60 uppercase tracking-wider">
-                <CheckCircle2 className="h-4 w-4 text-green-400" />
+                <CheckCircle2 className="size-4 text-green-400" />
                 Aprobadas ({approved.length})
               </h3>
               <div className="space-y-3">
@@ -190,7 +192,7 @@ export default async function ProfileTournamentsPage() {
           {rejected.length > 0 && (
             <section className="space-y-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-white/60 uppercase tracking-wider">
-                <AlertCircle className="h-4 w-4 text-red-400" />
+                <AlertCircle className="size-4 text-red-400" />
                 Rechazadas ({rejected.length})
               </h3>
               <div className="space-y-3">

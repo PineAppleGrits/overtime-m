@@ -33,7 +33,7 @@ export function OnboardingContent({ profileName }: { profileName: string }) {
         {/* Stepper */}
         <div className="mb-10 flex items-center justify-center gap-0">
           <div
-            className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+            className={`flex size-9 items-center justify-center rounded-full text-sm font-bold transition-colors ${
               step >= 1
                 ? 'bg-ot-orange text-white'
                 : 'bg-white/10 text-white/40'
@@ -47,7 +47,7 @@ export function OnboardingContent({ profileName }: { profileName: string }) {
             }`}
           />
           <div
-            className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+            className={`flex size-9 items-center justify-center rounded-full text-sm font-bold transition-colors ${
               step >= 2
                 ? 'bg-ot-orange text-white'
                 : 'bg-white/10 text-white/40'
@@ -59,7 +59,7 @@ export function OnboardingContent({ profileName }: { profileName: string }) {
 
         {/* Heading */}
         <div className="mb-8 text-center">
-          <h1 className="font-din-display text-2xl font-bold tracking-tight md:text-3xl">
+          <h1 className="font-din-display text-2xl font-semibold tracking-tight md:text-3xl">
             {step === 1 ? 'Verificá tu identidad' : 'Confirmá tus datos'}
           </h1>
           <p className="mt-2 text-sm text-white/50">

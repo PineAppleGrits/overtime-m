@@ -77,7 +77,7 @@ export default async function TournamentPage({
             ‹ Torneos
           </Link>
 
-          <h1 className="text-4xl md:text-5xl font-bold uppercase font-din-display text-ot-orange tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-semibold uppercase font-din-display text-ot-orange tracking-tight">
             {tournament.name}
           </h1>
 
@@ -99,7 +99,7 @@ export default async function TournamentPage({
 
       {/* Categories section */}
       <div className="ot-container py-10 md:py-14">
-        <h2 className="text-center text-ot-orange font-bold uppercase font-din-display text-lg mb-8">
+        <h2 className="text-center text-ot-orange font-semibold uppercase font-din-display text-lg mb-8">
           Categorías
         </h2>
 
@@ -165,7 +165,7 @@ export default async function TournamentPage({
 
                   {/* Content */}
                   <div className="relative z-10 flex flex-col gap-3 p-5 md:p-6">
-                    <h3 className="font-din-display text-2xl md:text-3xl font-bold uppercase leading-tight tracking-tight text-white">
+                    <h3 className="font-din-display text-2xl md:text-3xl font-semibold uppercase leading-tight tracking-tight text-white">
                       {category.name}
                     </h3>
 
@@ -173,13 +173,13 @@ export default async function TournamentPage({
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-white/70">
                         {zones > 0 && (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="inline-block h-1 w-1 rounded-full bg-ot-orange" />
+                            <span className="inline-block size-1 rounded-full bg-ot-orange" />
                             {zones} zona{zones !== 1 ? 's' : ''}
                           </span>
                         )}
                         {registrations > 0 && (
                           <span className="inline-flex items-center gap-1.5">
-                            <Users className="h-3.5 w-3.5 text-white/50" aria-hidden />
+                            <Users className="size-3.5 text-white/50" aria-hidden />
                             {registrations} inscripto{registrations !== 1 ? 's' : ''}
                           </span>
                         )}
@@ -189,7 +189,7 @@ export default async function TournamentPage({
                     <div className="mt-1 inline-flex items-center gap-1.5 font-din-display text-sm font-semibold uppercase tracking-wide text-ot-orange">
                       Ver categoría
                       <ArrowRight
-                        className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-1"
+                        className="size-4 transition-transform duration-300 ease-out group-hover:translate-x-1"
                         aria-hidden
                       />
                     </div>

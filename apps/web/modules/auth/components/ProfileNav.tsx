@@ -6,9 +6,9 @@ import { Settings, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { href: '/profile', label: 'Información y configuración', shortLabel: 'Información', icon: <Settings className="h-4 w-4" /> },
-  { href: '/profile/torneos', label: 'Mis torneos', shortLabel: 'Torneos', icon: <Trophy className="h-4 w-4" /> },
-  { href: '/profile/equipos', label: 'Mis equipos', shortLabel: 'Equipos', icon: <Users className="h-4 w-4" /> },
+  { href: '/profile', label: 'Información y configuración', shortLabel: 'Información', icon: <Settings className="size-4" /> },
+  { href: '/profile/torneos', label: 'Mis torneos', shortLabel: 'Torneos', icon: <Trophy className="size-4" /> },
+  { href: '/profile/equipos', label: 'Mis equipos', shortLabel: 'Equipos', icon: <Users className="size-4" /> },
 ] as const;
 
 export function ProfileNav() {

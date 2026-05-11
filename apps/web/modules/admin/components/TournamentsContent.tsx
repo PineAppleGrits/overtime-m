@@ -159,7 +159,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
           createLabel="Nuevo torneo"
         />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar los torneos</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
         </div>
@@ -229,28 +229,28 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
           <div className="flex items-center gap-1">
             <Button variant="outline" size="sm" className="h-8" asChild>
               <Link href={`/admin/torneos/${t.id}`}>
-                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                <Eye className="mr-1.5 size-3.5" />
                 Ver
               </Link>
             </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones del torneo">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="size-8" aria-label="Acciones del torneo">
+                <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => router.push(`/admin/torneos/${t.id}`)}>
-                <Pencil className="mr-2 h-4 w-4" />Editar
+                <Pencil className="mr-2 size-4" />Editar
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push(`/admin/torneos/${t.id}/categorias`)}>
-                <Eye className="mr-2 h-4 w-4" />Categorías / Zonas
+                <Eye className="mr-2 size-4" />Categorías / Zonas
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push(`/admin/torneos/${t.id}/inscripciones`)}>
-                <Eye className="mr-2 h-4 w-4" />Inscripciones
+                <Eye className="mr-2 size-4" />Inscripciones
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push(`/admin/torneos/${t.id}/partidos`)}>
-                <Eye className="mr-2 h-4 w-4" />Partidos
+                <Eye className="mr-2 size-4" />Partidos
               </DropdownMenuItem>
 
               {transitions.length > 0 && <DropdownMenuSeparator />}
@@ -270,7 +270,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
                 className="text-destructive"
                 onClick={() => setDeleteId(t.id)}
               >
-                <Trash2 className="mr-2 h-4 w-4" />Eliminar
+                <Trash2 className="mr-2 size-4" />Eliminar
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -291,7 +291,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
 
       <div className="mb-4 flex gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar torneos..."
             value={search}

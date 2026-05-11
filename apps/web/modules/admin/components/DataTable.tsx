@@ -87,8 +87,8 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
               <TableCell colSpan={columns.length} className="py-16 text-center">
                 <div className="flex flex-col items-center gap-2">
                   {emptyIcon ?? (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f0eeeb]">
-                      <Inbox className="h-5 w-5 text-[#9b99a6]" />
+                    <div className="flex size-12 items-center justify-center rounded-full bg-[#f0eeeb]">
+                      <Inbox className="size-5 text-[#9b99a6]" />
                     </div>
                   )}
                   <p className="text-sm font-medium text-[#6b6a72]">{emptyMessage}</p>
@@ -144,10 +144,10 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
               size="sm"
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              className="h-8 w-8 p-0 border-[#e8e6e1]"
+              className="size-8 p-0 border-[#e8e6e1]"
               aria-label="Pagina anterior"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="size-4" />
             </Button>
             {/* Page number pills */}
             {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
@@ -168,7 +168,7 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
                   size="sm"
                   onClick={() => onPageChange(pageNum)}
                   aria-label={`Ir a pagina ${pageNum}`}
-                  className={`h-8 w-8 p-0 text-[12px] ${
+                  className={`size-8 p-0 text-[12px] ${
                     pageNum === page
                       ? 'bg-[#0f0e13] text-white hover:bg-[#0f0e13]/90'
                       : 'border-[#e8e6e1]'
@@ -183,10 +183,10 @@ export function DataTable<T extends { id?: string; [key: string]: any }>({
               size="sm"
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="h-8 w-8 p-0 border-[#e8e6e1]"
+              className="size-8 p-0 border-[#e8e6e1]"
               aria-label="Pagina siguiente"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="size-4" />
             </Button>
           </div>
         </div>

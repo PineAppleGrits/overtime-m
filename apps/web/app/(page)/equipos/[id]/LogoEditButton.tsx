@@ -58,9 +58,9 @@ export function LogoEditButton({ teamId }: { teamId: string }) {
         onClick={() => inputRef.current?.click()}
         disabled={isPending}
         title="Cambiar logo"
-        className="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#181525]/90 border border-white/20 text-white/60 hover:text-white hover:bg-[#292548] transition-colors disabled:opacity-50"
+        className="absolute bottom-1 right-1 flex size-6 items-center justify-center rounded-full bg-[#181525]/90 border border-white/20 text-white/60 hover:text-white hover:bg-[#292548] transition-colors disabled:opacity-50"
       >
-        <Pencil className="h-3 w-3" />
+        <Pencil className="size-3" />
       </button>
     </>
   )

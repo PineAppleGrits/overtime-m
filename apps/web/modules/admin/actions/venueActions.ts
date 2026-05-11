@@ -8,8 +8,11 @@ import {
   deleteVenueSchema,
 } from '../schemas/venueSchemas'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 export async function createVenueAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = createVenueSchema.safeParse(input)
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
@@ -29,6 +32,8 @@ export async function createVenueAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateVenueAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updateVenueSchema.safeParse(input)
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
@@ -49,6 +54,8 @@ export async function updateVenueAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteVenueAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = deleteVenueSchema.safeParse(input)
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }

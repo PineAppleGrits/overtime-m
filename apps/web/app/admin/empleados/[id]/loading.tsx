@@ -5,7 +5,7 @@ export default function EmployeeDetailLoading() {
     <div className="space-y-6">
       {/* PageHeader */}
       <div className="flex items-start gap-3">
-        <SkeletonLine className="mt-1 h-9 w-9 rounded-md" />
+        <SkeletonLine className="mt-1 size-9 rounded-md" />
         <div className="space-y-2">
           <SkeletonLine className="h-8 w-64" />
           <SkeletonLine className="h-4 w-80" />

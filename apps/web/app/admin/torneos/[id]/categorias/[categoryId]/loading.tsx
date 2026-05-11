@@ -2,7 +2,7 @@ export default function CategoryDetailLoading() {
   return (
     <div className="animate-pulse space-y-6">
       <div className="flex items-center gap-3">
-        <div className="h-9 w-9 rounded bg-muted" />
+        <div className="size-9 rounded bg-muted" />
         <div className="space-y-2">
           <div className="h-6 w-48 rounded bg-muted" />
           <div className="h-4 w-32 rounded bg-muted" />

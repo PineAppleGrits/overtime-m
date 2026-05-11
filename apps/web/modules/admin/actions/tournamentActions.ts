@@ -14,8 +14,11 @@ import {
   approveRegistrationTournamentSchema, rejectRegistrationTournamentSchema,
 } from '../schemas/tournamentSchemas'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 export async function createTournamentAction(input: unknown): Promise<ActionResult<{ id: string }>> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = createTournamentSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -34,6 +37,8 @@ export async function createTournamentAction(input: unknown): Promise<ActionResu
 }
 
 export async function updateTournamentAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updateTournamentSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   const { id, ...data } = parsed.data
@@ -54,6 +59,8 @@ export async function updateTournamentAction(input: unknown): Promise<ActionResu
 }
 
 export async function changeStatusAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = changeStatusSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -68,6 +75,8 @@ export async function changeStatusAction(input: unknown): Promise<ActionResult> 
 }
 
 export async function deleteTournamentAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = deleteTournamentSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -81,6 +90,8 @@ export async function deleteTournamentAction(input: unknown): Promise<ActionResu
 }
 
 export async function createCategoryAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = createCategorySchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   const { tournamentId, ...dto } = parsed.data
@@ -96,6 +107,8 @@ export async function createCategoryAction(input: unknown): Promise<ActionResult
 }
 
 export async function updateCategoryAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updateCategorySchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   const { tournamentId, categoryId, ...dto } = parsed.data
@@ -115,6 +128,8 @@ export async function updateCategoryAction(input: unknown): Promise<ActionResult
 }
 
 export async function deleteCategoryAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = deleteCategorySchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -129,6 +144,8 @@ export async function deleteCategoryAction(input: unknown): Promise<ActionResult
 }
 
 export async function createZoneAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = createZoneSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -142,6 +159,8 @@ export async function createZoneAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteZoneAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = deleteZoneSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -155,6 +174,8 @@ export async function deleteZoneAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function assignTeamToZoneAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = assignTeamToZoneSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -168,6 +189,8 @@ export async function assignTeamToZoneAction(input: unknown): Promise<ActionResu
 }
 
 export async function removeTeamFromZoneAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = removeTeamFromZoneSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -181,6 +204,8 @@ export async function removeTeamFromZoneAction(input: unknown): Promise<ActionRe
 }
 
 export async function moveTeamBetweenZonesAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = moveTeamBetweenZonesSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   const { categoryId, fromZoneId, toZoneId, teamId } = parsed.data
@@ -197,6 +222,8 @@ export async function moveTeamBetweenZonesAction(input: unknown): Promise<Action
 }
 
 export async function approveRegistrationTournamentAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = approveRegistrationTournamentSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {
@@ -210,6 +237,8 @@ export async function approveRegistrationTournamentAction(input: unknown): Promi
 }
 
 export async function rejectRegistrationTournamentAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = rejectRegistrationTournamentSchema.safeParse(input)
   if (!parsed.success) return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
   try {

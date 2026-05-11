@@ -353,7 +353,7 @@ export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchS
                 <span className="text-[12px] text-amber-600 font-medium mr-1">Cambios sin guardar</span>
               )}
               <Button variant="outline" size="sm" onClick={handleSave} disabled={!isDirty || isSaving}>
-                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {isSaving ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}
                 Guardar borrador
               </Button>
               <Button
@@ -362,7 +362,7 @@ export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchS
                 disabled={isPublishing || scheduledMatches.length === 0}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                {isPublishing ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Send className="mr-2 size-4" />}
                 Publicar fecha
               </Button>
             </div>
@@ -376,7 +376,7 @@ export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchS
               <span className="text-[12px] text-amber-600 font-medium mr-1">Cambios sin guardar</span>
             )}
             <Button variant="outline" size="sm" onClick={handleSave} disabled={!isDirty || isSaving} className="border-[#e8e6e1]">
-              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              {isSaving ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}
               Guardar borrador
             </Button>
             <Button
@@ -385,7 +385,7 @@ export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchS
               disabled={isPublishing || scheduledMatches.length === 0}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+              {isPublishing ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Send className="mr-2 size-4" />}
               Publicar fecha
             </Button>
           </div>
@@ -441,7 +441,7 @@ export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchS
               {MOCK_CANCHAS.map(c => (
                 <SelectItem key={c.id} value={c.id}>
                   <span className="flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-[#9b99a6]" />
+                    <MapPin className="size-3 text-[#9b99a6]" />
                     {c.name} — {c.venueName}
                   </span>
                 </SelectItem>
@@ -481,8 +481,8 @@ export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchS
           <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
             {unscheduledMatches.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 mb-2">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                <div className="flex size-10 items-center justify-center rounded-full bg-emerald-50 mb-2">
+                  <Check className="size-5 text-emerald-600" />
                 </div>
                 <p className="text-[12px] font-medium text-[#6b6a72]">Todos asignados</p>
                 <p className="text-[11px] text-[#9b99a6] mt-0.5">Podés reorganizarlos arrastrando</p>
@@ -504,7 +504,7 @@ export function MatchSchedulerContent({ tournamentId, embedded = false }: MatchS
           <Tabs defaultValue="both" className="flex flex-col h-full">
             <div className="flex items-center justify-between px-4 py-2 border-b border-[#e8e6e1] bg-[#f7f6f4]">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-[#9b99a6]" />
+                <Calendar className="size-4 text-[#9b99a6]" />
                 <span className="text-[12px] font-semibold text-[#0f0e13]">
                   {currentFecha?.label} — {currentCancha?.name}
                 </span>
@@ -600,21 +600,21 @@ function StaffPanel({
       <div className="px-3 py-2.5 border-b border-[#e8e6e1] bg-[#f7f6f4] shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <UserCheck className="h-3.5 w-3.5 text-[#9b99a6]" />
+            <UserCheck className="size-3.5 text-[#9b99a6]" />
             <h3 className="text-[12px] font-semibold text-[#0f0e13] uppercase tracking-wide">
               Asignar personal
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="h-5 w-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-[#0f0e13] hover:bg-[#e8e6e1] transition-all"
+            className="size-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-[#0f0e13] hover:bg-[#e8e6e1] transition-all"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="size-3.5" />
           </button>
         </div>
         <div className="mt-1.5">
           <div className="flex items-center gap-1.5">
-            <span className={cn('inline-block h-2 w-2 rounded-full shrink-0', match.categoryColor)} />
+            <span className={cn('inline-block size-2 rounded-full shrink-0', match.categoryColor)} />
             <span className="text-[11px] font-medium text-[#0f0e13] truncate">{match.categoryName}</span>
           </div>
           <p className="text-[11px] text-[#6b6a72] mt-0.5 truncate">
@@ -663,7 +663,7 @@ function StaffPanel({
       <div className="px-3 py-2.5 border-t border-[#e8e6e1] bg-[#fafaf8] shrink-0">
         <div className="flex items-center gap-2">
           <div className={cn(
-            'h-2 w-2 rounded-full shrink-0',
+            'size-2 rounded-full shrink-0',
             complete ? 'bg-emerald-500' : 'bg-amber-500'
           )} />
           <span className="text-[11px] font-medium text-[#6b6a72]">
@@ -705,7 +705,7 @@ function StaffMultiSelect({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5">
-        <Icon className={cn('h-3.5 w-3.5', config.colorText)} />
+        <Icon className={cn('size-3.5', config.colorText)} />
         <span className="text-[11px] font-semibold text-[#6b6a72] uppercase tracking-wider">{config.label}</span>
         {assigned.length > 0 && (
           <span className={cn('ml-auto text-[10px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center', config.colorBg, config.colorText)}>
@@ -731,7 +731,7 @@ function StaffMultiSelect({
                 onClick={() => onRemove(matchId, field, s.id)}
                 className="ml-0.5 rounded hover:bg-black/5 transition-colors"
               >
-                <X className="h-3 w-3" />
+                <X className="size-3" />
               </button>
             </span>
           ))}
@@ -748,7 +748,7 @@ function StaffMultiSelect({
         >
           <SelectTrigger className="h-8 text-[11px] bg-white border-dashed border-[#d0cec9] text-[#9b99a6] hover:border-[#9b99a6] transition-colors">
             <div className="flex items-center gap-1.5">
-              <Plus className="h-3 w-3" />
+              <Plus className="size-3" />
               <span>Agregar {config.label.toLowerCase().replace(/s$/, '')}</span>
             </div>
           </SelectTrigger>
@@ -814,11 +814,11 @@ function MatchCard({
         'cursor-grab active:cursor-grabbing',
       )}
     >
-      <GripVertical className={cn('shrink-0 text-[#c4c2cc]', compact ? 'h-3 w-3' : 'h-3.5 w-3.5')} />
+      <GripVertical className={cn('shrink-0 text-[#c4c2cc]', compact ? 'size-3' : 'size-3.5')} />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-0.5">
-          <span className={cn('inline-block h-2 w-2 rounded-full shrink-0', match.categoryColor)} />
+          <span className={cn('inline-block size-2 rounded-full shrink-0', match.categoryColor)} />
           <span className={cn('font-medium text-[#0f0e13] truncate', compact ? 'text-[11px]' : 'text-[12px]')}>
             {match.categoryName}
           </span>
@@ -841,9 +841,9 @@ function MatchCard({
             )}
           >
             {staffInfo.total === 0 ? (
-              <><UserPlus className="h-3 w-3" /> Asignar personal</>
+              <><UserPlus className="size-3" /> Asignar personal</>
             ) : (
-              <><UserCheck className="h-3 w-3" /> {staffInfo.label}</>
+              <><UserCheck className="size-3" /> {staffInfo.label}</>
             )}
           </button>
         )}
@@ -854,19 +854,19 @@ function MatchCard({
           <Link
             href={detailHref}
             onClick={(e) => e.stopPropagation()}
-            className="opacity-0 group-hover:opacity-100 h-5 w-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-[#ff3b2f] hover:bg-red-50 transition-all"
+            className="opacity-0 group-hover:opacity-100 size-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-[#ff3b2f] hover:bg-red-50 transition-all"
             title="Ver detalle del partido"
           >
-            <Eye className="h-3 w-3" />
+            <Eye className="size-3" />
           </Link>
         )}
         {onRemove && (
           <button
             onClick={(e) => { e.stopPropagation(); onRemove() }}
-            className="opacity-0 group-hover:opacity-100 h-5 w-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-red-500 hover:bg-red-50 transition-all"
+            className="opacity-0 group-hover:opacity-100 size-5 rounded flex items-center justify-center text-[#9b99a6] hover:text-red-500 hover:bg-red-50 transition-all"
             title="Quitar del horario"
           >
-            <X className="h-3 w-3" />
+            <X className="size-3" />
           </button>
         )}
       </div>
@@ -962,7 +962,7 @@ function DayColumn({
                   </div>
                 ) : (
                   <div className={cn(
-                    'w-full h-full min-h-[40px] rounded-lg border-2 border-dashed flex items-center justify-center transition-colors',
+                    'size-full min-h-[40px] rounded-lg border-2 border-dashed flex items-center justify-center transition-colors',
                     isOver
                       ? 'border-blue-400 bg-blue-50 text-blue-500'
                       : 'border-[#e8e6e1] text-[#c4c2cc]'

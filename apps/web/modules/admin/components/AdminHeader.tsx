@@ -104,7 +104,7 @@ export function AdminHeader() {
         {crumbs.map((crumb, idx) => (
           <div key={crumb.href} className="flex items-center gap-1">
             {idx > 0 && (
-              <ChevronRight className="h-3.5 w-3.5 text-[#c4c2cc] shrink-0" />
+              <ChevronRight className="size-3.5 text-[#c4c2cc] shrink-0" />
             )}
             {idx === crumbs.length - 1 ? (
               <span className="font-semibold text-[#0f0e13] text-[13px]">
@@ -136,8 +136,8 @@ export function AdminHeader() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0 hover:bg-transparent">
-              <Avatar className="h-8 w-8 ring-2 ring-[#e8e6e1] hover:ring-[#ff3b2f] transition-all">
+            <Button variant="ghost" className="relative size-8 rounded-full p-0 hover:bg-transparent">
+              <Avatar className="size-8 ring-2 ring-[#e8e6e1] hover:ring-[#ff3b2f] transition-all">
                 <AvatarImage src={profile?.avatarUrl} alt={profile?.name} />
                 <AvatarFallback className="bg-[#292548] text-white text-xs font-bold">
                   {profile?.name?.charAt(0).toUpperCase()}
@@ -157,19 +157,19 @@ export function AdminHeader() {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/admin/perfil">
-                <User className="mr-2 h-4 w-4" />
+                <User className="mr-2 size-4" />
                 Mi Perfil
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/admin/configuracion">
-                <Settings className="mr-2 h-4 w-4" />
+                <Settings className="mr-2 size-4" />
                 Configuración
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut()} className="text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="mr-2 size-4" />
               Cerrar Sesión
             </DropdownMenuItem>
           </DropdownMenuContent>

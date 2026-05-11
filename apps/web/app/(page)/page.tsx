@@ -74,7 +74,7 @@ function SkewedButton({
       <span className="absolute inset-0 bg-white/15 -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out" />
       <span className="relative z-10 flex items-center gap-2">
         {children}
-        <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:translate-x-1" />
+        <ArrowRight className="size-4 md:size-5 transition-transform duration-300 group-hover:translate-x-1" />
       </span>
     </Link>
   )
@@ -90,7 +90,7 @@ export default function Home() {
 
       {/* ═══════════════ HERO ═══════════════ */}
       <section className="min-h-screen relative w-full">
-        <video autoPlay loop muted playsInline className="w-full h-full absolute inset-0 object-cover pointer-events-none top-0">
+        <video autoPlay loop muted playsInline className="size-full absolute inset-0 object-cover pointer-events-none top-0">
           <source src="/hero.webm" type="video/webm" />
         </video>
 
@@ -130,7 +130,7 @@ export default function Home() {
 
             {/* Title — editorial stacked */}
             <div style={{ animation: "fadeInUp 0.8s 0.5s cubic-bezier(0.16,1,0.3,1) both" }}>
-              <h1 className="font-din-display font-bold text-white uppercase leading-[0.88] tracking-tight">
+              <h1 className="font-din-display font-semibold text-white uppercase leading-[0.88] tracking-tight">
                 <span className="block text-5xl md:text-7xl lg:text-[6.5rem]">
                   Jugá.
                 </span>
@@ -192,7 +192,7 @@ export default function Home() {
                 Plataforma
               </span>
             </div>
-            <h2 className="font-din-display text-3xl md:text-5xl font-bold text-white uppercase tracking-tight">
+            <h2 className="font-din-display text-3xl md:text-5xl font-semibold text-white uppercase tracking-tight">
               La experiencia
             </h2>
           </div>
@@ -211,21 +211,21 @@ export default function Home() {
                 }}
               >
                 {/* Court half-circle decoration */}
-                <div className="absolute right-12 top-1/2 -translate-y-1/2 w-40 h-40 md:w-56 md:h-56 border border-white/[0.03] rounded-full pointer-events-none" />
-                <div className="absolute right-20 top-1/2 -translate-y-1/2 w-20 h-20 md:w-28 md:h-28 border border-white/[0.03] rounded-full pointer-events-none" />
+                <div className="absolute right-12 top-1/2 -translate-y-1/2 size-40 md:size-56 border border-white/[0.03] rounded-full pointer-events-none" />
+                <div className="absolute right-20 top-1/2 -translate-y-1/2 size-20 md:size-28 border border-white/[0.03] rounded-full pointer-events-none" />
 
                 <div className="relative z-10 max-w-xl">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 flex items-center justify-center bg-ot-orange/15 border border-ot-orange/20"
+                    <div className="size-10 flex items-center justify-center bg-ot-orange/15 border border-ot-orange/20"
                       style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
                     >
-                      <BarChart3 className="w-5 h-5 text-ot-orange" />
+                      <BarChart3 className="size-5 text-ot-orange" />
                     </div>
                     <span className="text-[10px] md:text-xs font-bold text-ot-orange/60 tracking-[0.2em] uppercase">
                       Tiempo real
                     </span>
                   </div>
-                  <h3 className="font-din-display text-xl md:text-3xl font-bold text-white mb-2">
+                  <h3 className="font-din-display text-xl md:text-3xl font-semibold text-white mb-2">
                     Estadísticas al instante
                   </h3>
                   <p className="text-white/40 text-sm md:text-base leading-relaxed">
@@ -267,16 +267,16 @@ export default function Home() {
                     <span className="text-[10px] md:text-xs font-bold text-ot-orange/60 tracking-[0.2em] uppercase hidden md:block">
                       Competencia
                     </span>
-                    <div className="w-10 h-10 flex items-center justify-center bg-ot-orange/15 border border-ot-orange/20"
+                    <div className="size-10 flex items-center justify-center bg-ot-orange/15 border border-ot-orange/20"
                       style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
                     >
-                      <Trophy className="w-5 h-5 text-ot-orange" />
+                      <Trophy className="size-5 text-ot-orange" />
                     </div>
                     <span className="text-[10px] md:text-xs font-bold text-ot-orange/60 tracking-[0.2em] uppercase md:hidden">
                       Competencia
                     </span>
                   </div>
-                  <h3 className="font-din-display text-xl md:text-3xl font-bold text-white mb-2">
+                  <h3 className="font-din-display text-xl md:text-3xl font-semibold text-white mb-2">
                     Categorías por nivel
                   </h3>
                   <p className="text-white/40 text-sm md:text-base leading-relaxed">
@@ -313,16 +313,16 @@ export default function Home() {
                 }}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 flex items-center justify-center bg-ot-violeta/30 border border-ot-light-blue/20"
+                  <div className="size-10 flex items-center justify-center bg-ot-violeta/30 border border-ot-light-blue/20"
                     style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
                   >
-                    <Calendar className="w-5 h-5 text-ot-newvioleta-claro" />
+                    <Calendar className="size-5 text-ot-newvioleta-claro" />
                   </div>
                   <span className="text-[10px] md:text-xs font-bold text-ot-newvioleta-claro/60 tracking-[0.2em] uppercase">
                     Calendario
                   </span>
                 </div>
-                <h3 className="font-din-display text-xl md:text-2xl font-bold text-white mb-2">
+                <h3 className="font-din-display text-xl md:text-2xl font-semibold text-white mb-2">
                   Fechas claras
                 </h3>
                 <p className="text-white/40 text-sm leading-relaxed">
@@ -339,16 +339,16 @@ export default function Home() {
                 }}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 flex items-center justify-center bg-ot-orange/15 border border-ot-orange/20"
+                  <div className="size-10 flex items-center justify-center bg-ot-orange/15 border border-ot-orange/20"
                     style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
                   >
-                    <Zap className="w-5 h-5 text-ot-orange" />
+                    <Zap className="size-5 text-ot-orange" />
                   </div>
                   <span className="text-[10px] md:text-xs font-bold text-ot-orange/60 tracking-[0.2em] uppercase">
                     Rápido
                   </span>
                 </div>
-                <h3 className="font-din-display text-xl md:text-2xl font-bold text-white mb-2">
+                <h3 className="font-din-display text-xl md:text-2xl font-semibold text-white mb-2">
                   Inscripción express
                 </h3>
                 <p className="text-white/40 text-sm leading-relaxed">
@@ -381,7 +381,7 @@ export default function Home() {
                 Trayectoria
               </span>
             </div>
-            <h2 className="font-din-display text-3xl md:text-5xl font-bold text-white uppercase tracking-tight">
+            <h2 className="font-din-display text-3xl md:text-5xl font-semibold text-white uppercase tracking-tight">
               Los números hablan
             </h2>
           </div>
@@ -448,7 +448,7 @@ export default function Home() {
                 Comunidad
               </span>
             </div>
-            <h2 className="font-din-display text-3xl md:text-5xl font-bold text-white uppercase tracking-tight">
+            <h2 className="font-din-display text-3xl md:text-5xl font-semibold text-white uppercase tracking-tight">
               Desde la cancha
             </h2>
           </div>
@@ -474,7 +474,7 @@ export default function Home() {
                 </p>
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-11 h-11 flex items-center justify-center font-bold text-white text-sm"
+                    className="size-11 flex items-center justify-center font-bold text-white text-sm"
                     style={{
                       background: "linear-gradient(135deg, #ff3b2f, #992318)",
                       clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)",
@@ -507,7 +507,7 @@ export default function Home() {
                 </p>
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-11 h-11 flex items-center justify-center font-bold text-white text-sm"
+                    className="size-11 flex items-center justify-center font-bold text-white text-sm"
                     style={{
                       background: "linear-gradient(135deg, #4e4585, #292548)",
                       clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)",
@@ -540,7 +540,7 @@ export default function Home() {
                 </p>
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-11 h-11 flex items-center justify-center font-bold text-white text-sm"
+                    className="size-11 flex items-center justify-center font-bold text-white text-sm"
                     style={{
                       background: "linear-gradient(135deg, rgba(255,59,47,0.6), rgba(59,51,106,0.8))",
                       clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)",
@@ -587,7 +587,7 @@ export default function Home() {
 
         {/* Court lines decoration */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] pointer-events-none opacity-[0.03]">
-          <svg viewBox="0 0 500 500" fill="none" className="w-full h-full">
+          <svg viewBox="0 0 500 500" fill="none" className="size-full">
             <circle cx="250" cy="250" r="200" stroke="white" strokeWidth="1" />
             <circle cx="250" cy="250" r="80" stroke="white" strokeWidth="1" />
             <line x1="250" y1="50" x2="250" y2="450" stroke="white" strokeWidth="1" />
@@ -597,7 +597,7 @@ export default function Home() {
 
         <div className="ot-container relative">
           <div data-animate className="max-w-3xl">
-            <h2 className="font-din-display text-4xl md:text-6xl lg:text-7xl font-bold text-white uppercase tracking-tight leading-[0.9]">
+            <h2 className="font-din-display text-4xl md:text-6xl lg:text-7xl font-semibold text-white uppercase tracking-tight leading-[0.9]">
               No te quedes
               <br />
               <span className="text-ot-orange">afuera</span>
@@ -625,7 +625,7 @@ export default function Home() {
                 { icon: Trophy, text: "Torneos verificados" },
               ].map((item) => (
                 <div key={item.text} className="flex items-center gap-2 text-white/25 text-xs md:text-sm">
-                  <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4 text-ot-orange/40" />
+                  <item.icon className="size-3.5 md:size-4 text-ot-orange/40" />
                   {item.text}
                 </div>
               ))}

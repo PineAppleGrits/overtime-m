@@ -75,14 +75,7 @@ export default async function InscripcionDetailPage({
 }) {
   const { tournamentSlug, categorySlug, registrationId } = await params
 
-  const profile = await getProfile()
-  if (!profile) {
-    redirect(
-      `/auth/login?redirect=${encodeURIComponent(`/torneos/${tournamentSlug}/${categorySlug}/inscripcion/${registrationId}`)}`,
-    )
-  }
-
-  let registration: {
+  type RegistrationDetail = {
     id: string
     status: string
     rejectionReason?: string | null
@@ -91,22 +84,27 @@ export default async function InscripcionDetailPage({
     category?: { id: string; name: string; slug?: string }
     rosterEntries?: { id: string; profile?: { id: string; name: string } }[]
     createdAt?: string
-  } | null = null
-
-  try {
-    registration = await registrationService.getRegistrationById(registrationId)
-  } catch {
-    notFound()
   }
 
-  if (!registration) notFound()
+  const [profile, registrationResult, tournamentResult] = await Promise.all([
+    getProfile(),
+    registrationService
+      .getRegistrationById(registrationId)
+      .then((r) => r as RegistrationDetail)
+      .catch(() => null),
+    TournamentService.getTournamentBySlug(tournamentSlug).catch(() => null),
+  ])
 
-  let tournament: { id: string; name: string; slug?: string } | null = null
-  try {
-    tournament = await TournamentService.getTournamentBySlug(tournamentSlug)
-  } catch {
-    // fallback to registration data
+  if (!profile) {
+    redirect(
+      `/auth/login?redirect=${encodeURIComponent(`/torneos/${tournamentSlug}/${categorySlug}/inscripcion/${registrationId}`)}`,
+    )
   }
+
+  if (!registrationResult) notFound()
+  const registration = registrationResult
+
+  const tournament: { id: string; name: string; slug?: string } | null = tournamentResult
 
   const paymentConfig = getPaymentConfig()
   const status = STATUS_CONFIG[registration.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.pending
@@ -132,7 +130,7 @@ export default async function InscripcionDetailPage({
             href={`/torneos/${tournamentSlug}/${categorySlug}/inscribirse`}
             className="inline-flex items-center gap-1.5 text-sm text-[#a9a5bb] hover:text-ot-orange transition-colors mb-4 font-din-display uppercase"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
             Volver a inscripción
           </Link>
 
@@ -144,15 +142,15 @@ export default async function InscripcionDetailPage({
                 <img
                   src={registration.team.logoUrl}
                   alt={registration.team.name}
-                  className="h-14 w-14 rounded-xl object-cover shrink-0"
+                  className="size-14 rounded-xl object-cover shrink-0"
                 />
               ) : (
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl font-bold text-white/40">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl font-bold text-white/40">
                   {registration.team?.name?.charAt(0).toUpperCase() ?? "?"}
                 </div>
               )}
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-white">
+                <h1 className="text-xl md:text-2xl font-semibold text-white">
                   {registration.team?.name ?? "Equipo"}
                 </h1>
                 <p className="text-sm text-[#a9a5bb]">
@@ -169,7 +167,7 @@ export default async function InscripcionDetailPage({
                 status.className,
               )}
             >
-              <StatusIcon className="h-4 w-4" />
+              <StatusIcon className="size-4" />
               {status.label}
             </span>
           </div>
@@ -209,7 +207,7 @@ export default async function InscripcionDetailPage({
             </div>
             <div className="flex justify-between">
               <span className="text-white/50 flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5" />
+                <Users className="size-3.5" />
                 Seguro ({playerCount} jugadores)
               </span>
               <span className="text-white">
@@ -236,7 +234,7 @@ export default async function InscripcionDetailPage({
             {paymentConfig.paymentMethods.transfer.enabled && (
               <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-5 space-y-4">
                 <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-ot-orange" />
+                  <Building2 className="size-4 text-ot-orange" />
                   <h3 className="text-sm font-semibold text-white">
                     Transferencia bancaria
                   </h3>
@@ -285,17 +283,17 @@ export default async function InscripcionDetailPage({
             {paymentConfig.paymentMethods.cash.enabled && (
               <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-5 space-y-4">
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-ot-orange" />
+                  <MapPin className="size-4 text-ot-orange" />
                   <h3 className="text-sm font-semibold text-white">Pago en efectivo</h3>
                 </div>
 
                 <div className="space-y-3">
                   {paymentConfig.paymentMethods.cash.venues.map((venue, i) => (
                     <div
-                      key={i}
+                      key={venue.name}
                       className="flex items-start gap-3 text-sm"
                     >
-                      <div className="h-6 w-6 shrink-0 flex items-center justify-center rounded-full bg-white/5 text-white/30 text-xs">
+                      <div className="size-6 shrink-0 flex items-center justify-center rounded-full bg-white/5 text-white/30 text-xs">
                         {i + 1}
                       </div>
                       <div>

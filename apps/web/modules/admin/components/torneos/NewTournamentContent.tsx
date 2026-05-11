@@ -69,7 +69,7 @@ function DatePickerField({
               !value && 'text-muted-foreground'
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="mr-2 size-4" />
             {value ? format(value, "PPP", { locale: es }) : placeholder}
           </Button>
         </PopoverTrigger>
@@ -207,9 +207,9 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
                   )}
                 >
                   {isDone ? (
-                    <Check className="h-3.5 w-3.5" />
+                    <Check className="size-3.5" />
                   ) : (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full border text-xs">
+                    <span className="flex size-5 items-center justify-center rounded-full border text-xs">
                       {i + 1}
                     </span>
                   )}
@@ -286,7 +286,7 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button type="button" className="text-muted-foreground hover:text-foreground cursor-help">
-                          <HelpCircle className="h-3.5 w-3.5" />
+                          <HelpCircle className="size-3.5" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs text-left">
@@ -312,7 +312,7 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button type="button" className="text-muted-foreground hover:text-foreground cursor-help">
-                          <HelpCircle className="h-3.5 w-3.5" />
+                          <HelpCircle className="size-3.5" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs text-left">
@@ -489,7 +489,7 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
           <div>
             {currentIndex > 0 && (
               <Button type="button" variant="outline" onClick={goBack}>
-                <ChevronLeft className="mr-1 h-4 w-4" />
+                <ChevronLeft className="mr-1 size-4" />
                 Anterior
               </Button>
             )}
@@ -501,11 +501,11 @@ export function NewTournamentContent({ sports }: NewTournamentContentProps) {
             {step !== 'review' ? (
               <Button type="button" onClick={goNext} disabled={!canNext}>
                 Siguiente
-                <ChevronRight className="ml-1 h-4 w-4" />
+                <ChevronRight className="ml-1 size-4" />
               </Button>
             ) : (
               <Button onClick={handleCreate} disabled={createAction.isPending}>
-                {createAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {createAction.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
                 Crear torneo
               </Button>
             )}

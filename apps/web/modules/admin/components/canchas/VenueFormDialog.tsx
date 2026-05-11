@@ -117,7 +117,7 @@ export function VenueFormDialog({
             <Input
               placeholder="Ej: Cancha Municipal"
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
             />
           </div>
           <div className="space-y-2">
@@ -125,7 +125,7 @@ export function VenueFormDialog({
             <Input
               placeholder="Calle 123"
               value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              onChange={(e) => setForm(prev => ({ ...prev, address: e.target.value }))}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -133,14 +133,14 @@ export function VenueFormDialog({
               <Label>Ciudad</Label>
               <Input
                 value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                onChange={(e) => setForm(prev => ({ ...prev, city: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
               <Label>Provincia</Label>
               <Input
                 value={form.province}
-                onChange={(e) => setForm({ ...form, province: e.target.value })}
+                onChange={(e) => setForm(prev => ({ ...prev, province: e.target.value }))}
               />
             </div>
           </div>
@@ -149,7 +149,7 @@ export function VenueFormDialog({
             <Input
               placeholder="https://maps.google.com/..."
               value={form.googleMapsUrl}
-              onChange={(e) => setForm({ ...form, googleMapsUrl: e.target.value })}
+              onChange={(e) => setForm(prev => ({ ...prev, googleMapsUrl: e.target.value }))}
             />
           </div>
           <div className="space-y-2">
@@ -158,14 +158,14 @@ export function VenueFormDialog({
               type="number"
               placeholder="Cantidad de personas"
               value={form.capacity}
-              onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+              onChange={(e) => setForm(prev => ({ ...prev, capacity: e.target.value }))}
             />
           </div>
           <div className="flex items-center justify-between">
             <Label>Activa</Label>
             <Switch
               checked={form.isActive}
-              onCheckedChange={(checked) => setForm({ ...form, isActive: checked })}
+              onCheckedChange={(checked) => setForm(prev => ({ ...prev, isActive: checked }))}
             />
           </div>
         </div>
@@ -174,7 +174,7 @@ export function VenueFormDialog({
             Cancelar
           </Button>
           <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             {editingVenue ? 'Guardar' : 'Crear'}
           </Button>
         </DialogFooter>

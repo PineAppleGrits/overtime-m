@@ -24,7 +24,7 @@ export function UserMenu() {
   }, [isOpen]);
 
   if (loading) {
-    return <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />;
+    return <div className="size-10 animate-pulse rounded-full bg-gray-200" />;
   }
 
   if (!user || !profile) {
@@ -47,12 +47,12 @@ export function UserMenu() {
           <Image
             src={profile.avatarUrl}
             alt={profile.name}
-            className="h-8 w-8 rounded-full"
+            className="size-8 rounded-full"
             width={32}
             height={32}
           />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white">
+          <div className="flex size-8 items-center justify-center rounded-full bg-blue-600 text-white">
             {profile.name.charAt(0).toUpperCase()}
           </div>
         )}

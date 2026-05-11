@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { ErrorCode, actionFailure } from '@/modules/common/errors'
 import playerStatsService from '@/modules/match/PlayerStatsService'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 const nonNegInt = z.number().int().min(0).optional()
 
@@ -38,6 +39,8 @@ const upsertSchema = z.object({
 export async function upsertMatchPlayerStatsAction(
   input: unknown,
 ): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = upsertSchema.safeParse(input)
   if (!parsed.success) {
     return actionFailure(

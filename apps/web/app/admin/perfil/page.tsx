@@ -14,6 +14,62 @@ import { AssignedMatch } from '@/modules/admin/types'
 import { toast } from 'sonner'
 import { Calendar, Clock, MapPin, Loader2, Trophy, Camera, ClipboardList, Gavel } from 'lucide-react'
 
+function roleIcon(role: string) {
+  switch (role) {
+    case 'arbitro': return <Gavel className="size-4" />
+    case 'fotografo': return <Camera className="size-4" />
+    case 'agente_mesa': return <ClipboardList className="size-4" />
+    default: return <Trophy className="size-4" />
+  }
+}
+
+function MatchCard({ assignment }: { assignment: AssignedMatch }) {
+  return (
+    <Card className="transition-shadow hover:shadow-md">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              {roleIcon(assignment.role)}
+              <StatusBadge status={assignment.role} type="employee" />
+            </div>
+            <p className="text-lg font-semibold">
+              {assignment.match.homeTeamName} vs {assignment.match.awayTeamName}
+            </p>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Calendar className="size-3.5" />
+                {new Date(assignment.match.matchDate).toLocaleDateString('es-AR', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </span>
+              {assignment.match.matchTime && (
+                <span className="flex items-center gap-1">
+                  <Clock className="size-3.5" />
+                  {assignment.match.matchTime}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <MapPin className="size-3.5" />
+                {assignment.match.venueName}
+              </span>
+            </div>
+            {assignment.match.status === 'finalizado' && (
+              <p className="text-xl font-bold">
+                {assignment.match.homeScore} - {assignment.match.awayScore}
+              </p>
+            )}
+          </div>
+          <StatusBadge status={assignment.match.status} type="match" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function AdminProfilePage() {
   const { profile } = useAuth()
   const [assignments, setAssignments] = useState<AssignedMatch[]>([])
@@ -46,60 +102,6 @@ export default function AdminProfilePage() {
     (am) => am.match.status === 'en_curso'
   )
 
-  const roleIcon = (role: string) => {
-    switch (role) {
-      case 'arbitro': return <Gavel className="h-4 w-4" />
-      case 'fotografo': return <Camera className="h-4 w-4" />
-      case 'agente_mesa': return <ClipboardList className="h-4 w-4" />
-      default: return <Trophy className="h-4 w-4" />
-    }
-  }
-
-  const MatchCard = ({ assignment }: { assignment: AssignedMatch }) => (
-    <Card className="transition-shadow hover:shadow-md">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              {roleIcon(assignment.role)}
-              <StatusBadge status={assignment.role} type="employee" />
-            </div>
-            <p className="text-lg font-semibold">
-              {assignment.match.homeTeamName} vs {assignment.match.awayTeamName}
-            </p>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                {new Date(assignment.match.matchDate).toLocaleDateString('es-AR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-              {assignment.match.matchTime && (
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {assignment.match.matchTime}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                {assignment.match.venueName}
-              </span>
-            </div>
-            {assignment.match.status === 'finalizado' && (
-              <p className="text-xl font-bold">
-                {assignment.match.homeScore} - {assignment.match.awayScore}
-              </p>
-            )}
-          </div>
-          <StatusBadge status={assignment.match.status} type="match" />
-        </div>
-      </CardContent>
-    </Card>
-  )
-
   return (
     <div>
       <PageHeader title="Mi Perfil" description="Información de tu cuenta y partidos asignados" />
@@ -108,7 +110,7 @@ export default function AdminProfilePage() {
         {/* Profile Card */}
         <Card className="md:col-span-1">
           <CardHeader className="items-center text-center">
-            <Avatar className="h-20 w-20">
+            <Avatar className="size-20">
               <AvatarImage src={profile?.avatarUrl} alt={profile?.name} />
               <AvatarFallback className="text-2xl">
                 {profile?.name?.charAt(0).toUpperCase()}
@@ -170,12 +172,12 @@ export default function AdminProfilePage() {
         <div className="md:col-span-2">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <Loader2 className="size-6 animate-spin" />
             </div>
           ) : assignments.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <Trophy className="mx-auto h-12 w-12 text-muted-foreground/30" />
+                <Trophy className="mx-auto size-12 text-muted-foreground/30" />
                 <p className="mt-4 text-lg font-medium text-muted-foreground">
                   Sin partidos asignados
                 </p>

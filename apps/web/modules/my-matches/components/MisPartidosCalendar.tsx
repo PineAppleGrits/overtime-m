@@ -47,7 +47,7 @@ export function MisPartidosCalendar({ assignments, error }: MisPartidosCalendarP
     <div className="space-y-4">
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
-          <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+          <AlertCircle className="size-4 text-destructive shrink-0" />
           <p className="text-sm text-destructive">{error}</p>
         </div>
       )}
@@ -62,7 +62,7 @@ export function MisPartidosCalendar({ assignments, error }: MisPartidosCalendarP
                   variant="outline"
                   className="w-full justify-start gap-2 border-[#e8e6e1] font-normal"
                 >
-                  <CalendarIcon className="h-4 w-4 text-[#6b6a72]" />
+                  <CalendarIcon className="size-4 text-[#6b6a72]" />
                   {selectedDate
                     ? selectedDate.toLocaleDateString('es-AR', {
                       day: '2-digit',

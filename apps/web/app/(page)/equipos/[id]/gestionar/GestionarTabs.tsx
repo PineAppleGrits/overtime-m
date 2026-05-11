@@ -68,7 +68,7 @@ function RegistrationCard({ registration }: { registration: RegistrationBalance 
         <StatusBadge status={registration.status} />
         {registration.voucherUrl === null && registration.status === 'pending_payment' && (
           <button className="flex items-center gap-1.5 rounded-lg border border-ot-orange/40 px-3 py-1.5 text-xs text-ot-orange hover:bg-ot-orange/10 transition-colors cursor-pointer">
-            <Upload className="h-3 w-3" />
+            <Upload className="size-3" />
             Subir comprobante
           </button>
         )}
@@ -111,14 +111,14 @@ export function GestionarTabs({ teamId, teamName, sportName, franchise, balance 
           value="configuracion"
           className="flex-1 gap-1.5 text-white/50 data-[state=active]:bg-ot-orange data-[state=active]:text-white data-[state=active]:shadow-none hover:text-white/80 transition-colors"
         >
-          <Settings className="h-3.5 w-3.5" />
+          <Settings className="size-3.5" />
           Configuración
         </TabsTrigger>
         <TabsTrigger
           value="balance"
           className="flex-1 gap-1.5 text-white/50 data-[state=active]:bg-ot-orange data-[state=active]:text-white data-[state=active]:shadow-none hover:text-white/80 transition-colors"
         >
-          <Wallet className="h-3.5 w-3.5" />
+          <Wallet className="size-3.5" />
           Balance
         </TabsTrigger>
       </TabsList>
@@ -161,12 +161,12 @@ export function GestionarTabs({ teamId, teamName, sportName, franchise, balance 
 
         {/* Inscripciones */}
         <section className="space-y-3">
-          <h2 className="text-ot-orange text-sm font-bold uppercase tracking-wider font-din-display">
+          <h2 className="text-ot-orange text-sm font-semibold uppercase tracking-wider font-din-display">
             Inscripciones
           </h2>
           {balance.registrations.length === 0 ? (
             <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 py-10 text-center">
-              <AlertCircle className="h-6 w-6 text-white/20 mx-auto mb-2" />
+              <AlertCircle className="size-6 text-white/20 mx-auto mb-2" />
               <p className="text-sm text-white/50">Sin inscripciones registradas</p>
             </div>
           ) : (
@@ -180,12 +180,12 @@ export function GestionarTabs({ teamId, teamName, sportName, franchise, balance 
 
         {/* Suspensiones */}
         <section className="space-y-3">
-          <h2 className="text-ot-orange text-sm font-bold uppercase tracking-wider font-din-display">
+          <h2 className="text-ot-orange text-sm font-semibold uppercase tracking-wider font-din-display">
             Jugadores suspendidos
           </h2>
           {balance.suspensions.length === 0 ? (
             <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 py-10 text-center">
-              <ShieldCheck className="h-6 w-6 text-white/20 mx-auto mb-2" />
+              <ShieldCheck className="size-6 text-white/20 mx-auto mb-2" />
               <p className="text-sm text-white/50">Sin suspensiones activas</p>
             </div>
           ) : (

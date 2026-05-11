@@ -73,7 +73,7 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
       <div>
         <PageHeader title="Equipos" description="Gestiona los equipos" />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar los equipos</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>Reintentar</Button>
         </div>
@@ -86,7 +86,7 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
       key: 'name', label: 'Equipo',
       render: (t) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
+          <Avatar className="size-8">
             <AvatarImage src={t.logoUrl} alt={t.name} />
             <AvatarFallback className="text-xs">{t.name.charAt(0)}</AvatarFallback>
           </Avatar>
@@ -104,11 +104,11 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
       key: 'actions', label: '', className: 'w-10',
       render: (t) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8" aria-label="Acciones"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`/admin/equipos/${t.id}`)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`/admin/equipos/${t.id}?tab=players`)}><Users className="mr-2 h-4 w-4" />Jugadores</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(t.id)}><Trash2 className="mr-2 h-4 w-4" />Eliminar</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/admin/equipos/${t.id}`)}><Pencil className="mr-2 size-4" />Editar</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/admin/equipos/${t.id}?tab=players`)}><Users className="mr-2 size-4" />Jugadores</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(t.id)}><Trash2 className="mr-2 size-4" />Eliminar</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -119,7 +119,7 @@ export function EquiposContent({ initialData }: EquiposContentProps) {
     <div>
       <PageHeader title="Equipos" description="Gestiona los equipos. Los equipos pueden tener categorías (ej: Barcelona A, Barcelona B) y compartir logo." createHref="/admin/equipos/nuevo" createLabel="Nuevo equipo" />
       <p className="mb-4 text-sm text-muted-foreground">Los equipos los crean los usuarios desde la plataforma. Desde aca podes editar datos, gestionar jugadores, o eliminar equipos.</p>
-      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar equipos..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" aria-label="Buscar equipos" /></div></div>
+      <div className="mb-4"><div className="relative max-w-md"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar equipos..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="pl-9" aria-label="Buscar equipos" /></div></div>
       <DataTable columns={columns} data={filtered} loading={isPending} emptyMessage="No hay equipos registrados" page={page} total={total} totalPages={totalPages} onPageChange={setPage} />
       <ConfirmDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)} title="Eliminar equipo" description="¿Estás seguro de eliminar este equipo? Se eliminará toda la información asociada." variant="destructive" confirmLabel="Eliminar" onConfirm={() => deleteId && deleteAction.execute({ id: deleteId })} loading={deleteAction.isPending} />
     </div>

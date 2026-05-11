@@ -76,7 +76,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
       <div>
         <PageHeader title="Equipo" description="Detalle del equipo" backHref="/admin/equipos" />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar el equipo</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
         </div>
@@ -121,13 +121,13 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Nombre</Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                  <Input value={form.name} onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label>URL del logo</Label>
-                  <Input value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} />
+                  <Input value={form.logoUrl} onChange={(e) => setForm(prev => ({ ...prev, logoUrl: e.target.value }))} />
                   {form.logoUrl && (
-                    <Avatar className="h-16 w-16">
+                    <Avatar className="size-16">
                       <AvatarImage src={form.logoUrl} alt={form.name} />
                       <AvatarFallback>{form.name.charAt(0)}</AvatarFallback>
                     </Avatar>
@@ -135,7 +135,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
                 </div>
                 <div className="space-y-2">
                   <Label>Disciplina</Label>
-                  <Select value={form.sportId} onValueChange={(v) => setForm({ ...form, sportId: v })}>
+                  <Select value={form.sportId} onValueChange={(v) => setForm(prev => ({ ...prev, sportId: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {sports.map((s) => (
@@ -148,7 +148,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
                   <div className="space-y-2">
                     <Label>Capitán</Label>
                     <div className="flex items-center gap-2 rounded-lg border p-2">
-                      <Avatar className="h-6 w-6">
+                      <Avatar className="size-6">
                         <AvatarImage src={team.captain.avatarUrl ?? undefined} />
                         <AvatarFallback className="text-xs">{team.captain.name.charAt(0)}</AvatarFallback>
                       </Avatar>
@@ -165,7 +165,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
               </CardContent>
             </Card>
             <Button type="submit" disabled={updateAction.isPending}>
-              {updateAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {updateAction.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Guardar cambios
             </Button>
           </form>
@@ -175,7 +175,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
           <div className="max-w-2xl space-y-4">
             <div className="flex justify-end">
               <Button onClick={() => { fetchAllPlayers(); setPlayerDialog(true) }}>
-                <UserPlus className="mr-2 h-4 w-4" />Agregar jugador
+                <UserPlus className="mr-2 size-4" />Agregar jugador
               </Button>
             </div>
             <Card>
@@ -187,7 +187,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
                     {activeMembers.map((member) => (
                       <div key={member.id} className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
+                          <Avatar className="size-8">
                             <AvatarImage src={member.profile.avatarUrl ?? undefined} />
                             <AvatarFallback className="text-xs">{member.profile.name.charAt(0)}</AvatarFallback>
                           </Avatar>
@@ -200,7 +200,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
                           </div>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => removePlayerAction.execute({ teamId, playerId: member.profileId })}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2 className="size-4 text-destructive" />
                         </Button>
                       </div>
                     ))}
@@ -229,7 +229,7 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
               <DialogFooter>
                 <Button variant="outline" onClick={() => setPlayerDialog(false)}>Cancelar</Button>
                 <Button onClick={() => addPlayerAction.execute({ teamId, playerId: selectedPlayerId })} disabled={addPlayerAction.isPending}>
-                  {addPlayerAction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {addPlayerAction.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
                   Agregar
                 </Button>
               </DialogFooter>
@@ -242,8 +242,8 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
           <div className="max-w-2xl space-y-4">
             {teamZones.length === 0 ? (
               <div className="rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f6f4]">
-                  <Trophy className="h-5 w-5 text-[#c4c2cc]" />
+                <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-[#f7f6f4]">
+                  <Trophy className="size-5 text-[#c4c2cc]" />
                 </div>
                 <p className="text-sm font-medium text-[#6b6a72]">Sin torneos registrados</p>
                 <p className="mt-1 text-xs text-[#c4c2cc]">Este equipo no está inscrito en ningún torneo.</p>
@@ -254,8 +254,8 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
                   <div className="divide-y divide-[#e8e6e1]">
                     {teamZones.map((tz) => (
                       <div key={tz.id} className="flex items-center gap-3 px-4 py-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7f6f4]">
-                          <Trophy className="h-4 w-4 text-[#ff3b2f]" />
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f7f6f4]">
+                          <Trophy className="size-4 text-[#ff3b2f]" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-[#0f0e13] truncate">
@@ -296,8 +296,8 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
               </CardHeader>
               <CardContent className="p-0">
                 <div className="py-10 text-center">
-                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f6f4]">
-                    <Receipt className="h-5 w-5 text-[#c4c2cc]" />
+                  <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-[#f7f6f4]">
+                    <Receipt className="size-5 text-[#c4c2cc]" />
                   </div>
                   <p className="text-sm font-medium text-[#6b6a72]">Sin movimientos registrados</p>
                   <p className="mt-1 text-xs text-[#c4c2cc]">
@@ -314,8 +314,8 @@ export function EditTeamContent({ teamId, initialData, sports }: EditTeamContent
         <TabsContent value="partidos">
           <div className="max-w-3xl space-y-4">
             <div className="rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f6f4]">
-                <CalendarDays className="h-5 w-5 text-[#c4c2cc]" />
+              <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-[#f7f6f4]">
+                <CalendarDays className="size-5 text-[#c4c2cc]" />
               </div>
               <p className="text-sm font-medium text-[#6b6a72]">Sin partidos próximos</p>
               <p className="mt-1 text-xs text-[#c4c2cc]">

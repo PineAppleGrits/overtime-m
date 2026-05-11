@@ -32,7 +32,7 @@ export function FixtureView({ rounds }: { rounds: Round[] }) {
         className="w-full mb-6 rounded-sm"
       />
 
-      <h3 className="text-center text-ot-orange font-bold uppercase font-din-display text-lg mb-4">
+      <h3 className="text-center text-ot-orange font-semibold uppercase font-din-display text-lg mb-4">
         Fixture
       </h3>
 

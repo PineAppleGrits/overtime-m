@@ -53,11 +53,11 @@ export default async function TeamSettingsPage({
           href={`/equipos/${id}`}
           className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="size-4" />
           Volver al equipo
         </Link>
 
-        <h1 className="text-xl font-bold font-din-display">{team.name}</h1>
+        <h1 className="text-xl font-semibold font-din-display">{team.name}</h1>
 
         <GestionarTabs
           teamId={id}

@@ -9,7 +9,7 @@ interface RecursiveNavItemProps {
 }
 
 export const RecursiveNavItem = ({ item, depth = 0 }: RecursiveNavItemProps) => {
-    const arrowClass = cn("icon w-4 h-4 shrink-0 transition-transform duration-200 ml-2 text-xs", 
+    const arrowClass = cn("icon size-4 shrink-0 transition-transform duration-200 ml-2 text-xs", 
         depth === 0 ? "text-white" : "text-ot-orange");
 
     return (
@@ -17,7 +17,7 @@ export const RecursiveNavItem = ({ item, depth = 0 }: RecursiveNavItemProps) => 
             depth > 0 && "",
             (depth > 1 || (item.subMenu && item.subMenu.length > 0)) && "hover:bg-ot-light-blue/90",
             depth > 1 && "bg-linear-to-r from-ot-dark-blue/30 to-ot-light-blue/70 hover:bg-purple-950")}>
-            <Link href={item.href} className="block w-full h-full px-4 py-2 text-gray-400" prefetch>
+            <Link href={item.href} className="block size-full px-4 py-2 text-gray-400" prefetch>
                 <div className="flex justify-between items-center">
                     <span className={cn(depth === 0 ? "text-white group-hover:text-ot-orange" : "text-ot-orange ")}>{item.name}</span>
                     {item.subMenu && item.subMenu.length > 0 && (

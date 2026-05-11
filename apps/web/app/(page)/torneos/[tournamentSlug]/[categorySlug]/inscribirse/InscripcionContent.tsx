@@ -74,7 +74,7 @@ function CopyButton({ text }: { text: string }) {
       onClick={handleCopy}
       className="inline-flex items-center gap-1 text-xs text-ot-orange hover:text-ot-orange/80 transition-colors cursor-pointer"
     >
-      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
       {copied ? "Copiado" : "Copiar"}
     </button>
   )
@@ -256,11 +256,11 @@ export function InscripcionContent({
             href={`/torneos/${tournament.slug}/${category.slug}`}
             className="inline-flex items-center gap-1.5 text-sm text-[#a9a5bb] hover:text-ot-orange transition-colors mb-4 font-din-display uppercase"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
             Volver a la categoría
           </Link>
 
-          <h1 className="text-2xl md:text-3xl font-bold uppercase font-din-display text-ot-orange tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-semibold uppercase font-din-display text-ot-orange tracking-tight">
             Inscripción
           </h1>
           <p className="mt-1 text-[#a9a5bb] text-sm md:text-base">
@@ -269,7 +269,7 @@ export function InscripcionContent({
 
           {(regStart || regEnd) && (
             <div className="mt-4 inline-flex items-center gap-2 rounded-sm bg-[#2b161f] px-4 py-2 text-xs">
-              <Clock className="h-3.5 w-3.5 text-ot-orange" />
+              <Clock className="size-3.5 text-ot-orange" />
               <span className="text-[#a9a5bb]">
                 {regStart && regEnd
                   ? `${regStart} — ${regEnd}`
@@ -287,7 +287,7 @@ export function InscripcionContent({
         {existingRegistrations.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-ot-orange" />
+              <Trophy className="size-4 text-ot-orange" />
               Tus inscripciones en esta categoría
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -301,10 +301,10 @@ export function InscripcionContent({
                     <img
                       src={reg.team.logoUrl}
                       alt={reg.team.name}
-                      className="h-10 w-10 rounded-lg object-cover shrink-0"
+                      className="size-10 rounded-lg object-cover shrink-0"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-base font-bold text-white/40">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-base font-bold text-white/40">
                       {reg.team?.name?.charAt(0).toUpperCase() ?? "?"}
                     </div>
                   )}
@@ -330,11 +330,11 @@ export function InscripcionContent({
                     )}
                   >
                     {reg.status === "approved" ? (
-                      <CheckCircle2 className="h-3 w-3" />
+                      <CheckCircle2 className="size-3" />
                     ) : reg.status === "rejected" ? (
-                      <X className="h-3 w-3" />
+                      <X className="size-3" />
                     ) : (
-                      <Clock className="h-3 w-3" />
+                      <Clock className="size-3" />
                     )}
                     {reg.status === "approved"
                       ? "Aprobada"
@@ -353,7 +353,7 @@ export function InscripcionContent({
                 onClick={() => setShowWizard(true)}
                 className="inline-flex items-center gap-2 text-sm text-ot-orange hover:text-ot-orange/80 transition-colors cursor-pointer"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
                 Inscribir otro equipo
               </button>
             )}
@@ -366,7 +366,7 @@ export function InscripcionContent({
             {/* No teams available */}
             {teams.length === 0 ? (
               <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 py-10 text-center max-w-lg">
-                <AlertCircle className="h-6 w-6 text-white/20 mx-auto mb-2" />
+                <AlertCircle className="size-6 text-white/20 mx-auto mb-2" />
                 <p className="text-sm text-white/50">
                   No tenés equipos disponibles para inscribir.
                 </p>
@@ -385,7 +385,7 @@ export function InscripcionContent({
                     const isActive = step === i
                     const isCompleted = step > i
                     return (
-                      <div key={i} className="flex items-center gap-2 shrink-0">
+                      <div key={s.label} className="flex items-center gap-2 shrink-0">
                         {i > 0 && (
                           <div
                             className={cn(
@@ -408,9 +408,9 @@ export function InscripcionContent({
                           )}
                         >
                           {isCompleted ? (
-                            <CheckCircle2 className="h-4 w-4" />
+                            <CheckCircle2 className="size-4" />
                           ) : (
-                            <StepIcon className="h-4 w-4" />
+                            <StepIcon className="size-4" />
                           )}
                           <span className="hidden sm:inline">{s.label}</span>
                           <span className="sm:hidden">{i + 1}</span>
@@ -451,10 +451,10 @@ export function InscripcionContent({
                                 <img
                                   src={team.logoUrl}
                                   alt={team.name}
-                                  className="h-10 w-10 rounded-lg object-cover shrink-0"
+                                  className="size-10 rounded-lg object-cover shrink-0"
                                 />
                               ) : (
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-base font-bold text-white/40">
+                                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-base font-bold text-white/40">
                                   {team.name.charAt(0).toUpperCase()}
                                 </div>
                               )}
@@ -473,7 +473,7 @@ export function InscripcionContent({
                                 className="text-white/40 hover:text-red-400 transition-colors cursor-pointer p-1"
                                 aria-label={`Quitar ${team.name}`}
                               >
-                                <X className="h-4 w-4" />
+                                <X className="size-4" />
                               </button>
                             </div>
                           )
@@ -501,10 +501,10 @@ export function InscripcionContent({
                               <img
                                 src={team.logoUrl}
                                 alt={team.name}
-                                className="h-10 w-10 rounded-lg object-cover shrink-0"
+                                className="size-10 rounded-lg object-cover shrink-0"
                               />
                             ) : (
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-base font-bold text-white/40">
+                              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-base font-bold text-white/40">
                                 {team.name.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -515,7 +515,7 @@ export function InscripcionContent({
                                 {team.members.filter((m) => m.isActive).length} jugadores
                               </p>
                             </div>
-                            <Plus className="h-5 w-5 text-white/30 shrink-0" />
+                            <Plus className="size-5 text-white/30 shrink-0" />
                           </button>
                         ))}
                       </div>
@@ -555,7 +555,7 @@ export function InscripcionContent({
                             >
                               {team?.name ?? "Equipo"}
                               {isValid ? (
-                                <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+                                <CheckCircle2 className="size-3.5 text-green-400" />
                               ) : (
                                 <span className="text-xs text-amber-400">
                                   {sel.playerIds.length}/{MIN_PLAYERS}
@@ -616,17 +616,17 @@ export function InscripcionContent({
                                     type="checkbox"
                                     checked={checked}
                                     onChange={() => togglePlayer(member.profile.id)}
-                                    className="accent-ot-orange h-4 w-4 shrink-0"
+                                    className="accent-ot-orange size-4 shrink-0"
                                   />
                                   {member.profile.avatarUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img
                                       src={member.profile.avatarUrl}
                                       alt={member.profile.name}
-                                      className="h-8 w-8 rounded-full object-cover shrink-0"
+                                      className="size-8 rounded-full object-cover shrink-0"
                                     />
                                   ) : (
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/40">
+                                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/40">
                                       {member.profile.name.charAt(0).toUpperCase()}
                                     </div>
                                   )}
@@ -670,9 +670,9 @@ export function InscripcionContent({
 
                     {/* Breakdown per team */}
                     <div className="space-y-3">
-                      {fees.breakdown.map((item, idx) => (
+                      {fees.breakdown.map((item) => (
                         <div
-                          key={idx}
+                          key={item.teamName}
                           className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-4 space-y-2"
                         >
                           <p className="font-semibold text-white">{item.teamName}</p>
@@ -754,7 +754,7 @@ export function InscripcionContent({
                       className="bg-ot-orange hover:bg-ot-orange/90 text-white font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors disabled:opacity-50 cursor-pointer inline-flex items-center gap-2"
                     >
                       Siguiente
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="size-4" />
                     </button>
                   ) : (
                     <button
@@ -764,7 +764,7 @@ export function InscripcionContent({
                       className="bg-ot-orange hover:bg-ot-orange/90 text-white font-semibold rounded-lg px-6 py-2.5 text-sm transition-colors disabled:opacity-50 cursor-pointer inline-flex items-center gap-2"
                     >
                       {isPending ? "Procesando..." : "Confirmar inscripción"}
-                      {!isPending && <CheckCircle2 className="h-4 w-4" />}
+                      {!isPending && <CheckCircle2 className="size-4" />}
                     </button>
                   )}
 

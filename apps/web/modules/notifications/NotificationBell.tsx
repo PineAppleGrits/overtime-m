@@ -129,16 +129,16 @@ export function NotificationBell({ variant = 'dark' }: Props) {
         aria-label="Notificaciones"
         aria-expanded={open}
         className={cn(
-          'relative flex h-9 w-9 items-center justify-center rounded-lg transition-all',
+          'relative flex size-9 items-center justify-center rounded-lg transition-all',
           variant === 'light'
             ? 'text-white/65 hover:text-white hover:bg-white/10'
             : 'text-[#6b6a72] hover:text-[#0f0e13] hover:bg-[#f0ede8]'
         )}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="size-5" />
         {/* Red dot — only shown when there are unread items */}
         {hasUnread && (
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-ot-orange ring-2 ring-white/80" />
+          <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-ot-orange ring-2 ring-white/80" />
         )}
       </button>
 
@@ -176,14 +176,14 @@ export function NotificationBell({ variant = 'dark' }: Props) {
           <div className="max-h-[340px] overflow-y-auto">
             {isLoading ? (
               <div className="flex flex-col gap-2 p-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-14 rounded-lg bg-white/5 animate-pulse" />
+                {['s1', 's2', 's3'].map((id) => (
+                  <div key={id} className="h-14 rounded-lg bg-white/5 animate-pulse" />
                 ))}
               </div>
             ) : items.length === 0 ? (
               <div className="flex flex-col items-center gap-2.5 py-10">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/8">
-                  <Bell className="h-5 w-5 text-white/25" />
+                <div className="flex size-12 items-center justify-center rounded-full bg-white/8">
+                  <Bell className="size-5 text-white/25" />
                 </div>
                 <p className="text-[13px] font-medium text-white/50">No hay notificaciones</p>
                 <p className="text-[11px] text-white/30 text-center px-6">
@@ -206,7 +206,7 @@ export function NotificationBell({ variant = 'dark' }: Props) {
                           isNew && 'bg-white/4'
                         )}
                       >
-                        <span className={cn('mt-[5px] h-2 w-2 rounded-full shrink-0', dotClass)} />
+                        <span className={cn('mt-[5px] size-2 rounded-full shrink-0', dotClass)} />
                         <div className="flex-1 min-w-0">
                           <p className={cn(
                             'text-[12px] leading-snug truncate',
@@ -227,7 +227,7 @@ export function NotificationBell({ variant = 'dark' }: Props) {
                           </p>
                         </div>
                         {isNew && (
-                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#ff3b2f] shrink-0" />
+                          <span className="mt-1.5 size-1.5 rounded-full bg-[#ff3b2f] shrink-0" />
                         )}
                       </Link>
                     </li>

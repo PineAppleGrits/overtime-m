@@ -11,7 +11,7 @@ export function DashboardStatsSkeleton() {
               <div className="h-2.5 w-20 rounded-full bg-[#f0ede8] animate-pulse" />
               <div className="h-8 w-14 rounded-lg bg-[#f0ede8] animate-pulse" />
             </div>
-            <div className="h-10 w-10 rounded-xl bg-[#f0ede8] animate-pulse shrink-0" />
+            <div className="size-10 rounded-xl bg-[#f0ede8] animate-pulse shrink-0" />
           </div>
         </div>
       ))}

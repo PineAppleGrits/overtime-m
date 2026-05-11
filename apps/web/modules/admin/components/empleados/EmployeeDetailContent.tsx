@@ -16,6 +16,44 @@ interface EmployeeDetailContentProps {
   initialData: { data: Employee | null; error: string | null }
 }
 
+function MatchCard({ assignment }: { assignment: AssignedMatch }) {
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="font-medium">
+              {assignment.match.homeTeamName} vs {assignment.match.awayTeamName}
+            </p>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Calendar className="size-3" />
+                {new Date(assignment.match.matchDate).toLocaleDateString('es-AR')}
+              </span>
+              {assignment.match.matchTime && (
+                <span className="flex items-center gap-1">
+                  <Clock className="size-3" />
+                  {assignment.match.matchTime}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <MapPin className="size-3" />
+                {assignment.match.venueName}
+              </span>
+            </div>
+            {assignment.match.status === 'finalizado' && (
+              <p className="text-sm font-semibold">
+                {assignment.match.homeScore} - {assignment.match.awayScore}
+              </p>
+            )}
+          </div>
+          <StatusBadge status={assignment.match.status} type="match" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function EmployeeDetailContent({ employeeId, initialData }: EmployeeDetailContentProps) {
   const { data: employee, isPending, isError, refetch } = useQuery({
     queryKey: ['admin', 'employee', employeeId],
@@ -31,7 +69,7 @@ export function EmployeeDetailContent({ employeeId, initialData }: EmployeeDetai
       <div>
         <PageHeader title="Empleado" description="Detalle del empleado" backHref="/admin/empleados" />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar el empleado</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
         </div>
@@ -62,42 +100,6 @@ export function EmployeeDetailContent({ employeeId, initialData }: EmployeeDetai
   const otherMatches = employee.assignedMatches?.filter(
     (am) => !['programado', 'reprogramado', 'finalizado'].includes(am.match.status)
   ) ?? []
-
-  const MatchCard = ({ assignment }: { assignment: AssignedMatch }) => (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="font-medium">
-              {assignment.match.homeTeamName} vs {assignment.match.awayTeamName}
-            </p>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {new Date(assignment.match.matchDate).toLocaleDateString('es-AR')}
-              </span>
-              {assignment.match.matchTime && (
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {assignment.match.matchTime}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {assignment.match.venueName}
-              </span>
-            </div>
-            {assignment.match.status === 'finalizado' && (
-              <p className="text-sm font-semibold">
-                {assignment.match.homeScore} - {assignment.match.awayScore}
-              </p>
-            )}
-          </div>
-          <StatusBadge status={assignment.match.status} type="match" />
-        </div>
-      </CardContent>
-    </Card>
-  )
 
   return (
     <div>

@@ -170,7 +170,7 @@ export function CategoryDetailContent({
       <div>
         <PageHeader title="Categoría" backHref={`/admin/torneos/${tournamentId}`} />
         <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-[#6b6a72]">Error al cargar la categoría</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
         </div>
@@ -201,7 +201,7 @@ export function CategoryDetailContent({
           actions={
             <Button variant="ghost" size="sm" className="text-[#6b6a72] hover:text-[#0f0e13]" asChild>
               <Link href={`/admin/torneos/${tournamentId}/inscripciones?categoryId=${categoryId}`}>
-                <ListChecks className="mr-1.5 h-3.5 w-3.5" />
+                <ListChecks className="mr-1.5 size-3.5" />
                 Inscripciones
               </Link>
             </Button>
@@ -219,7 +219,7 @@ export function CategoryDetailContent({
             </span>
           )}
           <span className="text-[13px] text-[#9b99a6]">
-            · {zones.length} zonas · <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{totalTeams} equipos</span>
+            · {zones.length} zonas · <span className="inline-flex items-center gap-1"><Users className="size-3" />{totalTeams} equipos</span>
           </span>
         </div>
       </div>
@@ -251,14 +251,14 @@ export function CategoryDetailContent({
         <TabsContent value="zonas" className="mt-6">
           <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
             <p className="text-[13px] text-[#9b99a6]">
-              Arrastrá equipos aprobados a las zonas. En mobile, usá el botón <Move className="inline h-3 w-3" /> del equipo.
+              Arrastrá equipos aprobados a las zonas. En mobile, usá el botón <Move className="inline size-3" /> del equipo.
             </p>
             <button
               type="button"
               onClick={() => { setZoneDialog(true); setZoneName('') }}
               className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#ff3b2f] hover:text-[#e5352a] transition-colors"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="size-3.5" />
               Nueva zona
             </button>
           </div>
@@ -334,9 +334,9 @@ export function CategoryDetailContent({
                         <button
                           type="button"
                           onClick={() => setDeleteZoneId(zone.id)}
-                          className="h-7 w-7 inline-flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-all"
+                          className="size-7 inline-flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-all"
                         >
-                          <Trash2 className="h-3.5 w-3.5 text-[#c4c2cc] hover:text-destructive" />
+                          <Trash2 className="size-3.5 text-[#c4c2cc] hover:text-destructive" />
                         </button>
                       </div>
 
@@ -445,7 +445,7 @@ export function CategoryDetailContent({
               onClick={() => createZoneAct.execute({ categoryId, name: zoneName.trim() })}
               className="bg-[#ff3b2f] hover:bg-[#e5352a] text-white"
             >
-              {createZoneAct.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {createZoneAct.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Crear
             </Button>
           </DialogFooter>
@@ -495,7 +495,7 @@ function TeamChip({
       onDragEnd={onDragEnd}
       className="group flex items-center gap-1.5 rounded-md border border-[#e8e6e1] bg-white hover:border-[#d0cec9] px-2 py-1.5 cursor-grab active:cursor-grabbing transition-colors"
     >
-      <GripVertical className="h-3.5 w-3.5 text-[#c4c2cc] shrink-0" />
+      <GripVertical className="size-3.5 text-[#c4c2cc] shrink-0" />
       <span className="text-[12px] font-medium text-[#0f0e13] truncate flex-1">{teamName}</span>
 
       <Select
@@ -505,11 +505,11 @@ function TeamChip({
         onValueChange={(v) => { setMoveOpen(false); onMoveSelect(teamId, fromZoneId, v) }}
       >
         <SelectTrigger
-          className="md:opacity-0 md:group-hover:opacity-100 h-6 w-6 p-0 border-0 bg-transparent shadow-none [&>svg]:hidden transition-opacity"
+          className="md:opacity-0 md:group-hover:opacity-100 size-6 p-0 border-0 bg-transparent shadow-none [&>svg]:hidden transition-opacity"
           aria-label="Mover a otra zona"
           onClick={(e) => e.stopPropagation()}
         >
-          <Move className="h-3.5 w-3.5 text-[#9b99a6]" />
+          <Move className="size-3.5 text-[#9b99a6]" />
         </SelectTrigger>
         <SelectContent>
           {fromZoneId && (
@@ -612,14 +612,14 @@ function CalendarioTab({
         </div>
       ) : isError ? (
         <div className="flex flex-col items-center gap-3 py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-[#6b6a72] text-[13px]">No se pudieron cargar los partidos</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
         </div>
       ) : grouped.length === 0 ? (
         <div className="py-14 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#f7f6f4]">
-            <Calendar className="h-5 w-5 text-[#c4c2cc]" />
+          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-[#f7f6f4]">
+            <Calendar className="size-5 text-[#c4c2cc]" />
           </div>
           <p className="text-[13px] text-[#9b99a6]">No hay partidos programados</p>
           <p className="text-[12px] text-[#c4c2cc] mt-1">Se mostrarán acá cuando se genere el fixture</p>
@@ -629,7 +629,7 @@ function CalendarioTab({
           {grouped.map(([date, items]) => (
             <div key={date}>
               <div className="flex items-center gap-2 mb-2">
-                <Calendar className="h-3.5 w-3.5 text-[#9b99a6]" />
+                <Calendar className="size-3.5 text-[#9b99a6]" />
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9b99a6]">
                   {formatDate(date)}
                 </h3>
@@ -652,7 +652,7 @@ function CalendarioTab({
                         {m.zone?.name && <span>{m.zone.name}</span>}
                         {(m.venueName || m.venue?.name) && (
                           <span className="inline-flex items-center gap-0.5">
-                            <MapPin className="h-3 w-3" />
+                            <MapPin className="size-3" />
                             {m.venueName ?? m.venue?.name}
                           </span>
                         )}

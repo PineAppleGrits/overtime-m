@@ -6,7 +6,7 @@ export default function ProfileInfoLoading() {
       {/* Datos personales skeleton */}
       <Card className="border-ot-light-blue/50 bg-ot-dark-blue/30">
         <CardHeader className="flex flex-row items-center gap-4">
-          <div className="h-16 w-16 animate-pulse rounded-full bg-white/10" />
+          <div className="size-16 animate-pulse rounded-full bg-white/10" />
           <div className="space-y-2">
             <div className="h-5 w-32 animate-pulse rounded bg-white/10" />
             <div className="h-4 w-48 animate-pulse rounded bg-white/5" />

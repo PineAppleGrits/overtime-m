@@ -25,10 +25,10 @@ export function AdminDetailSkeleton({
       {/* PageHeader skeleton */}
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
-          {showBack && <SkeletonLine className="mt-1 h-9 w-9 rounded-md" />}
+          {showBack && <SkeletonLine className="mt-1 size-9 rounded-md" />}
           <div className="space-y-2">
             {title ? (
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
             ) : (
               <SkeletonLine className="h-8 w-48" />
             )}
@@ -86,7 +86,7 @@ export function AdminTableSkeleton({
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           {title ? (
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
           ) : (
             <SkeletonLine className="h-8 w-48" />
           )}

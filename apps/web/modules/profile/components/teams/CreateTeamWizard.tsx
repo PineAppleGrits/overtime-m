@@ -82,15 +82,15 @@ function StepIndicator({ steps, current }: { steps: string[]; current: number })
   return (
     <div className="flex items-center gap-0 mb-8">
       {steps.map((label, idx) => (
-        <div key={idx} className="flex items-center flex-1 last:flex-none">
+        <div key={label} className="flex items-center flex-1 last:flex-none">
           <div className="flex flex-col items-center gap-1.5">
             <div className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-semibold transition-all',
+              'flex size-8 items-center justify-center rounded-full border-2 text-xs font-semibold transition-all',
               idx < current  ? 'border-ot-orange bg-ot-orange text-white'
                 : idx === current ? 'border-ot-orange bg-transparent text-ot-orange'
                 : 'border-white/20 bg-transparent text-white/30',
             )}>
-              {idx < current ? <Check className="h-4 w-4" /> : idx + 1}
+              {idx < current ? <Check className="size-4" /> : idx + 1}
             </div>
             <span className={cn(
               'hidden sm:block text-[10px] font-medium whitespace-nowrap',
@@ -176,15 +176,15 @@ function LogoUpload({ file, onChange }: { file: File | null; onChange: (f: File 
 
   if (preview && file) {
     return (
-      <div className="relative w-24 h-24">
+      <div className="relative size-24">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={preview} alt="Logo preview" className="h-24 w-24 rounded-xl object-cover border border-ot-light-blue/40" />
+        <img src={preview} alt="Logo preview" className="size-24 rounded-xl object-cover border border-ot-light-blue/40" />
         <button
           type="button"
           onClick={() => onChange(null)}
-          className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1730] border border-white/20 text-white/60 hover:text-white transition-colors"
+          className="absolute -top-2 -right-2 flex size-6 items-center justify-center rounded-full bg-[#1a1730] border border-white/20 text-white/60 hover:text-white transition-colors"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="size-3.5" />
         </button>
       </div>
     )
@@ -205,10 +205,10 @@ function LogoUpload({ file, onChange }: { file: File | null; onChange: (f: File 
       )}
     >
       <div className={cn(
-        'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+        'flex size-10 items-center justify-center rounded-full transition-colors',
         dragging ? 'bg-ot-orange/20 text-ot-orange' : 'bg-white/8 text-white/30',
       )}>
-        <Upload className="h-5 w-5" />
+        <Upload className="size-5" />
       </div>
       <div className="text-center">
         <p className="text-sm text-white/50">
@@ -233,7 +233,7 @@ function ChooseFlowStep({ onSelect }: { onSelect: (t: FlowType) => void }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white">¿Cómo querés crear tu equipo?</h2>
+        <h2 className="text-xl font-semibold text-white">¿Cómo querés crear tu equipo?</h2>
         <p className="mt-1 text-sm text-white/50">Elegí el tipo de estructura que mejor se adapte a tu organización.</p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -241,8 +241,8 @@ function ChooseFlowStep({ onSelect }: { onSelect: (t: FlowType) => void }) {
           onClick={() => onSelect('franchise')}
           className="group flex flex-col gap-3 rounded-xl border-2 border-ot-light-blue/40 bg-white/3 p-5 text-left transition-all hover:border-ot-orange/60 hover:bg-ot-orange/5"
         >
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-ot-orange/15 text-ot-orange">
-            <Trophy className="h-5 w-5" />
+          <div className="flex size-11 items-center justify-center rounded-lg bg-ot-orange/15 text-ot-orange">
+            <Trophy className="size-5" />
           </div>
           <div>
             <p className="font-semibold text-white">Franquicia</p>
@@ -259,8 +259,8 @@ function ChooseFlowStep({ onSelect }: { onSelect: (t: FlowType) => void }) {
           onClick={() => onSelect('standalone')}
           className="group flex flex-col gap-3 rounded-xl border-2 border-ot-light-blue/40 bg-white/3 p-5 text-left transition-all hover:border-blue-500/60 hover:bg-blue-500/5"
         >
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400">
-            <Shield className="h-5 w-5" />
+          <div className="flex size-11 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400">
+            <Shield className="size-5" />
           </div>
           <div>
             <p className="font-semibold text-white">Equipo independiente</p>
@@ -286,7 +286,7 @@ function FranchiseStep({ data, onChange }: {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white">Datos de la franquicia</h2>
+        <h2 className="text-xl font-semibold text-white">Datos de la franquicia</h2>
         <p className="mt-1 text-sm text-white/50">La franquicia agrupa todos tus equipos bajo un mismo nombre.</p>
       </div>
       <SectionCard>
@@ -303,7 +303,7 @@ function FranchiseStep({ data, onChange }: {
         </div>
       </SectionCard>
       <div className="flex items-start gap-2 rounded-lg border border-blue-400/20 bg-blue-400/5 p-3">
-        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-blue-400/60" />
+        <AlertCircle className="size-4 mt-0.5 shrink-0 text-blue-400/60" />
         <p className="text-xs text-blue-400/60 leading-relaxed">
           La franquicia puede agrupar varios equipos con diferentes disciplinas. Podrás agregar más equipos a esta franquicia después de crearla.
         </p>
@@ -323,7 +323,7 @@ function TeamStep({ data, franchiseName, sports, onChange }: {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white">Datos del equipo</h2>
+        <h2 className="text-xl font-semibold text-white">Datos del equipo</h2>
         {franchiseName && (
           <p className="mt-1 text-sm text-white/50">
             Pertenecerá a la franquicia <span className="text-white font-medium">{franchiseName}</span>.
@@ -332,7 +332,7 @@ function TeamStep({ data, franchiseName, sports, onChange }: {
       </div>
 
       <div className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/4 p-3">
-        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-white/40" />
+        <AlertCircle className="size-4 mt-0.5 shrink-0 text-white/40" />
         <p className="text-xs text-white/50 leading-relaxed">
           La <span className="text-white/70 font-medium">categoría competitiva</span> es asignada por la organización luego de disputar partidos amistosos de evaluación. Una vez categorizado, podrás inscribirte en los torneos correspondientes.
         </p>
@@ -376,12 +376,12 @@ function PlayersStep({ players, onAdd, onRemove, onChange }: {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white">Jugadores</h2>
+        <h2 className="text-xl font-semibold text-white">Jugadores</h2>
         <p className="mt-1 text-sm text-white/50">Podés agregar más jugadores después de crear el equipo.</p>
       </div>
 
       <div className="flex items-start gap-2 rounded-lg border border-blue-400/20 bg-blue-400/5 p-3">
-        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-blue-400/60" />
+        <AlertCircle className="size-4 mt-0.5 shrink-0 text-blue-400/60" />
         <p className="text-xs text-blue-400/60 leading-relaxed">
           Si un jugador se registra en la plataforma y verifica su identidad con el DNI ingresado, el equipo aparecerá automáticamente en su perfil.
         </p>
@@ -394,9 +394,9 @@ function PlayersStep({ players, onAdd, onRemove, onChange }: {
               <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">Jugador {idx + 1}</span>
               <button
                 onClick={() => onRemove(player.id)}
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-white/30 hover:bg-red-500/15 hover:text-red-400 transition-colors"
+                className="flex size-7 items-center justify-center rounded-lg text-white/30 hover:bg-red-500/15 hover:text-red-400 transition-colors"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="size-3.5" />
               </button>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -424,7 +424,7 @@ function PlayersStep({ players, onAdd, onRemove, onChange }: {
           onClick={onAdd}
           className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ot-light-blue/30 py-3 text-sm text-white/40 transition-all hover:border-ot-orange/40 hover:text-ot-orange/70"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="size-4" />
           Agregar jugador
         </button>
       </div>
@@ -450,7 +450,7 @@ function ReviewStep({ state, sports, userName }: {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white">Revisar y confirmar</h2>
+        <h2 className="text-xl font-semibold text-white">Revisar y confirmar</h2>
         <p className="mt-1 text-sm text-white/50">Revisá los datos antes de crear el equipo.</p>
       </div>
 
@@ -460,10 +460,10 @@ function ReviewStep({ state, sports, userName }: {
           <div className="flex items-center gap-3">
             {franchisePreview ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={franchisePreview} alt="" className="h-10 w-10 rounded-lg object-cover" />
+              <img src={franchisePreview} alt="" className="size-10 rounded-lg object-cover" />
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-ot-orange/15 text-ot-orange font-bold">
-                {state.franchise.name.charAt(0).toUpperCase() || <ImageIcon className="h-4 w-4" />}
+              <div className="flex size-10 items-center justify-center rounded-lg bg-ot-orange/15 text-ot-orange font-bold">
+                {state.franchise.name.charAt(0).toUpperCase() || <ImageIcon className="size-4" />}
               </div>
             )}
             <p className="font-semibold text-white">{state.franchise.name}</p>
@@ -476,9 +476,9 @@ function ReviewStep({ state, sports, userName }: {
         <div className="flex items-center gap-3 mb-4">
           {teamPreview ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={teamPreview} alt="" className="h-10 w-10 rounded-lg object-cover" />
+            <img src={teamPreview} alt="" className="size-10 rounded-lg object-cover" />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400 font-bold text-lg">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400 font-bold text-lg">
               {(state.team.name || '?').charAt(0).toUpperCase()}
             </div>
           )}
@@ -490,7 +490,7 @@ function ReviewStep({ state, sports, userName }: {
         <div className="border-t border-white/10 pt-3">
           <p className="text-xs text-white/40 mb-2">Delegados</p>
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-ot-orange/20 text-ot-orange text-xs font-bold">
+            <div className="flex size-7 items-center justify-center rounded-full bg-ot-orange/20 text-ot-orange text-xs font-bold">
               {userName.charAt(0).toUpperCase()}
             </div>
             <span className="text-sm text-white">{userName}</span>
@@ -524,7 +524,7 @@ function ReviewStep({ state, sports, userName }: {
 
       {(state.team.logoFile || state.franchise.logoFile) && (
         <div className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/4 p-3">
-          <Upload className="h-4 w-4 mt-0.5 shrink-0 text-white/40" />
+          <Upload className="size-4 mt-0.5 shrink-0 text-white/40" />
           <p className="text-xs text-white/50 leading-relaxed">
             El logo se subirá automáticamente después de crear el equipo. El equipo queda creado aunque la subida falle.
           </p>
@@ -688,7 +688,7 @@ export function CreateTeamWizard({ sports }: Props) {
             disabled={isPending}
             className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm text-white/50 hover:text-white transition-colors disabled:opacity-40"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
             Atrás
           </button>
 
@@ -699,11 +699,11 @@ export function CreateTeamWizard({ sports }: Props) {
               className="flex items-center gap-2 rounded-lg bg-ot-orange px-5 py-2 text-sm font-semibold text-white hover:bg-ot-orange/90 transition-colors disabled:opacity-50"
             >
               {isPending ? (
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
-              ) : <Check className="h-4 w-4" />}
+              ) : <Check className="size-4" />}
               Crear equipo
             </button>
           ) : (
@@ -713,7 +713,7 @@ export function CreateTeamWizard({ sports }: Props) {
               className="flex items-center gap-1.5 rounded-lg bg-ot-orange px-5 py-2 text-sm font-semibold text-white hover:bg-ot-orange/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Continuar
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="size-4" />
             </button>
           )}
         </div>

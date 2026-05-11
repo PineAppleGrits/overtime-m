@@ -42,7 +42,7 @@ export function StandingsTable({
           <h2>{zoneName}</h2>
         </div>
       )}
-      <h3 className="font-bold uppercase text-sm text-center text-white/80 pb-4 font-din-display">
+      <h3 className="font-semibold uppercase text-sm text-center text-white/80 pb-4 font-din-display">
         Tabla del torneo
       </h3>
       <div className="w-full shadow-lg uppercase">
@@ -72,7 +72,7 @@ export function StandingsTable({
               <img
                 src={row.teamLogo ?? DEFAULT_BADGE}
                 alt=""
-                className="w-6 h-6 object-contain"
+                className="size-6 object-contain"
               />
               <span className="text-xs sm:text-sm font-thin font-din-display text-white mt-0.5 truncate">
                 {row.teamName}

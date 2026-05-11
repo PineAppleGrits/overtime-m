@@ -9,6 +9,7 @@ import userService from '@/modules/user/UserService'
 import { createTeamSchema } from '@overtime-mono/shared/teams/contracts'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 const createFranchiseSchema = z.object({
   franchiseName: z.string().min(1, 'El nombre de la franquicia es obligatorio'),
@@ -17,6 +18,8 @@ const createFranchiseSchema = z.object({
 })
 
 export async function leaveTeamAction(teamId: string): Promise<ActionResult<void>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const profile = await getProfile()
   if (!profile) return actionFailure(ErrorCode.NOT_AUTHENTICATED)
 
@@ -34,6 +37,8 @@ export async function leaveTeamAction(teamId: string): Promise<ActionResult<void
 export async function createUserTeamAction(
   input: unknown,
 ): Promise<ActionResult<{ id: string }>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const parsed = createTeamSchema.safeParse(input)
   if (!parsed.success)
     return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
@@ -53,6 +58,8 @@ export async function removePlayerFromTeamAction(
   teamId: string,
   profileId: string,
 ): Promise<ActionResult<void>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const uuidSchema = z.string().uuid()
   const teamIdParsed = uuidSchema.safeParse(teamId)
   const profileIdParsed = uuidSchema.safeParse(profileId)
@@ -76,6 +83,8 @@ export async function addPlayerToTeamAction(
   teamId: string,
   profileId: string,
 ): Promise<ActionResult<void>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const uuidSchema = z.string().uuid()
   const teamIdParsed = uuidSchema.safeParse(teamId)
   const profileIdParsed = uuidSchema.safeParse(profileId)
@@ -103,6 +112,8 @@ export async function updateTeamNameAction(
   teamId: string,
   input: unknown,
 ): Promise<ActionResult<void>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const uuidSchema = z.string().uuid()
   const teamIdParsed = uuidSchema.safeParse(teamId)
   if (!teamIdParsed.success) {
@@ -128,6 +139,8 @@ export async function updateTeamNameAction(
 export async function deleteTeamAction(
   teamId: string,
 ): Promise<ActionResult<void>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const uuidSchema = z.string().uuid()
   const teamIdParsed = uuidSchema.safeParse(teamId)
   if (!teamIdParsed.success) {
@@ -147,6 +160,8 @@ export async function deleteTeamAction(
 export async function createFranchiseWithTeamAction(
   input: unknown,
 ): Promise<ActionResult<{ teamId: string; franchiseId: string }>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   const parsed = createFranchiseSchema.safeParse(input)
   if (!parsed.success)
     return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
@@ -183,6 +198,8 @@ export interface UserSearchResult {
 export async function searchUsersForTeamAction(
   search: string,
 ): Promise<ActionResult<UserSearchResult[]>> {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.error
   if (!search.trim()) return { success: true, data: [] }
   try {
     const res = await userService.getUsers({ search, limit: 10 })

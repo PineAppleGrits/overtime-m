@@ -9,8 +9,11 @@ import {
   deleteSportSchema,
 } from '../schemas/sportSchemas'
 import type { ActionResult } from './types'
+import { requireAuth } from '@/lib/auth/requireAuth'
 
 export async function createSportAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = createSportSchema.safeParse(input)
   if (!parsed.success) {
     return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
@@ -26,6 +29,8 @@ export async function createSportAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateSportAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = updateSportSchema.safeParse(input)
   if (!parsed.success) {
     return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)
@@ -42,6 +47,8 @@ export async function updateSportAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteSportAction(input: unknown): Promise<ActionResult> {
+  const auth = await requireAuth({ admin: true })
+  if (!auth.ok) return auth.error
   const parsed = deleteSportSchema.safeParse(input)
   if (!parsed.success) {
     return actionFailure(ErrorCode.INVALID_INPUT, parsed.error.issues[0]?.message)

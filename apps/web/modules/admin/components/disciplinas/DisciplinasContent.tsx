@@ -94,7 +94,7 @@ export function DisciplinasContent({ initialData }: DisciplinasContentProps) {
           description="Gestiona los deportes disponibles en la plataforma"
         />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar las disciplinas</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>
             Reintentar
@@ -110,7 +110,7 @@ export function DisciplinasContent({ initialData }: DisciplinasContentProps) {
       label: 'Disciplina',
       render: (s) => (
         <div className="flex items-center gap-2">
-          <Dumbbell className="h-4 w-4 text-muted-foreground" />
+          <Dumbbell className="size-4 text-muted-foreground" />
           <span className="font-medium">{s.name}</span>
         </div>
       ),
@@ -134,20 +134,20 @@ export function DisciplinasContent({ initialData }: DisciplinasContentProps) {
       render: (s) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones">
-              <MoreHorizontal className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="size-8" aria-label="Acciones">
+              <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => openEdit(s)}>
-              <Pencil className="mr-2 h-4 w-4" />
+              <Pencil className="mr-2 size-4" />
               Editar
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive"
               onClick={() => setDeleteId(s.id)}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="mr-2 size-4" />
               Eliminar
             </DropdownMenuItem>
           </DropdownMenuContent>

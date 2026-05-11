@@ -73,7 +73,7 @@ export function SportFormDialog({
             <Input
               placeholder="Ej: Básquet"
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
             />
           </div>
           <div className="space-y-2">
@@ -81,7 +81,7 @@ export function SportFormDialog({
             <Input
               placeholder="Ej: BASKET"
               value={form.code}
-              onChange={(e) => setForm({ ...form, code: e.target.value })}
+              onChange={(e) => setForm(prev => ({ ...prev, code: e.target.value }))}
             />
             <p className="text-xs text-muted-foreground">
               Identificador único para uso interno
@@ -92,7 +92,7 @@ export function SportFormDialog({
             <Textarea
               placeholder="Descripción opcional..."
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
             />
           </div>
         </div>
@@ -101,7 +101,7 @@ export function SportFormDialog({
             Cancelar
           </Button>
           <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             {editingSport ? 'Guardar' : 'Crear'}
           </Button>
         </DialogFooter>

@@ -135,7 +135,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
           description="Gestiona las canchas y lugares donde se juegan los partidos"
         />
         <div className="flex flex-col items-center gap-3 rounded-lg border border-[#e8e6e1] bg-white py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+          <AlertCircle className="size-8 text-destructive" />
           <p className="text-muted-foreground">Error al cargar las canchas</p>
           <Button variant="outline" size="sm" onClick={() => invalidate()}>
             Reintentar
@@ -151,7 +151,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
       label: 'Cancha',
       render: (v) => (
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <MapPin className="size-4 text-muted-foreground" />
           <div>
             <p className="font-medium">{v.name}</p>
             {v.address && (
@@ -191,7 +191,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
           >
-            <ExternalLink className="h-3 w-3" />
+            <ExternalLink className="size-3" />
             Ver mapa
           </a>
         ) : (
@@ -205,20 +205,20 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
       render: (v) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Acciones">
-              <MoreHorizontal className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="size-8" aria-label="Acciones">
+              <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => openEdit(v)}>
-              <Pencil className="mr-2 h-4 w-4" />
+              <Pencil className="mr-2 size-4" />
               Editar
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive"
               onClick={() => setDeleteId(v.id)}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="mr-2 size-4" />
               Eliminar
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -238,7 +238,7 @@ export function CanchasContent({ initialData }: CanchasContentProps) {
 
       <div className="mb-4">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar canchas..."
             value={search}

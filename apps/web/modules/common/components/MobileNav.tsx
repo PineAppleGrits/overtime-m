@@ -57,10 +57,10 @@ export function MobileNav({ navItems }: { navItems: MobileNavItem[] }) {
               alt={profile.name}
               width={32}
               height={32}
-              className="h-8 w-8 rounded-full"
+              className="size-8 rounded-full"
             />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ot-orange text-sm font-bold text-white">
+            <div className="flex size-8 items-center justify-center rounded-full bg-ot-orange text-sm font-bold text-white">
               {profile.name.charAt(0).toUpperCase()}
             </div>
           )}
@@ -71,9 +71,9 @@ export function MobileNav({ navItems }: { navItems: MobileNavItem[] }) {
         <SheetTrigger asChild>
           <button
             aria-label="Abrir menú"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-white hover:bg-white/10 cursor-pointer"
+            className="flex size-10 items-center justify-center rounded-lg text-white hover:bg-white/10 cursor-pointer"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="size-6" />
           </button>
         </SheetTrigger>
 
@@ -113,7 +113,7 @@ export function MobileNav({ navItems }: { navItems: MobileNavItem[] }) {
                           {item.name}
                           <ChevronDown
                             className={cn(
-                              'h-4 w-4 transition-transform duration-200',
+                              'size-4 transition-transform duration-200',
                               isExpanded && 'rotate-180'
                             )}
                           />
@@ -161,7 +161,7 @@ export function MobileNav({ navItems }: { navItems: MobileNavItem[] }) {
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white"
                 >
-                  <User className="h-4 w-4" />
+                  <User className="size-4" />
                   Mi perfil
                 </Link>
                 {hasAdminRole(profile) && (
@@ -170,7 +170,7 @@ export function MobileNav({ navItems }: { navItems: MobileNavItem[] }) {
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-purple-400 hover:bg-white/5"
                   >
-                    <ShieldCheck className="h-4 w-4" />
+                    <ShieldCheck className="size-4" />
                     Panel de Admin
                   </Link>
                 )}
@@ -181,7 +181,7 @@ export function MobileNav({ navItems }: { navItems: MobileNavItem[] }) {
                   }}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-white/5 cursor-pointer"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="size-4" />
                   Cerrar Sesión
                 </button>
               </div>
@@ -224,7 +224,7 @@ function MobileSubItem({
           )}
         >
           <span>{item.name}</span>
-          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', expanded && 'rotate-180')} />
+          <ChevronDown className={cn('size-3.5 transition-transform', expanded && 'rotate-180')} />
         </button>
         {expanded && (
           <ul className="mt-0.5 space-y-0.5 pl-3">

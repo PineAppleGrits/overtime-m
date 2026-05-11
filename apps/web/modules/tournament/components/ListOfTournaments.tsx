@@ -97,7 +97,7 @@ export async function ListOfTournaments() {
             <div className="relative p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
               {/* Left: info */}
               <div className="flex-1 min-w-0 pl-2">
-                <h2 className="text-lg sm:text-xl font-bold uppercase font-din-display text-white group-hover:text-ot-orange transition-colors duration-300 tracking-tight">
+                <h2 className="text-lg sm:text-xl font-semibold uppercase font-din-display text-white group-hover:text-ot-orange transition-colors duration-300 tracking-tight">
                   {tournament.name}
                 </h2>
 
@@ -110,14 +110,14 @@ export async function ListOfTournaments() {
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                   {registrationPeriod && (
                     <div className="flex items-center gap-2 text-xs text-[#a9a5bb]">
-                      <Calendar className="h-3.5 w-3.5 shrink-0 text-ot-orange/70" aria-hidden />
+                      <Calendar className="size-3.5 shrink-0 text-ot-orange/70" aria-hidden />
                       <span>{registrationPeriod}</span>
                     </div>
                   )}
 
                   {visibleCategories.length > 0 && (
                     <div className="flex items-center gap-2 text-xs text-[#a9a5bb]">
-                      <Trophy className="h-3.5 w-3.5 shrink-0 text-[#4e4585]" aria-hidden />
+                      <Trophy className="size-3.5 shrink-0 text-[#4e4585]" aria-hidden />
                       <span>
                         {visibleCategories.length} categoría{visibleCategories.length !== 1 ? 's' : ''}
                       </span>
@@ -142,9 +142,9 @@ export async function ListOfTournaments() {
 
               {/* Right: arrow */}
               <div className="shrink-0 flex items-center sm:pr-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-[#3b336a]/30 group-hover:bg-ot-orange/20 transition-colors duration-300">
+                <div className="flex size-10 items-center justify-center rounded-sm bg-[#3b336a]/30 group-hover:bg-ot-orange/20 transition-colors duration-300">
                   <ChevronRight
-                    className="h-5 w-5 text-[#4e4585] group-hover:text-ot-orange transition-all duration-300 group-hover:translate-x-0.5"
+                    className="size-5 text-[#4e4585] group-hover:text-ot-orange transition-all duration-300 group-hover:translate-x-0.5"
                     aria-hidden
                   />
                 </div>

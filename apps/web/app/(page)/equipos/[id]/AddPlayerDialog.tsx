@@ -60,7 +60,7 @@ export function AddPlayerDialog({ teamId, trigger }: AddPlayerDialogProps) {
         </DialogHeader>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-white/30" />
           <input
             type="text"
             placeholder="Buscar por nombre o email"
@@ -90,7 +90,7 @@ export function AddPlayerDialog({ teamId, trigger }: AddPlayerDialogProps) {
                   disabled={isPending}
                   className="flex items-center gap-1 rounded-md bg-ot-orange hover:bg-ot-orange/90 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  <UserPlus className="h-3 w-3" />
+                  <UserPlus className="size-3" />
                   Agregar
                 </button>
               </li>
