@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { CreateVenueDto } from '@overtime-mono/shared';
-import { VenuesService } from '../../venues.service';
+import { VenuesService } from '../services/venues.service';
 
 @Injectable()
 export class CreateVenueUseCase {
-  constructor(private readonly legacy: VenuesService) {}
+  constructor(private readonly venues: VenuesService) {}
 
   async execute(createVenueDto: CreateVenueDto) {
-    return this.legacy.create(createVenueDto);
+    return this.venues.create(createVenueDto);
   }
 }

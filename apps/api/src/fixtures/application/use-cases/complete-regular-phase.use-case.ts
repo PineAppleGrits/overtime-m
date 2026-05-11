@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { FixturesService } from '../../fixtures.service';
+import { FixturesService } from '../services/fixtures.service';
 
 @Injectable()
 export class CompleteRegularPhaseUseCase {
-  constructor(private readonly legacy: FixturesService) {}
+  constructor(private readonly fixtures: FixturesService) {}
 
   async execute(categoryId: string) {
-    return this.legacy.completeRegularPhase(categoryId);
+    return this.fixtures.completeRegularPhase(categoryId);
   }
 }
