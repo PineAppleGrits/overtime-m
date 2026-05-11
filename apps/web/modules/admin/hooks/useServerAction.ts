@@ -6,15 +6,21 @@ import { toast } from 'sonner'
 import { getErrorMessage } from '@/modules/common/errors'
 import type { ActionResult } from '../actions/types'
 
+const DEFAULT_LOADING_MESSAGE = 'Procesando...'
+
 interface UseServerActionOptions<TData = void> {
   successMessage?: string
-  onSuccess?: (data?: TData) => void
+  loadingMessage?: string
+  onSuccess?: (data?: TData) => void | Promise<void>
 }
 
 /**
  * Wraps a server action with `useTransition`, loading state and toast
  * feedback.  Use this instead of `useAsyncAction` for any mutation that
  * goes through a Next.js server action.
+ *
+ * Toast lifecycle: shows a `toast.loading` immediately, then replaces it
+ * with success or error when the action resolves.
  */
 export function useServerAction<TInput, TData = void>(
   action: (input: TInput) => Promise<ActionResult<TData>>,
@@ -23,22 +29,32 @@ export function useServerAction<TInput, TData = void>(
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
-  // Always keep a ref pointing to the latest options so the async callback
-  // inside startTransition never calls a stale onSuccess closure.
   const optionsRef = useRef(options)
   optionsRef.current = options
 
   const execute = useCallback(
     (input: TInput) => {
       startTransition(async () => {
-        const result = await action(input)
-        if (result.success) {
-          if (optionsRef.current.successMessage) toast.success(optionsRef.current.successMessage)
-          optionsRef.current.onSuccess?.(result.data)
-          // Bust the Next.js router cache so navigating back shows fresh data.
-          router.refresh()
-        } else {
-          toast.error(getErrorMessage(result.error))
+        const loadingId = toast.loading(
+          optionsRef.current.loadingMessage ?? DEFAULT_LOADING_MESSAGE,
+          { dismissible: false }
+        )
+        try {
+          const result = await action(input)
+          if (result.success) {
+            if (optionsRef.current.successMessage) {
+              toast.success(optionsRef.current.successMessage, { id: loadingId })
+            } else {
+              toast.dismiss(loadingId)
+            }
+            await optionsRef.current.onSuccess?.(result.data)
+            router.refresh()
+          } else {
+            toast.error(getErrorMessage(result.error), { id: loadingId })
+          }
+        } catch (err) {
+          toast.error(getErrorMessage(undefined), { id: loadingId })
+          throw err
         }
       })
     },

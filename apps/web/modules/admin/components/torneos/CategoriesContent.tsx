@@ -46,7 +46,10 @@ export function CategoriesContent({ tournamentId, initialCategories }: Categorie
   const [zoneDialog, setZoneDialog] = useState<string | null>(null)
   const [zoneName, setZoneName] = useState('')
 
-  const invalidate = useCallback(() => qc.invalidateQueries({ queryKey: ['admin', 'categories', tournamentId] }), [qc, tournamentId])
+  const invalidate = useCallback(
+    () => qc.refetchQueries({ queryKey: ['admin', 'categories', tournamentId] }),
+    [qc, tournamentId],
+  )
 
   const { data: categories, isPending, isError } = useQuery({
     queryKey: ['admin', 'categories', tournamentId],

@@ -306,9 +306,10 @@ function ArancelesTab({ tournament }: { tournament: AdminTournament }) {
 
 export function EditTournamentContent({ tournamentId, initialData, sports }: EditTournamentContentProps) {
   const qc = useQueryClient()
-  const invalidate = useCallback(() => {
-    qc.invalidateQueries({ queryKey: ['admin', 'tournament', tournamentId] })
-  }, [qc, tournamentId])
+  const invalidate = useCallback(
+    () => qc.refetchQueries({ queryKey: ['admin', 'tournament', tournamentId] }),
+    [qc, tournamentId],
+  )
 
   const { data: tournament, isPending, isError, refetch } = useQuery({
     queryKey: ['admin', 'tournament', tournamentId],
