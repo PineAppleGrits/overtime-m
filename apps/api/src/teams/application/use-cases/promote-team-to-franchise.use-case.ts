@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { CreateFranchiseSchemaDto } from '@overtime-mono/shared';
-import { TeamsService } from '../../teams.service';
+import { TeamsService } from '../services/teams.service';
 
 @Injectable()
 export class PromoteTeamToFranchiseUseCase {
-  constructor(private readonly legacy: TeamsService) {}
+  constructor(private readonly teams: TeamsService) {}
 
   async execute(teamId: string, dto: CreateFranchiseSchemaDto, ownerId: string) {
-    return this.legacy.promoteToFranchise(teamId, dto, ownerId);
+    return this.teams.promoteToFranchise(teamId, dto, ownerId);
   }
 }

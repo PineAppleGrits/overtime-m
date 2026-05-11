@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { UpdateTeamSchemaDto } from '@overtime-mono/shared';
-import { TeamsService } from '../../teams.service';
+import { TeamsService } from '../services/teams.service';
 
 @Injectable()
 export class UpdateTeamUseCase {
-  constructor(private readonly legacy: TeamsService) {}
+  constructor(private readonly teams: TeamsService) {}
 
   async execute(id: string, updateTeamDto: UpdateTeamSchemaDto) {
-    return this.legacy.update(id, updateTeamDto);
+    return this.teams.update(id, updateTeamDto);
   }
 }

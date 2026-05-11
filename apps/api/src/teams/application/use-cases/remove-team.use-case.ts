@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { TeamsService } from '../../teams.service';
+import { TeamsService } from '../services/teams.service';
 
 @Injectable()
 export class RemoveTeamUseCase {
-  constructor(private readonly legacy: TeamsService) {}
+  constructor(private readonly teams: TeamsService) {}
 
   async execute(id: string) {
-    return this.legacy.remove(id);
+    return this.teams.remove(id);
   }
 }

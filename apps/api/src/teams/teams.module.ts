@@ -4,6 +4,7 @@ import { MatchesModule } from '../matches/matches.module';
 import { TeamsService } from './teams.service';
 import { TeamsController } from './teams.controller';
 import { TournamentTeamsController } from './tournament-teams.controller';
+import { TeamsService as ApplicationTeamsService } from './application/services/teams.service';
 import { AssignTeamCaptainUseCase } from './application/use-cases/assign-team-captain.use-case';
 import { CreateTeamForTournamentUseCase } from './application/use-cases/create-team-for-tournament.use-case';
 import { CreateTeamUseCase } from './application/use-cases/create-team.use-case';
@@ -25,6 +26,7 @@ import { TeamsFacadeService } from './application/services/teams-facade.service'
   controllers: [TeamsController, TournamentTeamsController],
   providers: [
     TeamsService,
+    ApplicationTeamsService,
     TeamsFacadeService,
     CreateTeamUseCase,
     CreateTeamForTournamentUseCase,

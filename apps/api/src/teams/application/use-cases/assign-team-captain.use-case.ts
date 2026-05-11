@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { TeamsService } from '../../teams.service';
+import { TeamsService } from '../services/teams.service';
 
 @Injectable()
 export class AssignTeamCaptainUseCase {
-  constructor(private readonly legacy: TeamsService) {}
+  constructor(private readonly teams: TeamsService) {}
 
   async execute(teamId: string, profileId: string) {
-    return this.legacy.assignCaptain(teamId, profileId);
+    return this.teams.assignCaptain(teamId, profileId);
   }
 }

@@ -4,7 +4,7 @@ import { EligibilityService } from '../eligibility/eligibility.service';
 import { BusinessError, ErrorCode } from '../common/errors';
 import { MediaAssetService } from '../common/storage/media-asset.service';
 import { SportRulesRegistry } from '../common/sport-rules/sport-rules.registry';
-import { TeamsService } from './teams.service';
+import { TeamsService } from './application/services/teams.service';
 
 describe('TeamsService', () => {
   const makeUuid = (index: number): string =>

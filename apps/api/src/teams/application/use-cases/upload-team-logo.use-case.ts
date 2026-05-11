@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { TeamsService } from '../../teams.service';
+import { TeamsService } from '../services/teams.service';
 
 @Injectable()
 export class UploadTeamLogoUseCase {
-  constructor(private readonly legacy: TeamsService) {}
+  constructor(private readonly teams: TeamsService) {}
 
   async execute(
     teamId: string,
     userId: string,
     file: { buffer: Buffer; mimetype: string; originalname: string },
   ) {
-    return this.legacy.uploadLogo(teamId, userId, file);
+    return this.teams.uploadLogo(teamId, userId, file);
   }
 }
