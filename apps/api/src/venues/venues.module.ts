@@ -11,7 +11,6 @@ import { GetVenueUseCase } from './application/use-cases/get-venue.use-case';
 import { ListVenuesUseCase } from './application/use-cases/list-venues.use-case';
 import { RemoveVenueUseCase } from './application/use-cases/remove-venue.use-case';
 import { UpdateVenueUseCase } from './application/use-cases/update-venue.use-case';
-import { VenuesFacadeService } from './application/services/venues-facade.service';
 import { PrismaVenueRepository } from './infrastructure/repositories/prisma-venue.repository';
 
 @Module({
@@ -20,7 +19,6 @@ import { PrismaVenueRepository } from './infrastructure/repositories/prisma-venu
   providers: [
     VenuesService,
     ApplicationVenuesService,
-    VenuesFacadeService,
     CreateVenueUseCase,
     ListVenuesUseCase,
     FindAvailableVenuesUseCase,
@@ -30,6 +28,6 @@ import { PrismaVenueRepository } from './infrastructure/repositories/prisma-venu
     RemoveVenueUseCase,
     { provide: VENUE_REPOSITORY, useClass: PrismaVenueRepository },
   ],
-  exports: [VenuesService, VenuesFacadeService],
+  exports: [VenuesService],
 })
 export class VenuesModule {}

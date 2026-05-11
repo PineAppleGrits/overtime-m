@@ -12,7 +12,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CreatePlayerProfileDto } from '@overtime-mono/shared';
 import { IsString, IsNotEmpty, Matches } from 'class-validator';
-import { AuthFacadeService } from './application/services/auth-facade.service';
+import { AuthService } from './application/services/auth.service';
 import type { CurrentAuthUser } from './auth.types';
 
 class UpdateDocumentNumberDto {
@@ -26,7 +26,7 @@ class UpdateDocumentNumberDto {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthFacadeService) {}
+  constructor(private readonly authService: AuthService) {}
 
   /**
    * Obtiene el perfil del usuario autenticado

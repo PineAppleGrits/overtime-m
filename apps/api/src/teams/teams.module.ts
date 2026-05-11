@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { EligibilityModule } from '../eligibility/eligibility.module';
 import { MatchesModule } from '../matches/matches.module';
-import { TeamsService } from './teams.service';
 import { TeamsController } from './teams.controller';
 import { TournamentTeamsController } from './tournament-teams.controller';
-import { TeamsService as ApplicationTeamsService } from './application/services/teams.service';
+import { TeamsService } from './application/services/teams.service';
 import { AssignTeamCaptainUseCase } from './application/use-cases/assign-team-captain.use-case';
 import { CreateTeamForTournamentUseCase } from './application/use-cases/create-team-for-tournament.use-case';
 import { CreateTeamUseCase } from './application/use-cases/create-team.use-case';
@@ -19,15 +18,12 @@ import { PromoteTeamToFranchiseUseCase } from './application/use-cases/promote-t
 import { RemoveTeamUseCase } from './application/use-cases/remove-team.use-case';
 import { UpdateTeamUseCase } from './application/use-cases/update-team.use-case';
 import { UploadTeamLogoUseCase } from './application/use-cases/upload-team-logo.use-case';
-import { TeamsFacadeService } from './application/services/teams-facade.service';
 
 @Module({
   imports: [EligibilityModule, MatchesModule],
   controllers: [TeamsController, TournamentTeamsController],
   providers: [
     TeamsService,
-    ApplicationTeamsService,
-    TeamsFacadeService,
     CreateTeamUseCase,
     CreateTeamForTournamentUseCase,
     ListMyTeamsUseCase,
@@ -43,6 +39,5 @@ import { TeamsFacadeService } from './application/services/teams-facade.service'
     GetTeamMatchPreviewsUseCase,
     GetTeamBalanceUseCase,
   ],
-  exports: [TeamsService, TeamsFacadeService],
 })
 export class TeamsModule {}

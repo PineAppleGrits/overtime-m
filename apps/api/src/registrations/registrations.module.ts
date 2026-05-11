@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { RegistrationsService } from './registrations.service';
 import { RegistrationsController } from './registrations.controller';
 import { DatabaseModule } from '../database/database.module';
 import { EligibilityModule } from '../eligibility/eligibility.module';
-import { RegistrationsService as ApplicationRegistrationsService } from './application/services/registrations.service';
+import { RegistrationsService } from './application/services/registrations.service';
 import { AddRegistrationRosterEntryUseCase } from './application/use-cases/add-registration-roster-entry.use-case';
 import { ApproveRegistrationUseCase } from './application/use-cases/approve-registration.use-case';
 import { CreateRegistrationUseCase } from './application/use-cases/create-registration.use-case';
@@ -12,15 +11,12 @@ import { GetRegistrationRosterUseCase } from './application/use-cases/get-regist
 import { ListRegistrationsUseCase } from './application/use-cases/list-registrations.use-case';
 import { RejectRegistrationUseCase } from './application/use-cases/reject-registration.use-case';
 import { RemoveRegistrationUseCase } from './application/use-cases/remove-registration.use-case';
-import { RegistrationsFacadeService } from './application/services/registrations-facade.service';
 
 @Module({
   imports: [DatabaseModule, EligibilityModule],
   controllers: [RegistrationsController],
   providers: [
     RegistrationsService,
-    ApplicationRegistrationsService,
-    RegistrationsFacadeService,
     CreateRegistrationUseCase,
     ListRegistrationsUseCase,
     GetRegistrationUseCase,
@@ -30,6 +26,5 @@ import { RegistrationsFacadeService } from './application/services/registrations
     RejectRegistrationUseCase,
     RemoveRegistrationUseCase,
   ],
-  exports: [RegistrationsService, RegistrationsFacadeService],
 })
 export class RegistrationsModule {}

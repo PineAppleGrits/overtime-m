@@ -29,7 +29,7 @@ import {
   BASKETBALL_MODALITIES,
   Modality,
 } from '../common/sport-rules/sport-rules.types';
-import { TeamsFacadeService } from './application/services/teams-facade.service';
+import { TeamsService } from './application/services/teams.service';
 
 interface UploadedFileShape {
   buffer: Buffer;
@@ -42,7 +42,7 @@ interface UploadedFileShape {
 @Controller('teams')
 export class TeamsController {
   constructor(
-    private readonly teamsService: TeamsFacadeService,
+    private readonly teamsService: TeamsService,
     private readonly matchPlayerStatsService: MatchPlayerStatsService,
   ) {}
 

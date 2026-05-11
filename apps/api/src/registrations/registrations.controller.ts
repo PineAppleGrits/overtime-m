@@ -23,12 +23,12 @@ import {
   AddRegistrationRosterEntryBodyDto,
   CreateRegistrationBodyDto,
 } from './dto/registration-request.dto';
-import { RegistrationsFacadeService } from './application/services/registrations-facade.service';
+import { RegistrationsService } from './application/services/registrations.service';
 
 @ApiTags('registrations')
 @Controller('registrations')
 export class RegistrationsController {
-  constructor(private readonly registrationsService: RegistrationsFacadeService) {}
+  constructor(private readonly registrationsService: RegistrationsService) {}
 
   @Post()
   create(
