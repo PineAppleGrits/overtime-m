@@ -7,7 +7,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     const profile = await getProfile()
 
     return (
-        <main className="grid grid-rows-[auto_auto_1fr_auto] min-h-screen">
+        <main className="grid grid-rows-[auto_1fr_auto] min-h-screen">
             <Header />
             <DniVerificationBanner show={!!profile && !profile.documentNumber} />
             {children}

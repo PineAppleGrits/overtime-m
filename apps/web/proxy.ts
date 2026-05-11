@@ -63,21 +63,13 @@ export async function proxy(request: NextRequest) {
 
   let profile: Record<string, unknown> | null = null;
 
+
   if (user && shouldFetchProfile(request.nextUrl.pathname)) {
     try {
-      const response = await AuthService.getProfile();
-      profile = response?.data ?? null;
-
-      if (
-        profile &&
-        !profile.documentNumber &&
-        !request.nextUrl.pathname.startsWith('/profile')
-      ) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/profile';
-        return NextResponse.redirect(url);
-      }
+      const { data } = await AuthService.getProfile();
+      profile = data
     } catch {
+      console.error('Failed to fetch user profile');
       profile = null;
     }
   }

@@ -82,7 +82,7 @@ export function OnboardingContent({ profileName }: { profileName: string }) {
             onClick={() => router.push('/')}
             className="text-sm text-white/40 underline underline-offset-4 hover:text-white/60 transition-colors"
           >
-            Saltar este paso
+            Verificar más tarde
           </button>
           <p className="mt-1.5 text-xs text-white/25">
             Podés completar esto más tarde desde tu perfil

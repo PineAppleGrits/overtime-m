@@ -12,7 +12,7 @@ export function DniVerificationBanner({ show }: { show: boolean }) {
 
   useEffect(() => {
     setMounted(true)
-    if (sessionStorage.getItem(STORAGE_KEY) === 'true') {
+    if (localStorage.getItem(STORAGE_KEY) === 'true') {
       setDismissed(true)
     }
   }, [])
@@ -21,7 +21,7 @@ export function DniVerificationBanner({ show }: { show: boolean }) {
 
   function handleDismiss() {
     setDismissed(true)
-    sessionStorage.setItem(STORAGE_KEY, 'true')
+    localStorage.setItem(STORAGE_KEY, 'true')
   }
 
   return (
@@ -34,7 +34,7 @@ export function DniVerificationBanner({ show }: { show: boolean }) {
         <p>
           Todavía no verificaste tu cuenta.{' '}
           <Link
-            href="/profile"
+            href="/onboarding"
             className="text-amber-300 underline hover:text-amber-100"
           >
             Verificá tu DNI

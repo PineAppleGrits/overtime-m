@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/providers/AuthProvider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { updateDocumentNumberAction } from '@/modules/auth/actions/profileActions';
 import { checkPlayerAction } from '@/modules/admin/actions/blacklistActions';
 import {
   IdCard,
@@ -27,11 +27,7 @@ type BlacklistStatus = {
 };
 
 export default function ProfileInfoPage() {
-  const { profile, refresh } = useAuth();
-  const [documentNumber, setDocumentNumber] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const { profile } = useAuth();
   const [blacklistStatus, setBlacklistStatus] = useState<BlacklistStatus>({
     checked: false,
     isBlacklisted: false,
@@ -39,7 +35,7 @@ export default function ProfileInfoPage() {
   });
   const [checkingBlacklist, setCheckingBlacklist] = useState(false);
 
-  const dniIsSet = !!profile?.documentNumber || saved;
+  const dniIsSet = !!profile?.documentNumber;
 
   const checkBlacklist = useCallback(async (dni: string) => {
     setCheckingBlacklist(true);
@@ -66,38 +62,6 @@ export default function ProfileInfoPage() {
       checkBlacklist(profile.documentNumber);
     }
   }, [profile?.documentNumber, checkBlacklist]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const trimmed = documentNumber.trim();
-
-    if (!/^\d{7,8}$/.test(trimmed)) {
-      setError('El DNI debe tener 7 u 8 dígitos numéricos');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const result = await updateDocumentNumberAction(trimmed);
-
-      if (!result.success) {
-        setError(result.error ?? 'Error al actualizar el documento');
-        return;
-      }
-
-      setSaved(true);
-      refresh();
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Error al actualizar el documento';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -208,23 +172,12 @@ export default function ProfileInfoPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {!dniIsSet && (
-            <div className="flex gap-3 rounded-lg border border-ot-orange/30 bg-ot-orange/10 p-3">
-              <Info className="mt-0.5 size-4 shrink-0 text-ot-orange" />
-              <p className="text-sm text-white/80">
-                Ingresá tu DNI real y correcto. Una vez guardado, no vas a poder
-                modificarlo. Si necesitás cambiarlo, vas a tener que contactar a un
-                administrador.
-              </p>
-            </div>
-          )}
-
           {dniIsSet ? (
             <div className="space-y-2">
               <Label className="text-white/90">DNI</Label>
               <div className="flex items-center gap-3">
                 <Input
-                  value={profile?.documentNumber ?? documentNumber}
+                  value={profile?.documentNumber ?? ''}
                   disabled
                   className="border-ot-light-blue bg-ot-dark-blue/50 text-white/60"
                   aria-label="Número de documento"
@@ -236,41 +189,23 @@ export default function ProfileInfoPage() {
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="documentNumber" className="text-white/90">
-                  DNI
-                </Label>
-                <Input
-                  id="documentNumber"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Ej: 12345678"
-                  value={documentNumber}
-                  onChange={(e) => setDocumentNumber(e.target.value.replace(/\D/g, ''))}
-                  maxLength={8}
-                  required
-                  autoFocus
-                  aria-describedby="dni-help"
-                  className="border-ot-light-blue bg-ot-dark-blue text-white placeholder:text-white/40 focus-visible:ring-ot-orange"
-                />
-                <p id="dni-help" className="sr-only">
-                  Ingresá entre 7 y 8 dígitos numéricos
+            <div className="space-y-4">
+              <div className="flex gap-3 rounded-lg border border-ot-orange/30 bg-ot-orange/10 p-3">
+                <Info className="mt-0.5 size-4 shrink-0 text-ot-orange" />
+                <p className="text-sm text-white/80">
+                  Verificá tu DNI subiendo una foto. Una vez verificado, no vas a
+                  poder modificarlo. Si necesitás cambiarlo, vas a tener que
+                  contactar a un administrador.
                 </p>
               </div>
 
-              {error && (
-                <p className="text-sm text-red-400" role="alert">{error}</p>
-              )}
-
               <Button
-                type="submit"
+                asChild
                 className="bg-ot-orange text-white hover:bg-ot-orange/90"
-                disabled={loading}
               >
-                {loading ? 'Guardando...' : 'Guardar DNI'}
+                <Link href="/onboarding">Verificar DNI</Link>
               </Button>
-            </form>
+            </div>
           )}
         </CardContent>
       </Card>

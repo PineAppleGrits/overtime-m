@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { updateDocumentNumberAction } from '@/modules/auth/actions/profileActions'
 import { useAuth } from '@/providers/AuthProvider'
 
@@ -41,16 +42,22 @@ export function DniConfirmStep({
     }
 
     setSubmitting(true)
+    const loadingId = toast.loading('Guardando DNI...', { dismissible: false })
     try {
       const result = await updateDocumentNumberAction(documentNumber.trim())
       if (result.success) {
+        toast.success('DNI guardado correctamente', { id: loadingId })
         refresh()
         router.push('/')
       } else {
-        setError(result.error ?? 'No se pudo actualizar el documento')
+        const message = result.error ?? 'No se pudo actualizar el documento'
+        toast.error(message, { id: loadingId })
+        setError(message)
       }
     } catch {
-      setError('Ocurrió un error inesperado. Intentá de nuevo.')
+      const message = 'Ocurrió un error inesperado. Intentá de nuevo.'
+      toast.error(message, { id: loadingId })
+      setError(message)
     } finally {
       setSubmitting(false)
     }
