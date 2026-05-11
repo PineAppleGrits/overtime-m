@@ -168,6 +168,14 @@ Ver [ARQUITECTURA-AUTH.md](./ARQUITECTURA-AUTH.md) para más detalles.
 - **DatabaseModule:** Prisma service (global)
 - **ConfigModule:** Variables de entorno (global)
 
+### Patrón de módulos backend
+
+La convención actual para módulos nuevos o migrados vive en
+[docs/backend-module-pattern.md](/C:/Users/ginos/Desktop/overtime-mono/docs/backend-module-pattern.md).
+Tomar ese documento como fuente de verdad para `application/ports`,
+`infrastructure/*` y `presentation/controllers`.
+
+
 ### Guards
 
 - **AuthGuard:** Verifica JWT token en todas las rutas (excepto las marcadas con `@Public()`)

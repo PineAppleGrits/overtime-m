@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AUTH_PROFILE_REPOSITORY } from './application/ports/auth-profile-repository.port';
 import { IDENTITY_PROVIDER } from './application/ports/identity-provider.port';
@@ -10,6 +9,7 @@ import { GetProfileUseCase } from './application/use-cases/get-profile.use-case'
 import { SetDocumentNumberUseCase } from './application/use-cases/set-document-number.use-case';
 import { SupabaseIdentityAdapter } from './infrastructure/adapters/supabase-identity.adapter';
 import { PrismaAuthProfileRepository } from './infrastructure/repositories/prisma-auth-profile.repository';
+import { AuthController } from './presentation/controllers/auth.controller';
 
 @Module({
   controllers: [AuthController],

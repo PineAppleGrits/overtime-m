@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { VenuesService } from './venues.service';
-import { VenuesController } from './venues.controller';
 import { DatabaseModule } from '../database/database.module';
 import { VENUE_REPOSITORY } from './application/ports/venue-repository.port';
 import { VenuesService as ApplicationVenuesService } from './application/services/venues.service';
@@ -12,6 +11,7 @@ import { ListVenuesUseCase } from './application/use-cases/list-venues.use-case'
 import { RemoveVenueUseCase } from './application/use-cases/remove-venue.use-case';
 import { UpdateVenueUseCase } from './application/use-cases/update-venue.use-case';
 import { PrismaVenueRepository } from './infrastructure/repositories/prisma-venue.repository';
+import { VenuesController } from './presentation/controllers/venues.controller';
 
 @Module({
   imports: [DatabaseModule],
