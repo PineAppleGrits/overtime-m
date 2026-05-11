@@ -12,7 +12,8 @@ import { Separator } from '@/components/ui/separator'
 import employeeService from '@/modules/admin/services/EmployeeService'
 import { AssignedMatch } from '@/modules/admin/types'
 import { toast } from 'sonner'
-import { Calendar, Clock, MapPin, Loader2, Trophy, Camera, ClipboardList, Gavel } from 'lucide-react'
+import { Calendar, Clock, MapPin, Trophy, Camera, ClipboardList, Gavel } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 function roleIcon(role: string) {
   switch (role) {
@@ -171,8 +172,16 @@ export default function AdminProfilePage() {
         {/* Matches section */}
         <div className="md:col-span-2">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="size-6 animate-spin" />
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="py-4 space-y-2">
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-1/3" />
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : assignments.length === 0 ? (
             <Card>

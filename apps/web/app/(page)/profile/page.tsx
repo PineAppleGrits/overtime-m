@@ -15,10 +15,10 @@ import {
   Info,
   ShieldCheck,
   ShieldBan,
-  Loader2,
   AlertTriangle,
 } from 'lucide-react';
 import Image from 'next/image';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type BlacklistStatus = {
   checked: boolean;
@@ -114,9 +114,9 @@ export default function ProfileInfoPage() {
           </CardHeader>
           <CardContent>
             {checkingBlacklist ? (
-              <div className="flex items-center gap-2 text-white/50">
-                <Loader2 className="size-4 animate-spin" />
-                <span className="text-sm">Verificando estado...</span>
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-60" />
               </div>
             ) : blacklistStatus.checked && blacklistStatus.isBlacklisted ? (
               <div className="space-y-4">
