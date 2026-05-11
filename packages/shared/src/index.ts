@@ -3,6 +3,7 @@ export * from './auth';
 export * from './franchises';
 export * from './tournaments';
 export * from './teams';
+export type { TeamRosterStatusDto } from './teams/roster-status.dto';
 export * from './matches';
 export * from './venues';
 export * from './staff';
