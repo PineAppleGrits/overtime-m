@@ -7,7 +7,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { FixturesService } from './fixtures.service';
+import { FixturesFacadeService } from './application/services/fixtures-facade.service';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
@@ -15,7 +15,7 @@ import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
 @ApiTags('fixtures')
 @Controller('fixtures')
 export class FixturesController {
-  constructor(private readonly fixturesService: FixturesService) {}
+  constructor(private readonly fixturesService: FixturesFacadeService) {}
 
   /**
    * Get standings for a category

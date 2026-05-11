@@ -18,12 +18,12 @@ import {
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
-import { VenuesService } from './venues.service';
+import { VenuesFacadeService } from './application/services/venues-facade.service';
 
 @ApiTags('venues')
 @Controller('venues')
 export class VenuesController {
-  constructor(private readonly venuesService: VenuesService) { }
+  constructor(private readonly venuesService: VenuesFacadeService) {}
 
   @Post()
   @Roles('admin')
