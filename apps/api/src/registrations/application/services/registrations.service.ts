@@ -1,24 +1,35 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
-  Optional,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CategorySubstatus, Prisma } from '@prisma/client';
+import { CategorySubstatus } from '@prisma/client';
 import type {
   AddRegistrationRosterEntryDto,
   CreateRegistrationSchemaDto,
   PaginationDto,
-  RegistrationRosterPlayerDto,
 } from '@overtime-mono/shared';
-import { DomainEvent, DomainEventPayloads } from '../../../common/events';
-import { PrismaService } from '../../../database/prisma.service';
-import { EligibilityService } from '../../../eligibility/eligibility.service';
 import {
-  ACTIVE_REGISTRATION_STATUSES,
+  REGISTRATION_ELIGIBILITY_PORT,
+  type RegistrationEligibilityPort,
+} from '../ports/registration-eligibility.port';
+import {
+  REGISTRATION_EVENTS_PORT,
+  type RegistrationEventsPort,
+} from '../ports/registration-events.port';
+import {
+  REGISTRATION_REPOSITORY,
+  type RegistrationDetailRecord,
+  type RegistrationRepository,
+} from '../ports/registration-repository.port';
+import {
+  REGISTRATION_ROSTER_CONTEXT_PORT,
+  type RegistrationRosterContextPort,
+} from '../ports/registration-roster-context.port';
+import {
   EDITABLE_REGISTRATION_STATUSES,
   MAX_ADDITIONS,
   MAX_TOTAL_ROSTER,
@@ -27,130 +38,19 @@ import {
   PLAYOFF_CUTOFF_REMAINING_MATCHES,
 } from '../../registrations.constants';
 
-type PrismaClientLike = PrismaService | Prisma.TransactionClient;
-
-const registrationDetailInclude =
-  Prisma.validator<Prisma.RegistrationInclude>()({
-    team: {
-      include: {
-        sport: true,
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        captain: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
-        },
-        members: {
-          where: { isActive: true },
-          include: {
-            profile: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                avatarUrl: true,
-                documentNumber: true,
-              },
-            },
-          },
-        },
-      },
-    },
-    tournament: {
-      include: {
-        sport: true,
-        categories: {
-          select: {
-            id: true,
-            name: true,
-            substatus: true,
-          },
-        },
-      },
-    },
-    category: {
-      include: {
-        tournament: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        zones: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    },
-    requester: {
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-    },
-    approver: {
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-    },
-    payments: {
-      orderBy: {
-        createdAt: 'desc',
-      },
-    },
-    rosterEntries: {
-      orderBy: {
-        addedAt: 'asc',
-      },
-      include: {
-        profile: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-            documentNumber: true,
-          },
-        },
-        addedByProfile: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    },
-    _count: {
-      select: {
-        payments: true,
-        rosterEntries: true,
-      },
-    },
-  });
-
 @Injectable()
 export class RegistrationsService {
   private readonly logger = new Logger(RegistrationsService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly eligibilityService: EligibilityService,
-    @Optional() private readonly eventEmitter?: EventEmitter2,
+    @Inject(REGISTRATION_REPOSITORY)
+    private readonly repository: RegistrationRepository,
+    @Inject(REGISTRATION_ROSTER_CONTEXT_PORT)
+    private readonly rosterContext: RegistrationRosterContextPort,
+    @Inject(REGISTRATION_ELIGIBILITY_PORT)
+    private readonly eligibility: RegistrationEligibilityPort,
+    @Inject(REGISTRATION_EVENTS_PORT)
+    private readonly events: RegistrationEventsPort,
   ) {}
 
   private assertNoDuplicateProfileIds(profileIds: string[]): void {
@@ -173,112 +73,6 @@ export class RegistrationsService {
     }
   }
 
-  private normalizeDocumentNumber(documentNumber: string): string {
-    return documentNumber.trim();
-  }
-
-  private async ensureActiveTeamMembership(
-    prisma: PrismaClientLike,
-    teamId: string,
-    profileId: string,
-  ): Promise<void> {
-    const existingMembership = await prisma.profileTeam.findFirst({
-      where: {
-        teamId,
-        profileId,
-      },
-      select: {
-        id: true,
-        isActive: true,
-      },
-    });
-
-    if (!existingMembership) {
-      await prisma.profileTeam.create({
-        data: {
-          teamId,
-          profileId,
-        },
-      });
-      return;
-    }
-
-    if (!existingMembership.isActive) {
-      await prisma.profileTeam.update({
-        where: { id: existingMembership.id },
-        data: {
-          isActive: true,
-          joinedAt: new Date(),
-        },
-      });
-    }
-  }
-
-  private async resolveRosterPlayers(
-    prisma: PrismaClientLike,
-    teamId: string,
-    players: RegistrationRosterPlayerDto[],
-  ): Promise<
-    Array<{ profileId: string; name: string; documentNumber: string | null }>
-  > {
-    const resolvedPlayers: Array<{
-      profileId: string;
-      name: string;
-      documentNumber: string | null;
-    }> = [];
-
-    for (const player of players) {
-      if (!player.documentNumber || !player.name) {
-        throw new BadRequestException(
-          'Roster players must include documentNumber and name',
-        );
-      }
-
-      const documentNumber = this.normalizeDocumentNumber(player.documentNumber);
-
-      let profile = await prisma.profile.findFirst({
-        where: {
-          documentNumber,
-          deletedAt: null,
-        },
-        select: {
-          id: true,
-          name: true,
-          documentNumber: true,
-        },
-      });
-
-      if (!profile) {
-        profile = await prisma.profile.create({
-          data: {
-            name: player.name,
-            documentNumber,
-            role: 'player',
-          },
-          select: {
-            id: true,
-            name: true,
-            documentNumber: true,
-          },
-        });
-      }
-
-      await this.ensureActiveTeamMembership(prisma, teamId, profile.id);
-
-      resolvedPlayers.push({
-        profileId: profile.id,
-        name: profile.name,
-        documentNumber: profile.documentNumber,
-      });
-    }
-
-    this.assertNoDuplicateProfileIds(
-      resolvedPlayers.map((player) => player.profileId),
-    );
-
-    return resolvedPlayers;
-  }
-
   private async assertProfilesCanJoinTournamentRoster(
     params: {
       profileIds: string[];
@@ -287,35 +81,9 @@ export class RegistrationsService {
       teamId: string;
       excludeRegistrationId?: string;
     },
-    prisma: PrismaClientLike = this.prisma,
   ): Promise<void> {
-    const rosterEntries = await prisma.registrationRosterEntry.findMany({
-      where: {
-        profileId: { in: params.profileIds },
-        registration: {
-          tournamentId: params.tournamentId,
-          status: {
-            in: [...ACTIVE_REGISTRATION_STATUSES],
-          },
-          ...(params.excludeRegistrationId
-            ? {
-                id: {
-                  not: params.excludeRegistrationId,
-                },
-              }
-            : {}),
-        },
-      },
-      select: {
-        profileId: true,
-        registration: {
-          select: {
-            id: true,
-            teamId: true,
-            categoryId: true,
-          },
-        },
-      },
+    const rosterEntries = await this.repository.findRosterConflicts({
+      ...params,
     });
 
     for (const profileId of params.profileIds) {
@@ -351,35 +119,20 @@ export class RegistrationsService {
     teamId: string;
     categoryId: string;
   }): Promise<number | null> {
-    const baseWhere: Prisma.MatchWhereInput = {
-      deletedAt: null,
-      categoryId: registration.categoryId,
-      matchType: 'regular',
-      OR: [
-        {
-          homeTeamId: registration.teamId,
-        },
-        {
-          awayTeamId: registration.teamId,
-        },
-      ],
-    };
-
-    const totalScheduledMatches = await this.prisma.match.count({
-      where: baseWhere,
-    });
+    const totalScheduledMatches =
+      await this.repository.countScheduledRegularMatches({
+        teamId: registration.teamId,
+        categoryId: registration.categoryId,
+      });
 
     if (totalScheduledMatches === 0) {
       return null;
     }
 
-    return this.prisma.match.count({
-      where: {
-        ...baseWhere,
-        status: {
-          in: [...NON_FINISHED_MATCH_STATUSES],
-        },
-      },
+    return this.repository.countRemainingRegularMatches({
+      teamId: registration.teamId,
+      categoryId: registration.categoryId,
+      statuses: [...NON_FINISHED_MATCH_STATUSES],
     });
   }
 
@@ -412,12 +165,8 @@ export class RegistrationsService {
 
   private async getRegistrationDetailOrThrow(
     id: string,
-    prisma: PrismaClientLike = this.prisma,
-  ) {
-    const registration = await prisma.registration.findUnique({
-      where: { id },
-      include: registrationDetailInclude,
-    });
+  ): Promise<RegistrationDetailRecord> {
+    const registration = await this.repository.findDetailById(id);
 
     if (!registration) {
       throw new NotFoundException(`Registration with ID ${id} not found`);
@@ -432,17 +181,15 @@ export class RegistrationsService {
   ) {
     this.assertInitialRosterSize(createRegistrationDto.initialRoster);
 
-    const team = await this.prisma.team.findUnique({
-      where: { id: createRegistrationDto.teamId, deletedAt: null },
-    });
+    const team = await this.repository.findTeamById(createRegistrationDto.teamId);
 
     if (!team) {
       throw new NotFoundException('Team not found');
     }
 
-    const tournament = await this.prisma.tournament.findUnique({
-      where: { id: createRegistrationDto.tournamentId, deletedAt: null },
-    });
+    const tournament = await this.repository.findTournamentById(
+      createRegistrationDto.tournamentId,
+    );
 
     if (!tournament) {
       throw new NotFoundException('Tournament not found');
@@ -469,10 +216,9 @@ export class RegistrationsService {
       throw new BadRequestException('Registration period has ended');
     }
 
-    const category = await this.prisma.category.findUnique({
-      where: { id: createRegistrationDto.categoryId, deletedAt: null },
-      include: { tournament: true },
-    });
+    const category = await this.repository.findCategoryById(
+      createRegistrationDto.categoryId,
+    );
 
     if (!category) {
       throw new NotFoundException('Category not found');
@@ -488,21 +234,17 @@ export class RegistrationsService {
       throw new BadRequestException('Team sport must match category sport');
     }
 
-    await this.eligibilityService.assertTeamEligibleForRegistration({
+    await this.eligibility.assertTeamEligibleForRegistration({
       teamId: createRegistrationDto.teamId,
       tournamentId: createRegistrationDto.tournamentId,
       categoryId: createRegistrationDto.categoryId,
     });
 
-    const existingRegistration = await this.prisma.registration.findFirst({
-      where: {
-        teamId: createRegistrationDto.teamId,
-        tournamentId: createRegistrationDto.tournamentId,
-        status: {
-          notIn: ['rechazada'],
-        },
-      },
-    });
+    const existingRegistration =
+      await this.repository.findExistingActiveRegistration(
+        createRegistrationDto.teamId,
+        createRegistrationDto.tournamentId,
+      );
 
     if (existingRegistration) {
       if (
@@ -518,57 +260,35 @@ export class RegistrationsService {
       );
     }
 
-    const registration = await this.prisma.$transaction(async (tx) => {
-      const resolvedPlayers = await this.resolveRosterPlayers(
-        tx,
-        createRegistrationDto.teamId,
-        createRegistrationDto.initialRoster,
-      );
+    const resolvedPlayers = await this.rosterContext.resolvePlayers(
+      createRegistrationDto.initialRoster,
+    );
 
-      await this.assertProfilesCanJoinTournamentRoster(
-        {
-          profileIds: resolvedPlayers.map((player) => player.profileId),
-          tournamentId: createRegistrationDto.tournamentId,
-          categoryId: createRegistrationDto.categoryId,
-          teamId: createRegistrationDto.teamId,
-        },
-        tx,
-      );
+    this.assertNoDuplicateProfileIds(
+      resolvedPlayers.map((player) => player.profileId),
+    );
 
-      for (const player of resolvedPlayers) {
-        await this.eligibilityService.assertProfileEligibleForRegistration(
-          {
-            profileId: player.profileId,
-            tournamentId: createRegistrationDto.tournamentId,
-            categoryId: createRegistrationDto.categoryId,
-          },
-          tx,
-        );
-      }
+    await this.assertProfilesCanJoinTournamentRoster({
+      profileIds: resolvedPlayers.map((player) => player.profileId),
+      tournamentId: createRegistrationDto.tournamentId,
+      categoryId: createRegistrationDto.categoryId,
+      teamId: createRegistrationDto.teamId,
+    });
 
-      const createdRegistration = await tx.registration.create({
-        data: {
-          teamId: createRegistrationDto.teamId,
-          tournamentId: createRegistrationDto.tournamentId,
-          categoryId: createRegistrationDto.categoryId,
-          requestedBy,
-          status: 'pendiente',
-        },
-        select: {
-          id: true,
-        },
+    for (const player of resolvedPlayers) {
+      await this.eligibility.assertProfileEligibleForRegistration({
+        profileId: player.profileId,
+        tournamentId: createRegistrationDto.tournamentId,
+        categoryId: createRegistrationDto.categoryId,
       });
+    }
 
-      await tx.registrationRosterEntry.createMany({
-        data: resolvedPlayers.map((player) => ({
-          registrationId: createdRegistration.id,
-          profileId: player.profileId,
-          type: 'INITIAL',
-          addedByProfileId: requestedBy,
-        })),
-      });
-
-      return this.getRegistrationDetailOrThrow(createdRegistration.id, tx);
+    const registration = await this.repository.createPendingRegistration({
+      teamId: createRegistrationDto.teamId,
+      tournamentId: createRegistrationDto.tournamentId,
+      categoryId: createRegistrationDto.categoryId,
+      requestedBy,
+      players: resolvedPlayers,
     });
 
     this.logger.log(
@@ -580,113 +300,14 @@ export class RegistrationsService {
 
   async findAll(
     paginationDto: PaginationDto,
-    filters?: {
-      tournamentId?: string;
-      teamId?: string;
-      categoryId?: string;
-      status?: string;
-    },
+  filters?: {
+    tournamentId?: string;
+    teamId?: string;
+    categoryId?: string;
+    status?: string;
+  },
   ) {
-    const {
-      page = 1,
-      limit = 10,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-    } = paginationDto;
-
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.RegistrationWhereInput = {};
-
-    if (filters?.tournamentId) {
-      where.tournamentId = filters.tournamentId;
-    }
-
-    if (filters?.teamId) {
-      where.teamId = filters.teamId;
-    }
-
-    if (filters?.categoryId) {
-      where.categoryId = filters.categoryId;
-    }
-
-    if (filters?.status) {
-      where.status = filters.status;
-    }
-
-    const [registrations, total] = await Promise.all([
-      this.prisma.registration.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              logoUrl: true,
-              sport: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          tournament: {
-            select: {
-              id: true,
-              name: true,
-              status: true,
-            },
-          },
-          category: {
-            select: {
-              id: true,
-              name: true,
-              substatus: true,
-            },
-          },
-          requester: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          approver: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          rosterEntries: {
-            select: {
-              profileId: true,
-            },
-          },
-          _count: {
-            select: {
-              payments: true,
-              rosterEntries: true,
-            },
-          },
-        },
-      }),
-      this.prisma.registration.count({ where }),
-    ]);
-
-    return {
-      data: registrations,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return this.repository.list(paginationDto, filters);
   }
 
   async findOne(id: string) {
@@ -715,24 +336,7 @@ export class RegistrationsService {
     addRosterEntryDto: AddRegistrationRosterEntryDto,
     addedBy: string,
   ) {
-    const registration = await this.prisma.registration.findUnique({
-      where: { id },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            substatus: true,
-          },
-        },
-        rosterEntries: {
-          select: {
-            profileId: true,
-            type: true,
-          },
-        },
-      },
-    });
+    const registration = await this.repository.findEditableById(id);
 
     if (!registration) {
       throw new NotFoundException(`Registration with ID ${id} not found`);
@@ -771,60 +375,43 @@ export class RegistrationsService {
       category: registration.category,
     });
 
-    const resolvedPlayers = await this.prisma.$transaction(async (tx) => {
-      const resolved = await this.resolveRosterPlayers(
-        tx,
-        registration.teamId,
-        [addRosterEntryDto],
-      );
+    const resolvedPlayers = await this.rosterContext.resolvePlayers([
+      addRosterEntryDto,
+    ]);
 
-      if (
-        registration.rosterEntries.some(
-          (entry) => entry.profileId === resolved[0].profileId,
-        )
-      ) {
-        throw new ConflictException('Profile is already part of this roster');
-      }
+    if (
+      registration.rosterEntries.some(
+        (entry) => entry.profileId === resolvedPlayers[0].profileId,
+      )
+    ) {
+      throw new ConflictException('Profile is already part of this roster');
+    }
 
-      await this.assertProfilesCanJoinTournamentRoster(
-        {
-          profileIds: [resolved[0].profileId],
-          tournamentId: registration.tournamentId,
-          categoryId: registration.categoryId,
-          teamId: registration.teamId,
-          excludeRegistrationId: registration.id,
-        },
-        tx,
-      );
+    await this.assertProfilesCanJoinTournamentRoster({
+      profileIds: [resolvedPlayers[0].profileId],
+      tournamentId: registration.tournamentId,
+      categoryId: registration.categoryId,
+      teamId: registration.teamId,
+      excludeRegistrationId: registration.id,
+    });
 
-      await this.eligibilityService.assertTeamEligibleForRegistration(
-        {
-          teamId: registration.teamId,
-          tournamentId: registration.tournamentId,
-          categoryId: registration.categoryId,
-        },
-        tx,
-      );
+    await this.eligibility.assertTeamEligibleForRegistration({
+      teamId: registration.teamId,
+      tournamentId: registration.tournamentId,
+      categoryId: registration.categoryId,
+    });
 
-      await this.eligibilityService.assertProfileEligibleForRegistration(
-        {
-          profileId: resolved[0].profileId,
-          tournamentId: registration.tournamentId,
-          categoryId: registration.categoryId,
-        },
-        tx,
-      );
+    await this.eligibility.assertProfileEligibleForRegistration({
+      profileId: resolvedPlayers[0].profileId,
+      tournamentId: registration.tournamentId,
+      categoryId: registration.categoryId,
+    });
 
-      await tx.registrationRosterEntry.create({
-        data: {
-          registrationId: registration.id,
-          profileId: resolved[0].profileId,
-          type: 'ADDITION',
-          addedByProfileId: addedBy,
-        },
-      });
-
-      return resolved;
+    await this.repository.addRosterEntry({
+      registrationId: registration.id,
+      teamId: registration.teamId,
+      profileId: resolvedPlayers[0].profileId,
+      addedBy,
     });
 
     this.logger.log(
@@ -843,24 +430,19 @@ export class RegistrationsService {
       );
     }
 
-    const updatedRegistration = await this.prisma.registration.update({
-      where: { id },
-      data: {
-        status: 'aprobada',
-        approvedBy,
-        approvedAt: new Date(),
-      },
-      include: registrationDetailInclude,
-    });
+    const updatedRegistration = await this.repository.approveRegistration(
+      id,
+      approvedBy,
+    );
 
     this.logger.log(`Registration approved: ${id}`);
 
-    this.eventEmitter?.emit(DomainEvent.REGISTRATION_APPROVED, {
+    this.events.emitApproved({
       registrationId: id,
       teamId: updatedRegistration.teamId,
       tournamentId: updatedRegistration.tournamentId,
       approvedBy,
-    } satisfies DomainEventPayloads['registration.approved']);
+    });
 
     return updatedRegistration;
   }
@@ -874,26 +456,21 @@ export class RegistrationsService {
       );
     }
 
-    const updatedRegistration = await this.prisma.registration.update({
-      where: { id },
-      data: {
-        status: 'rechazada',
-        approvedBy,
-        rejectedAt: new Date(),
-        rejectionReason: rejectionReason || 'Rejected by administrator',
-      },
-      include: registrationDetailInclude,
+    const updatedRegistration = await this.repository.rejectRegistration({
+      id,
+      approvedBy,
+      rejectionReason: rejectionReason || 'Rejected by administrator',
     });
 
     this.logger.log(`Registration rejected: ${id}`);
 
-    this.eventEmitter?.emit(DomainEvent.REGISTRATION_REJECTED, {
+    this.events.emitRejected({
       registrationId: id,
       teamId: updatedRegistration.teamId,
       tournamentId: updatedRegistration.tournamentId,
       rejectedBy: approvedBy,
       reason: rejectionReason ?? undefined,
-    } satisfies DomainEventPayloads['registration.rejected']);
+    });
 
     return updatedRegistration;
   }
@@ -910,9 +487,7 @@ export class RegistrationsService {
       );
     }
 
-    await this.prisma.registration.delete({
-      where: { id },
-    });
+    await this.repository.deleteRegistration(id);
 
     this.logger.log(`Registration deleted: ${id}`);
 

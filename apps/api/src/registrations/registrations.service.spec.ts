@@ -1,53 +1,63 @@
 import { BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../database/prisma.service';
-import { EligibilityService } from '../eligibility/eligibility.service';
+import {
+  type RegistrationEligibilityPort,
+} from './application/ports/registration-eligibility.port';
+import {
+  type RegistrationEventsPort,
+} from './application/ports/registration-events.port';
+import {
+  type RegistrationRepository,
+} from './application/ports/registration-repository.port';
+import type { RegistrationRosterContextPort } from './application/ports/registration-roster-context.port';
 import { RegistrationsService } from './application/services/registrations.service';
 
 describe('RegistrationsService', () => {
   const makeUuid = (index: number): string =>
     `00000000-0000-4000-8000-${index.toString().padStart(12, '0')}`;
 
-  const createPrismaMock = () =>
+  const createRepositoryMock = (): jest.Mocked<RegistrationRepository> =>
     ({
-      team: {
-        findUnique: jest.fn(),
-      },
-      tournament: {
-        findUnique: jest.fn(),
-      },
-      category: {
-        findUnique: jest.fn(),
-      },
-      registration: {
-        findFirst: jest.fn(),
-        findUnique: jest.fn(),
-      },
-      profile: {
-        findMany: jest.fn(),
-      },
-      profileTeam: {
-        findMany: jest.fn(),
-      },
-      registrationRosterEntry: {
-        findMany: jest.fn(),
-        create: jest.fn(),
-        createMany: jest.fn(),
-      },
-      match: {
-        count: jest.fn(),
-      },
-      $transaction: jest.fn(),
-    }) as unknown as PrismaService;
+      findTeamById: jest.fn(),
+      findTournamentById: jest.fn(),
+      findCategoryById: jest.fn(),
+      findExistingActiveRegistration: jest.fn(),
+      findDetailById: jest.fn(),
+      findEditableById: jest.fn(),
+      list: jest.fn(),
+      createPendingRegistration: jest.fn(),
+      addRosterEntry: jest.fn(),
+      findRosterConflicts: jest.fn(),
+      countScheduledRegularMatches: jest.fn(),
+      countRemainingRegularMatches: jest.fn(),
+      approveRegistration: jest.fn(),
+      rejectRegistration: jest.fn(),
+      deleteRegistration: jest.fn(),
+    });
 
-  const createEligibilityMock = () =>
+  const createRosterContextMock = (): jest.Mocked<RegistrationRosterContextPort> =>
+    ({
+      resolvePlayers: jest.fn(),
+    });
+
+  const createEligibilityMock = (): jest.Mocked<RegistrationEligibilityPort> =>
     ({
       assertProfileEligibleForRegistration: jest.fn(),
       assertTeamEligibleForRegistration: jest.fn(),
-    }) as unknown as EligibilityService;
+    });
+
+  const createEventsMock = (): jest.Mocked<RegistrationEventsPort> =>
+    ({
+      emitApproved: jest.fn(),
+      emitRejected: jest.fn(),
+    });
 
   it('rejects creating a registration with fewer than 8 players', async () => {
-    const prisma = createPrismaMock();
-    const service = new RegistrationsService(prisma, createEligibilityMock());
+    const service = new RegistrationsService(
+      createRepositoryMock(),
+      createRosterContextMock(),
+      createEligibilityMock(),
+      createEventsMock(),
+    );
 
     await expect(
       service.create(
@@ -66,9 +76,10 @@ describe('RegistrationsService', () => {
   });
 
   it('rejects roster additions when the registration status is not editable', async () => {
-    const prisma = createPrismaMock();
+    const repository = createRepositoryMock();
+    const rosterContext = createRosterContextMock();
     const eligibility = createEligibilityMock();
-    prisma.registration.findUnique = jest.fn().mockResolvedValue({
+    repository.findEditableById.mockResolvedValue({
       id: makeUuid(1),
       teamId: makeUuid(2),
       tournamentId: makeUuid(3),
@@ -82,7 +93,12 @@ describe('RegistrationsService', () => {
       rosterEntries: [],
     });
 
-    const service = new RegistrationsService(prisma, eligibility);
+    const service = new RegistrationsService(
+      repository,
+      rosterContext,
+      eligibility,
+      createEventsMock(),
+    );
 
     await expect(
       service.addRosterEntry(
@@ -94,32 +110,39 @@ describe('RegistrationsService', () => {
   });
 
   it('rejects creating a registration when the team is blocked', async () => {
-    const prisma = createPrismaMock();
+    const repository = createRepositoryMock();
     const eligibility = createEligibilityMock();
-    prisma.team.findUnique = jest.fn().mockResolvedValue({
+    repository.findTeamById.mockResolvedValue({
       id: makeUuid(100),
-      sportId: makeUuid(500),
       name: 'Team Overtime',
+      sportId: makeUuid(500),
     });
-    prisma.tournament.findUnique = jest.fn().mockResolvedValue({
+    repository.findTournamentById.mockResolvedValue({
       id: makeUuid(200),
       status: 'OPEN',
+      name: 'Apertura',
       registrationStartDate: null,
       registrationEndDate: null,
     });
-    prisma.category.findUnique = jest.fn().mockResolvedValue({
+    repository.findCategoryById.mockResolvedValue({
       id: makeUuid(300),
       tournamentId: makeUuid(200),
+      name: 'A',
       tournament: {
         sportId: makeUuid(500),
       },
-      name: 'A',
     });
+    repository.findExistingActiveRegistration.mockResolvedValue(null);
     (eligibility.assertTeamEligibleForRegistration as jest.Mock).mockRejectedValue(
       new BadRequestException('blocked'),
     );
 
-    const service = new RegistrationsService(prisma, eligibility);
+    const service = new RegistrationsService(
+      repository,
+      createRosterContextMock(),
+      eligibility,
+      createEventsMock(),
+    );
 
     await expect(
       service.create(
