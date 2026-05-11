@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AuthService } from '../../auth.service';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class GetProfileUseCase {
-  constructor(private readonly legacy: AuthService) {}
+  constructor(private readonly auth: AuthService) {}
 
   async execute(supabaseUserId: string) {
-    return this.legacy.getProfile(supabaseUserId);
+    return this.auth.getProfile(supabaseUserId);
   }
 }

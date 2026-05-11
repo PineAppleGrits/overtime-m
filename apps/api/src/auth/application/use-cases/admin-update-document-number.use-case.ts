@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AuthService } from '../../auth.service';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AdminUpdateDocumentNumberUseCase {
-  constructor(private readonly legacy: AuthService) {}
+  constructor(private readonly auth: AuthService) {}
 
   async execute(profileId: string, documentNumber: string) {
-    return this.legacy.adminUpdateDocumentNumber(profileId, documentNumber);
+    return this.auth.adminUpdateDocumentNumber(profileId, documentNumber);
   }
 }

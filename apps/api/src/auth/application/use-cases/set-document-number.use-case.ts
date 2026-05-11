@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AuthService } from '../../auth.service';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class SetDocumentNumberUseCase {
-  constructor(private readonly legacy: AuthService) {}
+  constructor(private readonly auth: AuthService) {}
 
   async execute(supabaseUserId: string, documentNumber: string) {
-    return this.legacy.setDocumentNumber(supabaseUserId, documentNumber);
+    return this.auth.setDocumentNumber(supabaseUserId, documentNumber);
   }
 }
