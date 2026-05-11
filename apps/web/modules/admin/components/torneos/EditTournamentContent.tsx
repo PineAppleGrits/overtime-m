@@ -424,13 +424,30 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
           backHref="/admin/torneos"
           actions={
             <div className="flex flex-wrap items-center gap-2">
-              {transitions.map((tr) => (
-                <Button key={tr.status} variant="outline" size="sm" className="border-[#e8e6e1]" onClick={() => changeStatusAct.execute({ id: tournamentId, status: tr.status })}>
+              {transitions.map((tr, idx) => (
+                <Button
+                  key={tr.status}
+                  size="sm"
+                  variant={idx === 0 ? 'default' : 'outline'}
+                  className={
+                    idx === 0
+                      ? 'bg-[#ff3b2f] hover:bg-[#e5352a] text-white'
+                      : 'border-[#e8e6e1]'
+                  }
+                  disabled={changeStatusAct.isPending}
+                  onClick={() => changeStatusAct.execute({ id: tournamentId, status: tr.status })}
+                >
                   {tr.label}
                 </Button>
               ))}
               {canCancel && (
-                <Button variant="outline" size="sm" className="text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => changeStatusAct.execute({ id: tournamentId, status: 'CANCELLED' })}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                  disabled={changeStatusAct.isPending}
+                  onClick={() => changeStatusAct.execute({ id: tournamentId, status: 'CANCELLED' })}
+                >
                   Cancelar torneo
                 </Button>
               )}
