@@ -31,21 +31,8 @@ export interface TeamBalance {
   suspensions: Suspension[]
 }
 
-const EMPTY_BALANCE: TeamBalance = {
-  totalDebt: 0,
-  totalPaid: 0,
-  pendingConfirmation: 0,
-  registrations: [],
-  suspensions: [],
-}
-
 /** BE-MOCK-004 — balance financiero + suspensiones del team. */
 export async function getTeamBalance(teamId: string): Promise<TeamBalance> {
-  try {
-    const { data } = await client.get<TeamBalance>(`/teams/${teamId}/balance`)
-    return data
-  } catch (error) {
-    console.error('Error fetching team balance:', error)
-    return EMPTY_BALANCE
-  }
+  const { data } = await client.get<TeamBalance>(`/teams/${teamId}/balance`)
+  return data
 }

@@ -7,13 +7,16 @@ import type {
   TeamStatsResponse,
 } from '@/modules/match/PlayerStatsService'
 import teamService from '@/modules/team/TeamService'
-import { Settings, Star, UserPlus } from 'lucide-react'
+import { ErrorState } from '@/modules/common/components/ErrorState'
+import { AlertCircle, Settings, Star, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AddPlayerDialog } from './AddPlayerDialog'
 import { LeaveTeamButton } from './LeaveTeamButton'
 import { LogoEditButton } from './LogoEditButton'
 import { RemovePlayerButton } from './RemovePlayerButton'
+
+type MatchPreviews = Awaited<ReturnType<typeof teamService.getTeamMatches>>
 
 const DEFAULT_PLAYER_PHOTO = '/player-placeholder.png'
 
@@ -61,36 +64,44 @@ async function getTeam(id: string): Promise<TeamDetail | null> {
   }
 }
 
-async function getTeamMatchPreviews(id: string) {
+type FetchResult<T> = { data: T | null; error: boolean }
+
+async function getTeamMatchPreviewsSafe(
+  id: string,
+): Promise<FetchResult<MatchPreviews>> {
   try {
-    return await teamService.getTeamMatches(id)
-  } catch {
-    return { lastMatch: null, nextMatch: null }
+    const data = await teamService.getTeamMatches(id)
+    return { data, error: false }
+  } catch (err) {
+    console.error('Error fetching team match previews:', err)
+    return { data: null, error: true }
   }
 }
 
-const EMPTY_TEAM_STATS: TeamStatsResponse = {
-  playedMatches: 0,
-  won: 0,
-  lost: 0,
-  pointsFor: 0,
-  pointsAgainst: 0,
-}
-
-async function getTeamStatsSafe(id: string): Promise<TeamStatsResponse> {
+async function getTeamStatsSafe(
+  id: string,
+): Promise<FetchResult<TeamStatsResponse>> {
   try {
-    return await playerStatsService.getTeamStats(id)
-  } catch {
-    return EMPTY_TEAM_STATS
+    const data = await playerStatsService.getTeamStats(id)
+    return { data, error: false }
+  } catch (err) {
+    console.error('Error fetching team stats:', err)
+    return { data: null, error: true }
   }
 }
 
-async function getPlayerStatsByProfile(id: string): Promise<Record<string, TeamPlayerStatRow>> {
+async function getPlayerStatsByProfileSafe(
+  id: string,
+): Promise<FetchResult<Record<string, TeamPlayerStatRow>>> {
   try {
     const rows = await playerStatsService.getTeamPlayerStats(id)
-    return Object.fromEntries(rows.map((r) => [r.profileId, r]))
-  } catch {
-    return {}
+    return {
+      data: Object.fromEntries(rows.map((r) => [r.profileId, r])),
+      error: false,
+    }
+  } catch (err) {
+    console.error('Error fetching player stats:', err)
+    return { data: null, error: true }
   }
 }
 
@@ -101,18 +112,23 @@ function avg(total: number, played: number): string {
 
 export default async function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [team, profile, matchPreviews, teamStats, playerStats] = await Promise.all([
-    getTeam(id),
-    getProfile(),
-    getTeamMatchPreviews(id),
-    getTeamStatsSafe(id),
-    getPlayerStatsByProfile(id),
-  ])
+  const [team, profile, matchPreviewsResult, teamStatsResult, playerStatsResult] =
+    await Promise.all([
+      getTeam(id),
+      getProfile(),
+      getTeamMatchPreviewsSafe(id),
+      getTeamStatsSafe(id),
+      getPlayerStatsByProfileSafe(id),
+    ])
 
   if (!team) notFound()
 
   const activeMembers = team.members.filter((m) => m.isActive)
-  const { lastMatch, nextMatch } = matchPreviews
+  const { data: matchPreviews, error: matchesError } = matchPreviewsResult
+  const { data: teamStats, error: teamStatsError } = teamStatsResult
+  const { data: playerStats, error: playerStatsError } = playerStatsResult
+  const lastMatch = matchPreviews?.lastMatch ?? null
+  const nextMatch = matchPreviews?.nextMatch ?? null
 
   const isAdmin = profile ? hasAdminRole(profile) : false
   const isCreator = profile?.id === team.creatorId
@@ -189,59 +205,79 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
 
       {/* ── STAT CARDS (estadísticas del equipo) ── */}
       <div className="flex justify-center mt-10 px-4">
-        <div className="grid gap-1 lg:gap-1.5 grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              label: 'PROM. PUNTOS\nPOR PARTIDO',
-              value: teamStats ? avg(teamStats.pointsFor, teamStats.playedMatches) : '-',
-            },
-            {
-              label: 'PROM. PUNTOS\nRECIBIDOS',
-              value: teamStats ? avg(teamStats.pointsAgainst, teamStats.playedMatches) : '-',
-            },
-            {
-              label: 'PARTIDOS\nGANADOS',
-              value: teamStats?.won ?? '-',
-            },
-            {
-              label: 'PARTIDOS\nPERDIDOS',
-              value: teamStats?.lost ?? '-',
-            },
-          ].map((stat) => (
-            <div key={stat.label} className="w-42.5">
-              <div className="bg-ot-light-blue rounded-t-sm py-2 px-2 flex justify-center items-center min-h-[36px] text-[0.58rem] text-center font-din-display">
-                <span className="opacity-60 text-white uppercase whitespace-pre-line leading-tight">
-                  {stat.label}
-                </span>
+        {teamStatsError ? (
+          <div className="w-full max-w-sm">
+            <ErrorState
+              title="No pudimos cargar las estadísticas"
+              description="Hubo un problema al obtener los datos del equipo. Probá nuevamente."
+            />
+          </div>
+        ) : (
+          <div className="grid gap-1 lg:gap-1.5 grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                label: 'PROM. PUNTOS\nPOR PARTIDO',
+                value: teamStats ? avg(teamStats.pointsFor, teamStats.playedMatches) : '-',
+              },
+              {
+                label: 'PROM. PUNTOS\nRECIBIDOS',
+                value: teamStats ? avg(teamStats.pointsAgainst, teamStats.playedMatches) : '-',
+              },
+              {
+                label: 'PARTIDOS\nGANADOS',
+                value: teamStats?.won ?? '-',
+              },
+              {
+                label: 'PARTIDOS\nPERDIDOS',
+                value: teamStats?.lost ?? '-',
+              },
+            ].map((stat) => (
+              <div key={stat.label} className="w-42.5">
+                <div className="bg-ot-light-blue rounded-t-sm py-2 px-2 flex justify-center items-center min-h-[36px] text-[0.58rem] text-center font-din-display">
+                  <span className="opacity-60 text-white uppercase whitespace-pre-line leading-tight">
+                    {stat.label}
+                  </span>
+                </div>
+                <div className="bg-ot-dark-blue rounded-b-sm py-2 flex justify-center items-center text-ot-orange text-3xl text-center font-din-display font-bold">
+                  {stat.value}
+                </div>
               </div>
-              <div className="bg-ot-dark-blue rounded-b-sm py-2 flex justify-center items-center text-ot-orange text-3xl text-center font-din-display font-bold">
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── MATCHES ── */}
-      {(lastMatch || nextMatch) && (
-        <div className="flex flex-wrap justify-center gap-12 bg-ot-background px-4 pt-12">
-          {lastMatch && (
-            <div className="flex flex-col gap-3 items-center w-full max-w-[450px]">
-              <span className="text-ot-orange text-sm text-center font-din-display font-bold uppercase tracking-wider">
-                Último partido
-              </span>
-              <MatchPreview match={lastMatch} />
-            </div>
-          )}
-          {nextMatch && (
-            <div className="flex flex-col gap-3 items-center w-full max-w-[450px]">
-              <span className="text-ot-orange text-sm text-center font-din-display font-bold uppercase tracking-wider">
-                Próximo partido
-              </span>
-              <MatchPreview match={nextMatch} />
-            </div>
-          )}
+      {matchesError ? (
+        <div className="flex justify-center bg-ot-background px-4 pt-12">
+          <div className="w-full max-w-sm">
+            <ErrorState
+              title="No pudimos cargar los partidos"
+              description="No se pudo obtener el último y próximo partido. Probá nuevamente."
+            />
+          </div>
         </div>
+      ) : (
+        (lastMatch || nextMatch) && (
+          <div className="flex flex-wrap justify-center gap-12 bg-ot-background px-4 pt-12">
+            {lastMatch && (
+              <div className="flex flex-col gap-3 items-center w-full max-w-[450px]">
+                <span className="text-ot-orange text-sm text-center font-din-display font-bold uppercase tracking-wider">
+                  Último partido
+                </span>
+                <MatchPreview match={lastMatch} />
+              </div>
+            )}
+            {nextMatch && (
+              <div className="flex flex-col gap-3 items-center w-full max-w-[450px]">
+                <span className="text-ot-orange text-sm text-center font-din-display font-bold uppercase tracking-wider">
+                  Próximo partido
+                </span>
+                <MatchPreview match={nextMatch} />
+              </div>
+            )}
+          </div>
+        )
       )}
 
       {/* ── TEAM ACTIONS ── */}
@@ -258,6 +294,17 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
         </span>
 
         <div className="p-2 flex flex-col gap-4">
+          {playerStatsError && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 w-full max-w-sm rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2"
+            >
+              <AlertCircle className="size-4 shrink-0 text-amber-400 mt-0.5" aria-hidden="true" />
+              <p className="text-xs text-amber-200/90">
+                No pudimos cargar las estadísticas individuales. Mostramos la lista de jugadores sin datos por partido.
+              </p>
+            </div>
+          )}
           <div className="p-1 w-full rounded-md max-w-sm">
 
             {/* Table header */}
@@ -275,7 +322,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                 const isLast = index === activeMembers.length - 1
                 const isMemberCaptain = member.profile.id === team.captainId
                 const isMemberCreator = member.profile.id === team.creatorId
-                const stats = playerStats[member.profile.id]
+                const stats = playerStats?.[member.profile.id]
                 const photoSrc = stats?.profileAvatarUrl ?? member.profile.avatarUrl ?? DEFAULT_PLAYER_PHOTO
 
                 return (

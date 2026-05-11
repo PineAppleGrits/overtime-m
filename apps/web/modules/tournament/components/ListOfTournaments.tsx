@@ -3,6 +3,8 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Calendar, ChevronRight, Trophy } from "lucide-react"
 import TournamentService from "../TournamentService"
+import { isPubliclyVisibleTournament } from "../constants"
+import { ErrorState } from "@/modules/common/components/ErrorState"
 
 function formatRegistrationPeriod(
   start?: string | null,
@@ -28,19 +30,26 @@ function formatRegistrationPeriod(
 const getTorneos = async () => {
   try {
     const data = await TournamentService.getTournaments()
-    return data
+    return { data, error: false as const }
   } catch (error) {
     console.error(error)
-    return {
-      data: [],
-      meta: { total: 0, page: 1, limit: 10, totalPages: 0 },
-    }
+    return { data: null, error: true as const }
   }
 }
 
 export async function ListOfTournaments() {
-  const { data: tournaments } = await getTorneos()
-  const filteredTournaments = tournaments.filter((t) => !t.hidden)
+  const result = await getTorneos()
+
+  if (result.error || !result.data) {
+    return (
+      <ErrorState
+        title="No pudimos cargar los torneos"
+        description="Hubo un problema al obtener el listado. Probá nuevamente en unos segundos."
+      />
+    )
+  }
+
+  const filteredTournaments = result.data.data.filter(isPubliclyVisibleTournament)
 
   if (filteredTournaments.length === 0) {
     return (

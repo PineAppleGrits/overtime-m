@@ -5,6 +5,7 @@ import { CategoryTabs } from './CategoryTabs'
 import { StandingsTable } from './StandingsTable'
 import { FixtureView } from './FixtureView'
 import { MyTeamTab } from './MyTeamTab'
+import { ErrorState } from '@/modules/common/components/ErrorState'
 import type {
   CategoryFixtureResponse,
   CategoryStandingsResponse,
@@ -20,6 +21,8 @@ interface CategoryDetailContentProps {
   canManageTeam?: boolean
   standings: CategoryStandingsResponse
   fixture: CategoryFixtureResponse
+  standingsError?: boolean
+  fixtureError?: boolean
 }
 
 export function CategoryDetailContent({
@@ -32,6 +35,8 @@ export function CategoryDetailContent({
   canManageTeam = false,
   standings,
   fixture,
+  standingsError = false,
+  fixtureError = false,
 }: CategoryDetailContentProps) {
   const [activeTab, setActiveTab] = useState('fixture')
 
@@ -50,7 +55,14 @@ export function CategoryDetailContent({
 
       {activeTab === 'posiciones' && (
         <div className="ot-container">
-          {hasStandings ? (
+          {standingsError ? (
+            <div className="py-10">
+              <ErrorState
+                title="No pudimos cargar las posiciones"
+                description="Hubo un problema al obtener la tabla. Probá nuevamente."
+              />
+            </div>
+          ) : hasStandings ? (
             standings.zones.map((zone) => (
               <StandingsTable
                 key={zone.id}
@@ -67,7 +79,14 @@ export function CategoryDetailContent({
       )}
 
       {activeTab === 'fixture' && (
-        hasFixture ? (
+        fixtureError ? (
+          <div className="ot-container py-10">
+            <ErrorState
+              title="No pudimos cargar el fixture"
+              description="Hubo un problema al obtener los partidos. Probá nuevamente."
+            />
+          </div>
+        ) : hasFixture ? (
           <FixtureView rounds={fixture.rounds} />
         ) : (
           <div className="ot-container">

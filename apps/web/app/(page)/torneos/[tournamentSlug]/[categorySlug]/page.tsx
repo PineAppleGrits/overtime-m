@@ -10,9 +10,25 @@ import { CategoryDetailContent } from "@/modules/tournament/components/CategoryD
 import TournamentService from "@/modules/tournament/TournamentService"
 import { notFound } from "next/navigation"
 
+type FetchResult<T> = { data: T; error: boolean }
+
 const EMPTY_STANDINGS: CategoryStandingsResponse = { zones: [] }
 const EMPTY_FIXTURE: CategoryFixtureResponse = { rounds: [] }
 const EMPTY_REGISTRATIONS: { data: [] } = { data: [] }
+
+async function safeFetch<T>(
+  promise: Promise<T>,
+  fallback: T,
+  errorLabel: string,
+): Promise<FetchResult<T>> {
+  try {
+    const data = await promise
+    return { data, error: false }
+  } catch (err) {
+    console.error(`Error fetching ${errorLabel}:`, err)
+    return { data: fallback, error: true }
+  }
+}
 
 export default async function CategoryPage({
   params,
@@ -39,12 +55,22 @@ export default async function CategoryPage({
 
   if (!category || !tournament) notFound()
 
-  const [registrationsResponse, standings, fixture] = await Promise.all([
-    RegistrationService.getRegistrations({ categoryId: category.id, limit: 500 }).catch(
-      () => EMPTY_REGISTRATIONS,
+  const [registrationsResult, standingsResult, fixtureResult] = await Promise.all([
+    safeFetch(
+      RegistrationService.getRegistrations({ categoryId: category.id, limit: 500 }),
+      EMPTY_REGISTRATIONS as { data: unknown[] },
+      'registrations',
     ),
-    categoryService.getCategoryStandings(category.id).catch(() => EMPTY_STANDINGS),
-    categoryService.getCategoryFixture(category.id).catch(() => EMPTY_FIXTURE),
+    safeFetch(
+      categoryService.getCategoryStandings(category.id),
+      EMPTY_STANDINGS,
+      'standings',
+    ),
+    safeFetch(
+      categoryService.getCategoryFixture(category.id),
+      EMPTY_FIXTURE,
+      'fixture',
+    ),
   ])
 
   const registrations: {
@@ -52,7 +78,7 @@ export default async function CategoryPage({
     requester?: { id?: string }
     team?: { id?: string }
     rosterEntries?: { profileId?: string }[]
-  }[] = registrationsResponse?.data ?? []
+  }[] = (registrationsResult.data?.data ?? []) as typeof registrations
 
   const myRegistration = profile
     ? registrations.find(
@@ -85,8 +111,10 @@ export default async function CategoryPage({
         myTeamId={myRegistration?.team?.id}
         categoryId={category.id}
         canManageTeam={canManageTeam}
-        standings={standings}
-        fixture={fixture}
+        standings={standingsResult.data}
+        fixture={fixtureResult.data}
+        standingsError={standingsResult.error}
+        fixtureError={fixtureResult.error}
       />
     </div>
   )

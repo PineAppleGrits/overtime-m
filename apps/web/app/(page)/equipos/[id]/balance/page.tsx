@@ -14,7 +14,9 @@ import {
   getTeamBalance,
   type RegistrationBalance,
   type Suspension,
+  type TeamBalance,
 } from '@/modules/team/TeamBalanceService'
+import { ErrorState } from '@/modules/common/components/ErrorState'
 
 interface TeamDetail {
   id: string
@@ -146,16 +148,28 @@ function SuspensionCard({ suspension }: { suspension: Suspension }) {
   )
 }
 
+async function getBalanceSafe(
+  id: string,
+): Promise<{ data: TeamBalance | null; error: boolean }> {
+  try {
+    const data = await getTeamBalance(id)
+    return { data, error: false }
+  } catch (err) {
+    console.error('Error fetching team balance:', err)
+    return { data: null, error: true }
+  }
+}
+
 export default async function TeamBalancePage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [team, profile, balance] = await Promise.all([
+  const [team, profile, balanceResult] = await Promise.all([
     getTeam(id),
     getProfile(),
-    getTeamBalance(id),
+    getBalanceSafe(id),
   ])
 
   if (!team) notFound()
@@ -165,6 +179,8 @@ export default async function TeamBalancePage({
   const isCreator = profile?.id === team.creatorId
 
   if (!isCaptain && !isCreator && !isAdmin) notFound()
+
+  const { data: balance, error: balanceError } = balanceResult
 
   return (
     <div className="bg-ot-background text-white min-h-screen">
@@ -186,6 +202,13 @@ export default async function TeamBalancePage({
           </h1>
         </div>
 
+        {balanceError || !balance ? (
+          <ErrorState
+            title="No pudimos cargar tus deudas"
+            description="Hubo un problema al obtener el balance del equipo. Probá nuevamente en unos segundos."
+          />
+        ) : (
+          <>
         {/* Stat cards */}
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl border border-ot-light-blue/50 bg-ot-dark-blue/30 p-4 text-center">
@@ -249,6 +272,8 @@ export default async function TeamBalancePage({
             </div>
           )}
         </section>
+          </>
+        )}
       </div>
     </div>
   )
