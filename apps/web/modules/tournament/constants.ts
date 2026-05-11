@@ -1,6 +1,16 @@
-import { TournamentStatus } from '@overtime-mono/shared'
+export const TournamentStatus = {
+  DRAFT: 'DRAFT',
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED',
+  READY_TO_SHIP: 'READY_TO_SHIP',
+  IN_PROGRESS: 'IN_PROGRESS',
+  FINISHED: 'FINISHED',
+  ARCHIVED: 'ARCHIVED',
+  CANCELLED: 'CANCELLED',
+} as const
 
-export { TournamentStatus }
+export type TournamentStatus =
+  (typeof TournamentStatus)[keyof typeof TournamentStatus]
 
 export const PUBLIC_TOURNAMENT_STATUSES: readonly TournamentStatus[] = [
   TournamentStatus.OPEN,
