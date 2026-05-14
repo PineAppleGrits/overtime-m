@@ -195,7 +195,7 @@ export class RegistrationsService {
       throw new NotFoundException('Tournament not found');
     }
 
-    if (tournament.status !== 'OPEN') {
+    if (tournament.status !== 'INSCRIPTION_OPEN') {
       throw new BadRequestException(
         `Tournament is not accepting registrations. Current status: ${tournament.status}`,
       );

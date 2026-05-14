@@ -131,4 +131,26 @@ export class PrismaTournamentRepository implements ITournamentRepository {
       data: { status },
     });
   }
+
+  countCategories(tournamentId: string): Promise<number> {
+    return this.prisma.category.count({
+      where: { tournamentId, deletedAt: null },
+    });
+  }
+
+  async findCategoriesWithoutFixture(
+    tournamentId: string,
+  ): Promise<Array<{ id: string; name: string }>> {
+    const categories = await this.prisma.category.findMany({
+      where: { tournamentId, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { matches: true } },
+      },
+    });
+    return categories
+      .filter((c) => c._count.matches === 0)
+      .map((c) => ({ id: c.id, name: c.name }));
+  }
 }

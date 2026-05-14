@@ -119,7 +119,7 @@ describe('RegistrationsService', () => {
     });
     repository.findTournamentById.mockResolvedValue({
       id: makeUuid(200),
-      status: 'OPEN',
+      status: 'INSCRIPTION_OPEN',
       name: 'Apertura',
       registrationStartDate: null,
       registrationEndDate: null,

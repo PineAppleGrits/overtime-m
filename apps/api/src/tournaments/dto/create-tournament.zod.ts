@@ -2,13 +2,13 @@ import { z } from 'zod';
 
 export const TournamentStatusEnum = z.enum([
   'DRAFT',
-  'OPEN',
-  'CLOSED',
-  'READY_TO_SHIP',
+  'PUBLISHED',
+  'INSCRIPTION_OPEN',
+  'INSCRIPTION_CLOSED',
   'IN_PROGRESS',
+  'PLAYING',
   'FINISHED',
   'ARCHIVED',
-  'CANCELLED',
 ]);
 
 export const createTournamentSchema = z

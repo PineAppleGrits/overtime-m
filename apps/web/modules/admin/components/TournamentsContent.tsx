@@ -47,30 +47,25 @@ const TOURNAMENTS_QUERY_KEY = ['admin', 'tournaments'] as const
  * Valid status transitions as defined by the backend state machine.
  */
 const STATUS_TRANSITIONS: Record<TournamentStatus, { status: TournamentStatus; label: string }[]> = {
-  DRAFT: [
-    { status: 'OPEN', label: 'Abrir inscripciones' },
-  ],
-  OPEN: [
-    { status: 'CLOSED', label: 'Cerrar inscripciones' },
-  ],
-  CLOSED: [
-    { status: 'READY_TO_SHIP', label: 'Marcar listo para arrancar' },
-  ],
-  READY_TO_SHIP: [
-    { status: 'IN_PROGRESS', label: 'Iniciar torneo' },
-  ],
-  IN_PROGRESS: [
-    { status: 'FINISHED', label: 'Finalizar torneo' },
-  ],
-  FINISHED: [
-    { status: 'ARCHIVED', label: 'Archivar' },
-  ],
+  DRAFT: [{ status: 'PUBLISHED', label: 'Publicar' }],
+  PUBLISHED: [{ status: 'INSCRIPTION_OPEN', label: 'Abrir inscripciones' }],
+  INSCRIPTION_OPEN: [{ status: 'INSCRIPTION_CLOSED', label: 'Cerrar inscripciones' }],
+  INSCRIPTION_CLOSED: [{ status: 'IN_PROGRESS', label: 'Pasar a armado' }],
+  IN_PROGRESS: [{ status: 'PLAYING', label: 'Comenzar torneo' }],
+  PLAYING: [{ status: 'FINISHED', label: 'Finalizar torneo' }],
+  FINISHED: [{ status: 'ARCHIVED', label: 'Archivar' }],
   ARCHIVED: [],
-  CANCELLED: [],
 }
 
-/** Statuses that can be cancelled from. */
-const CANCELLABLE: TournamentStatus[] = ['DRAFT', 'OPEN', 'CLOSED', 'READY_TO_SHIP', 'IN_PROGRESS']
+/** Statuses from which the tournament can be archived directly. */
+const ARCHIVABLE_STATUSES: TournamentStatus[] = [
+  'DRAFT',
+  'PUBLISHED',
+  'INSCRIPTION_OPEN',
+  'INSCRIPTION_CLOSED',
+  'IN_PROGRESS',
+  'PLAYING',
+]
 
 function normaliseTournamentsResponse(raw: unknown): {
   data: AdminTournament[]
@@ -223,7 +218,7 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
       className: 'w-auto',
       render: (t) => {
         const transitions = STATUS_TRANSITIONS[t.status] ?? []
-        const canCancel = CANCELLABLE.includes(t.status)
+        const canArchive = ARCHIVABLE_STATUSES.includes(t.status)
 
         return (
           <div className="flex items-center gap-1">
@@ -259,9 +254,9 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
                   {tr.label}
                 </DropdownMenuItem>
               ))}
-              {canCancel && (
-                <DropdownMenuItem className="text-amber-600" onClick={() => handleStatusChange(t.id, 'CANCELLED')}>
-                  Cancelar torneo
+              {canArchive && (
+                <DropdownMenuItem className="text-amber-600" onClick={() => handleStatusChange(t.id, 'ARCHIVED')}>
+                  Archivar
                 </DropdownMenuItem>
               )}
 
@@ -307,13 +302,13 @@ export function TournamentsContent({ initialData }: TournamentsContentProps) {
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="DRAFT">Borrador</SelectItem>
-            <SelectItem value="OPEN">Abierto</SelectItem>
-            <SelectItem value="CLOSED">Cerrado</SelectItem>
-            <SelectItem value="READY_TO_SHIP">Listo para arrancar</SelectItem>
-            <SelectItem value="IN_PROGRESS">En curso</SelectItem>
+            <SelectItem value="PUBLISHED">Publicado</SelectItem>
+            <SelectItem value="INSCRIPTION_OPEN">Inscripciones abiertas</SelectItem>
+            <SelectItem value="INSCRIPTION_CLOSED">Inscripciones cerradas</SelectItem>
+            <SelectItem value="IN_PROGRESS">Armando fixture</SelectItem>
+            <SelectItem value="PLAYING">En juego</SelectItem>
             <SelectItem value="FINISHED">Finalizado</SelectItem>
             <SelectItem value="ARCHIVED">Archivado</SelectItem>
-            <SelectItem value="CANCELLED">Cancelado</SelectItem>
           </SelectContent>
         </Select>
       </div>

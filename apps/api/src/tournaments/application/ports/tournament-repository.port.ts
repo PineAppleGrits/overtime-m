@@ -66,6 +66,12 @@ export interface ITournamentRepository {
     id: string,
     status: TournamentStatus,
   ): Promise<TournamentRecord>;
+  /** Cantidad de categorías no eliminadas del torneo. */
+  countCategories(tournamentId: string): Promise<number>;
+  /** IDs de categorías del torneo que NO tienen aún partidos generados (fixture pendiente). */
+  findCategoriesWithoutFixture(
+    tournamentId: string,
+  ): Promise<Array<{ id: string; name: string }>>;
 }
 
 export const TOURNAMENT_REPOSITORY = Symbol('TOURNAMENT_REPOSITORY');

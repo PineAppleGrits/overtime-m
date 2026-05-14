@@ -53,27 +53,31 @@ export class TournamentsService {
   }
 
   /**
-   * Aplicar transiciones automáticas de estado basadas en fechas
+   * Aplica transiciones automáticas de estado basadas en fechas:
+   * - PUBLISHED → INSCRIPTION_OPEN cuando `registrationStartDate ≤ now`
+   * - INSCRIPTION_OPEN → INSCRIPTION_CLOSED cuando `registrationEndDate ≤ now`
+   *
+   * Notas:
+   * - Esta versión no contempla cupos llenos (se evalúa al inscribirse).
+   * - No mueve nada hacia PLAYING/FINISHED: esas transiciones son manuales.
    */
   private async applyAutomaticStatusTransitions(): Promise<void> {
     const now = new Date();
 
     await this.prisma.tournament.updateMany({
       where: {
-        status: TournamentStatus.OPEN,
-        registrationEndDate: { lte: now },
+        status: TournamentStatus.PUBLISHED,
+        registrationStartDate: { lte: now },
       },
-      data: { status: TournamentStatus.CLOSED },
+      data: { status: TournamentStatus.INSCRIPTION_OPEN },
     });
 
     await this.prisma.tournament.updateMany({
       where: {
-        status: {
-          in: [TournamentStatus.CLOSED, TournamentStatus.READY_TO_SHIP],
-        },
-        endDate: { lte: now },
+        status: TournamentStatus.INSCRIPTION_OPEN,
+        registrationEndDate: { lte: now },
       },
-      data: { status: TournamentStatus.FINISHED },
+      data: { status: TournamentStatus.INSCRIPTION_CLOSED },
     });
   }
 

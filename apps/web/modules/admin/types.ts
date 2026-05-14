@@ -5,13 +5,13 @@
 // ============ Tournament Types ============
 export type TournamentStatus =
   | 'DRAFT'
-  | 'OPEN'
-  | 'CLOSED'
-  | 'READY_TO_SHIP'
+  | 'PUBLISHED'
+  | 'INSCRIPTION_OPEN'
+  | 'INSCRIPTION_CLOSED'
   | 'IN_PROGRESS'
+  | 'PLAYING'
   | 'FINISHED'
   | 'ARCHIVED'
-  | 'CANCELLED'
 
 export type FixtureFormat = 'SINGLE_ROUND' | 'DOUBLE_ROUND'
 

@@ -9,11 +9,12 @@ import {
 describe('status-transitions.rules', () => {
   describe('isValidStatusTransition (camino feliz)', () => {
     const happyPath: Array<[TournamentStatus, TournamentStatus]> = [
-      [TournamentStatus.DRAFT, TournamentStatus.OPEN],
-      [TournamentStatus.OPEN, TournamentStatus.CLOSED],
-      [TournamentStatus.CLOSED, TournamentStatus.READY_TO_SHIP],
-      [TournamentStatus.READY_TO_SHIP, TournamentStatus.IN_PROGRESS],
-      [TournamentStatus.IN_PROGRESS, TournamentStatus.FINISHED],
+      [TournamentStatus.DRAFT, TournamentStatus.PUBLISHED],
+      [TournamentStatus.PUBLISHED, TournamentStatus.INSCRIPTION_OPEN],
+      [TournamentStatus.INSCRIPTION_OPEN, TournamentStatus.INSCRIPTION_CLOSED],
+      [TournamentStatus.INSCRIPTION_CLOSED, TournamentStatus.IN_PROGRESS],
+      [TournamentStatus.IN_PROGRESS, TournamentStatus.PLAYING],
+      [TournamentStatus.PLAYING, TournamentStatus.FINISHED],
       [TournamentStatus.FINISHED, TournamentStatus.ARCHIVED],
     ];
 
@@ -22,84 +23,97 @@ describe('status-transitions.rules', () => {
     });
   });
 
-  describe('CANCELLED', () => {
-    it('se permite desde DRAFT, OPEN, CLOSED, READY_TO_SHIP e IN_PROGRESS', () => {
+  describe('ARCHIVED', () => {
+    it('se permite desde cualquier estado no terminal', () => {
       const allowed: TournamentStatus[] = [
         TournamentStatus.DRAFT,
-        TournamentStatus.OPEN,
-        TournamentStatus.CLOSED,
-        TournamentStatus.READY_TO_SHIP,
+        TournamentStatus.PUBLISHED,
+        TournamentStatus.INSCRIPTION_OPEN,
+        TournamentStatus.INSCRIPTION_CLOSED,
         TournamentStatus.IN_PROGRESS,
+        TournamentStatus.PLAYING,
+        TournamentStatus.FINISHED,
       ];
       for (const from of allowed) {
-        expect(isValidStatusTransition(from, TournamentStatus.CANCELLED)).toBe(
+        expect(isValidStatusTransition(from, TournamentStatus.ARCHIVED)).toBe(
           true,
         );
       }
     });
 
-    it('NO se permite desde FINISHED ni ARCHIVED', () => {
-      expect(
-        isValidStatusTransition(
-          TournamentStatus.FINISHED,
-          TournamentStatus.CANCELLED,
-        ),
-      ).toBe(false);
+    it('NO se permite desde ARCHIVED (terminal)', () => {
       expect(
         isValidStatusTransition(
           TournamentStatus.ARCHIVED,
-          TournamentStatus.CANCELLED,
+          TournamentStatus.FINISHED,
         ),
       ).toBe(false);
     });
   });
 
+  describe('rollbacks permitidos', () => {
+    it('PUBLISHED → DRAFT', () => {
+      expect(
+        isValidStatusTransition(
+          TournamentStatus.PUBLISHED,
+          TournamentStatus.DRAFT,
+        ),
+      ).toBe(true);
+    });
+
+    it('INSCRIPTION_CLOSED → INSCRIPTION_OPEN (reabrir)', () => {
+      expect(
+        isValidStatusTransition(
+          TournamentStatus.INSCRIPTION_CLOSED,
+          TournamentStatus.INSCRIPTION_OPEN,
+        ),
+      ).toBe(true);
+    });
+
+    it('IN_PROGRESS → INSCRIPTION_CLOSED', () => {
+      expect(
+        isValidStatusTransition(
+          TournamentStatus.IN_PROGRESS,
+          TournamentStatus.INSCRIPTION_CLOSED,
+        ),
+      ).toBe(true);
+    });
+  });
+
   describe('saltos inválidos', () => {
-    it('rechaza DRAFT → IN_PROGRESS', () => {
+    it('rechaza DRAFT → INSCRIPTION_OPEN', () => {
       expect(
         isValidStatusTransition(
           TournamentStatus.DRAFT,
-          TournamentStatus.IN_PROGRESS,
+          TournamentStatus.INSCRIPTION_OPEN,
         ),
       ).toBe(false);
     });
 
-    it('rechaza OPEN → FINISHED', () => {
+    it('rechaza INSCRIPTION_OPEN → FINISHED', () => {
       expect(
         isValidStatusTransition(
-          TournamentStatus.OPEN,
+          TournamentStatus.INSCRIPTION_OPEN,
           TournamentStatus.FINISHED,
         ),
       ).toBe(false);
     });
 
-    it('rechaza FINISHED → IN_PROGRESS', () => {
+    it('rechaza FINISHED → PLAYING', () => {
       expect(
         isValidStatusTransition(
           TournamentStatus.FINISHED,
-          TournamentStatus.IN_PROGRESS,
+          TournamentStatus.PLAYING,
         ),
       ).toBe(false);
-    });
-
-    it('rechaza retroceder a DRAFT desde cualquier otro estado', () => {
-      const others: TournamentStatus[] = [
-        TournamentStatus.OPEN,
-        TournamentStatus.CLOSED,
-        TournamentStatus.READY_TO_SHIP,
-        TournamentStatus.IN_PROGRESS,
-        TournamentStatus.FINISHED,
-      ];
-      for (const from of others) {
-        expect(isValidStatusTransition(from, TournamentStatus.DRAFT)).toBe(
-          false,
-        );
-      }
     });
 
     it('rechaza transiciones a sí mismo (no-op)', () => {
       expect(
-        isValidStatusTransition(TournamentStatus.OPEN, TournamentStatus.OPEN),
+        isValidStatusTransition(
+          TournamentStatus.INSCRIPTION_OPEN,
+          TournamentStatus.INSCRIPTION_OPEN,
+        ),
       ).toBe(false);
     });
   });
@@ -110,16 +124,11 @@ describe('status-transitions.rules', () => {
       expect(isTerminalStatus(TournamentStatus.ARCHIVED)).toBe(true);
     });
 
-    it('CANCELLED no tiene transiciones', () => {
-      expect(listAllowedTransitions(TournamentStatus.CANCELLED)).toEqual([]);
-      expect(isTerminalStatus(TournamentStatus.CANCELLED)).toBe(true);
-    });
-
-    it('FINISHED es terminal salvo ARCHIVED', () => {
+    it('FINISHED sólo permite ARCHIVED', () => {
       expect(listAllowedTransitions(TournamentStatus.FINISHED)).toEqual([
         TournamentStatus.ARCHIVED,
       ]);
-      expect(isTerminalStatus(TournamentStatus.FINISHED)).toBe(true);
+      expect(isTerminalStatus(TournamentStatus.FINISHED)).toBe(false);
     });
   });
 });

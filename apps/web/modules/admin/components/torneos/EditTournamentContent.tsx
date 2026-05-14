@@ -41,18 +41,39 @@ interface EditTournamentContentProps {
   sports: Sport[]
 }
 
+/**
+ * Botones de transición primarios por estado (orden = jerarquía visual).
+ * El primer botón se renderiza como CTA (rojo); el resto como outline.
+ * Las transiciones de "Archivar" se manejan aparte como botón secundario.
+ */
 const STATUS_TRANSITIONS: Record<TournamentStatus, { status: TournamentStatus; label: string }[]> = {
-  DRAFT: [{ status: 'OPEN', label: 'Abrir inscripciones' }],
-  OPEN: [{ status: 'CLOSED', label: 'Cerrar inscripciones' }],
-  CLOSED: [{ status: 'READY_TO_SHIP', label: 'Listo para arrancar' }],
-  READY_TO_SHIP: [{ status: 'IN_PROGRESS', label: 'Iniciar torneo' }],
-  IN_PROGRESS: [{ status: 'FINISHED', label: 'Finalizar torneo' }],
+  DRAFT: [{ status: 'PUBLISHED', label: 'Publicar' }],
+  PUBLISHED: [
+    { status: 'INSCRIPTION_OPEN', label: 'Abrir inscripciones' },
+    { status: 'DRAFT', label: 'Volver a borrador' },
+  ],
+  INSCRIPTION_OPEN: [{ status: 'INSCRIPTION_CLOSED', label: 'Cerrar inscripciones' }],
+  INSCRIPTION_CLOSED: [
+    { status: 'IN_PROGRESS', label: 'Pasar a armado' },
+    { status: 'INSCRIPTION_OPEN', label: 'Reabrir inscripciones' },
+  ],
+  IN_PROGRESS: [
+    { status: 'PLAYING', label: 'Comenzar torneo' },
+    { status: 'INSCRIPTION_CLOSED', label: 'Volver a inscripción cerrada' },
+  ],
+  PLAYING: [{ status: 'FINISHED', label: 'Finalizar' }],
   FINISHED: [{ status: 'ARCHIVED', label: 'Archivar' }],
   ARCHIVED: [],
-  CANCELLED: [],
 }
 
-const CANCELLABLE: TournamentStatus[] = ['DRAFT', 'OPEN', 'CLOSED', 'READY_TO_SHIP', 'IN_PROGRESS']
+const ARCHIVABLE_STATUSES: TournamentStatus[] = [
+  'DRAFT',
+  'PUBLISHED',
+  'INSCRIPTION_OPEN',
+  'INSCRIPTION_CLOSED',
+  'IN_PROGRESS',
+  'PLAYING',
+]
 
 function parseDate(val: string | null | undefined): Date | undefined {
   if (!val) return undefined
@@ -412,7 +433,7 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
   }
 
   const transitions = STATUS_TRANSITIONS[tournament.status] ?? []
-  const canCancel = CANCELLABLE.includes(tournament.status)
+  const canArchive = ARCHIVABLE_STATUSES.includes(tournament.status)
   const categories = tournament.categories ?? []
 
   return (
@@ -440,15 +461,15 @@ export function EditTournamentContent({ tournamentId, initialData, sports }: Edi
                   {tr.label}
                 </Button>
               ))}
-              {canCancel && (
+              {canArchive && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="text-amber-600 border-amber-200 hover:bg-amber-50"
                   disabled={changeStatusAct.isPending}
-                  onClick={() => changeStatusAct.execute({ id: tournamentId, status: 'CANCELLED' })}
+                  onClick={() => changeStatusAct.execute({ id: tournamentId, status: 'ARCHIVED' })}
                 >
-                  Cancelar torneo
+                  Archivar
                 </Button>
               )}
             </div>

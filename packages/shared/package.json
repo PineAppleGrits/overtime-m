@@ -16,6 +16,10 @@
     "./teams/contracts": {
       "types": "./dist/teams/contracts.d.ts",
       "default": "./dist/teams/contracts.js"
+    },
+    "./tournaments/enums": {
+      "types": "./dist/tournaments/enums.d.ts",
+      "default": "./dist/tournaments/enums.js"
     }
   },
   "scripts": {

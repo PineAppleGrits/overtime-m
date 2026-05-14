@@ -23,7 +23,8 @@ export interface ChangeTournamentStatusInput {
 
 /**
  * Caso de uso: cambiar el estado de un torneo validando que la transición
- * sea legal y emitiendo `tournament.status.changed` (RN-046, evento bus).
+ * sea legal, aplicando guards por estado destino y emitiendo
+ * `tournament.status.changed` (ver docs/specs/tournament-state-machine.md).
  */
 @Injectable()
 export class ChangeTournamentStatusUseCase {
@@ -51,7 +52,6 @@ export class ChangeTournamentStatusUseCase {
     const toStatus = input.newStatus;
 
     if (fromStatus === toStatus) {
-      // No-op: no cambia el estado, retornamos el torneo tal cual.
       return tournament;
     }
 
@@ -70,6 +70,8 @@ export class ChangeTournamentStatusUseCase {
       );
     }
 
+    await this.assertGuards(tournament, toStatus);
+
     const updated = await this.repo.updateStatus(tournament.id, toStatus);
 
     const payload: DomainEventPayloads['tournament.status.changed'] = {
@@ -84,5 +86,60 @@ export class ChangeTournamentStatusUseCase {
     );
 
     return updated;
+  }
+
+  /**
+   * Guards por estado destino (manual transitions).
+   * Las transiciones automáticas (job) siguen su propia ruta y no pasan por acá.
+   */
+  private async assertGuards(
+    tournament: TournamentRecord,
+    toStatus: TournamentStatus,
+  ): Promise<void> {
+    switch (toStatus) {
+      case TournamentStatus.PUBLISHED: {
+        if (
+          !tournament.registrationStartDate ||
+          !tournament.registrationEndDate
+        ) {
+          throw new BusinessError(
+            ErrorCode.TOURNAMENT_PUBLISH_REQUIRES_DATES,
+            'Para publicar el torneo deben estar definidas las fechas de inscripción.',
+            HttpStatus.BAD_REQUEST,
+            { tournamentId: tournament.id },
+          );
+        }
+        const categoriesCount = await this.repo.countCategories(tournament.id);
+        if (categoriesCount === 0) {
+          throw new BusinessError(
+            ErrorCode.TOURNAMENT_PUBLISH_REQUIRES_CATEGORY,
+            'Para publicar el torneo se requiere al menos una categoría.',
+            HttpStatus.BAD_REQUEST,
+            { tournamentId: tournament.id },
+          );
+        }
+        return;
+      }
+      case TournamentStatus.PLAYING: {
+        const categoriesWithoutFixture =
+          await this.repo.findCategoriesWithoutFixture(tournament.id);
+        if (categoriesWithoutFixture.length > 0) {
+          throw new BusinessError(
+            ErrorCode.FIXTURE_INCOMPLETE_FOR_START,
+            `Faltan fixtures por generar en algunas categorías: ${categoriesWithoutFixture
+              .map((c) => c.name)
+              .join(', ')}.`,
+            HttpStatus.BAD_REQUEST,
+            {
+              tournamentId: tournament.id,
+              categoriesWithoutFixture,
+            },
+          );
+        }
+        return;
+      }
+      default:
+        return;
+    }
   }
 }

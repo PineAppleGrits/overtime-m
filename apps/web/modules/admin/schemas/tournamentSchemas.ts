@@ -29,7 +29,16 @@ export const updateTournamentSchema = z.object({
 
 export const changeStatusSchema = z.object({
   id: z.string().min(1),
-  status: z.enum(['DRAFT', 'OPEN', 'CLOSED', 'READY_TO_SHIP', 'IN_PROGRESS', 'FINISHED', 'ARCHIVED', 'CANCELLED']),
+  status: z.enum([
+    'DRAFT',
+    'PUBLISHED',
+    'INSCRIPTION_OPEN',
+    'INSCRIPTION_CLOSED',
+    'IN_PROGRESS',
+    'PLAYING',
+    'FINISHED',
+    'ARCHIVED',
+  ]),
 })
 
 export const deleteTournamentSchema = z.object({ id: z.string().min(1) })

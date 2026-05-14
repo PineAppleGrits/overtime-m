@@ -1,29 +1,35 @@
-export const TournamentStatus = {
-  DRAFT: 'DRAFT',
-  OPEN: 'OPEN',
-  CLOSED: 'CLOSED',
-  READY_TO_SHIP: 'READY_TO_SHIP',
-  IN_PROGRESS: 'IN_PROGRESS',
-  FINISHED: 'FINISHED',
-  ARCHIVED: 'ARCHIVED',
-  CANCELLED: 'CANCELLED',
-} as const
+/**
+ * Estados del ciclo de vida del torneo.
+ *
+ * Importamos el enum desde el subpath `@overtime-mono/shared/tournaments/enums`
+ * para evitar arrastrar DTOs (class-validator/@nestjs/swagger → @nestjs/microservices)
+ * al bundle del FE.
+ *
+ * El catálogo canónico vive en docs/specs/tournament-state-machine.md.
+ */
+import { TournamentStatus as TournamentStatusEnum } from '@overtime-mono/shared/tournaments/enums'
 
-export type TournamentStatus =
-  (typeof TournamentStatus)[keyof typeof TournamentStatus]
+export { TournamentStatusEnum as TournamentStatus }
+export type TournamentStatusValue = `${TournamentStatusEnum}`
 
-export const PUBLIC_TOURNAMENT_STATUSES: readonly TournamentStatus[] = [
-  TournamentStatus.OPEN,
-  TournamentStatus.CLOSED,
-  TournamentStatus.READY_TO_SHIP,
-  TournamentStatus.IN_PROGRESS,
-  TournamentStatus.FINISHED,
+const HIDDEN_TOURNAMENT_STATUSES: readonly TournamentStatusEnum[] = [
+  TournamentStatusEnum.DRAFT,
+  TournamentStatusEnum.ARCHIVED,
 ] as const
 
-const HIDDEN_TOURNAMENT_STATUSES: readonly TournamentStatus[] = [
-  TournamentStatus.DRAFT,
-  TournamentStatus.ARCHIVED,
-  TournamentStatus.CANCELLED,
+export const PUBLIC_TOURNAMENT_STATUSES: readonly TournamentStatusEnum[] = [
+  TournamentStatusEnum.PUBLISHED,
+  TournamentStatusEnum.INSCRIPTION_OPEN,
+  TournamentStatusEnum.INSCRIPTION_CLOSED,
+  TournamentStatusEnum.IN_PROGRESS,
+  TournamentStatusEnum.PLAYING,
+  TournamentStatusEnum.FINISHED,
+] as const
+
+const FIXTURE_VISIBLE_STATUSES: readonly TournamentStatusEnum[] = [
+  TournamentStatusEnum.PLAYING,
+  TournamentStatusEnum.FINISHED,
+  TournamentStatusEnum.ARCHIVED,
 ] as const
 
 export function isPubliclyVisibleTournament(
@@ -38,12 +44,17 @@ export function isPubliclyVisibleTournament(
 
 export function hasPublicFixture(status?: string | null): boolean {
   if (!status) return false
-  return (
-    status === TournamentStatus.IN_PROGRESS ||
-    status === TournamentStatus.FINISHED
-  )
+  return (FIXTURE_VISIBLE_STATUSES as readonly string[]).includes(status)
+}
+
+export function isLiveOrPast(status?: string | null): boolean {
+  return hasPublicFixture(status)
 }
 
 export function isRegistrationOpen(status?: string | null): boolean {
-  return status === TournamentStatus.OPEN
+  return status === TournamentStatusEnum.INSCRIPTION_OPEN
+}
+
+export function isArchivedTournament(status?: string | null): boolean {
+  return status === TournamentStatusEnum.ARCHIVED
 }
