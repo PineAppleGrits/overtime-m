@@ -25,6 +25,10 @@ import {
 import { ListBlacklistUseCase } from '../use-cases/list-blacklist.use-case';
 import { CheckBlacklistByDocumentUseCase } from '../use-cases/check-blacklist-by-document.use-case';
 import {
+  UploadBlacklistAttachmentInput,
+  UploadBlacklistAttachmentUseCase,
+} from '../use-cases/upload-blacklist-attachment.use-case';
+import {
   ISanctionRepository,
   ListSanctionsFilter,
   ListSanctionsResult,
@@ -48,6 +52,7 @@ export class SanctionsService {
     private readonly liftBlacklistUC: LiftBlacklistEntryUseCase,
     private readonly listBlacklistUC: ListBlacklistUseCase,
     private readonly checkBlacklistUC: CheckBlacklistByDocumentUseCase,
+    private readonly uploadBlacklistAttachmentUC: UploadBlacklistAttachmentUseCase,
     @Inject(SANCTION_REPOSITORY)
     private readonly sanctionRepo: ISanctionRepository,
   ) {}
@@ -81,6 +86,9 @@ export class SanctionsService {
   }
   checkBlacklistByDocument(documentNumber: string) {
     return this.checkBlacklistUC.execute(documentNumber);
+  }
+  uploadBlacklistAttachment(input: UploadBlacklistAttachmentInput) {
+    return this.uploadBlacklistAttachmentUC.execute(input);
   }
 
   // Helpers para que eligibility lea sanciones activas (port impl).

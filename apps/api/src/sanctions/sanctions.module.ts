@@ -17,6 +17,7 @@ import { CreateBlacklistEntryUseCase } from './application/use-cases/create-blac
 import { LiftBlacklistEntryUseCase } from './application/use-cases/lift-blacklist-entry.use-case';
 import { ListBlacklistUseCase } from './application/use-cases/list-blacklist.use-case';
 import { CheckBlacklistByDocumentUseCase } from './application/use-cases/check-blacklist-by-document.use-case';
+import { UploadBlacklistAttachmentUseCase } from './application/use-cases/upload-blacklist-attachment.use-case';
 
 // Application — ports
 import { SANCTION_REPOSITORY } from './application/ports/sanction-repository.port';
@@ -65,6 +66,7 @@ import { BlacklistController } from './presentation/controllers/blacklist.contro
     LiftBlacklistEntryUseCase,
     ListBlacklistUseCase,
     CheckBlacklistByDocumentUseCase,
+    UploadBlacklistAttachmentUseCase,
 
     // Ports → infra
     { provide: SANCTION_REPOSITORY, useClass: PrismaSanctionRepository },

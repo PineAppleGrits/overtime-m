@@ -70,6 +70,23 @@ export class PrismaBlacklistRepository implements IBlacklistRepository {
     });
   }
 
+  async addAttachmentUrl(
+    blacklistId: string,
+    url: string,
+  ): Promise<BlacklistEntry> {
+    const current = await this.prisma.blacklistEntry.findUnique({
+      where: { id: blacklistId },
+      select: { attachmentUrls: true },
+    });
+    if (!current) {
+      throw new Error(`Blacklist ${blacklistId} no encontrada`);
+    }
+    return this.prisma.blacklistEntry.update({
+      where: { id: blacklistId },
+      data: { attachmentUrls: [...current.attachmentUrls, url] },
+    });
+  }
+
   async hasActiveEntry(params: {
     profileId?: string;
     documentNumber?: string;

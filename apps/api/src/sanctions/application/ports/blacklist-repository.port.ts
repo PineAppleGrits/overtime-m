@@ -38,6 +38,7 @@ export interface IBlacklistRepository {
   findById(id: string): Promise<BlacklistEntry | null>;
   list(filter: ListBlacklistFilter): Promise<ListBlacklistResult>;
   lift(input: LiftBlacklistInput): Promise<BlacklistEntry>;
+  addAttachmentUrl(blacklistId: string, url: string): Promise<BlacklistEntry>;
 
   /** True si ya existe entrada activa para profileId o documentNumber. */
   hasActiveEntry(params: {

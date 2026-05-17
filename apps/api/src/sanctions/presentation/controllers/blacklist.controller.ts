@@ -2,12 +2,17 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BlacklistEntry } from '@prisma/client';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BusinessError, ErrorCode } from '../../../common/errors';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
@@ -21,6 +26,13 @@ import {
 interface AuthenticatedProfile {
   id: string;
   role: string;
+}
+
+interface UploadedFileShape {
+  buffer: Buffer;
+  mimetype: string;
+  originalname: string;
+  size: number;
 }
 
 @ApiTags('blacklist')
@@ -84,6 +96,32 @@ export class BlacklistController {
       blacklistId: id,
       liftedByProfileId: user.id,
       resolutionNotes: body.resolutionNotes,
+    });
+  }
+
+  @Post(':id/attachments')
+  @Roles('admin', 'master')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Subir adjunto a blacklist (admin)' })
+  async addAttachment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() file: UploadedFileShape,
+    @CurrentUser() user: AuthenticatedProfile,
+  ): Promise<{ blacklist: BlacklistEntry; assetId: string; url: string }> {
+    if (!file) {
+      throw new BusinessError(
+        ErrorCode.VALIDATION_FAILED,
+        'Archivo requerido (campo "file")',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return this.sanctionsService.uploadBlacklistAttachment({
+      blacklistId: id,
+      uploadedByProfileId: user.id,
+      contentType: file.mimetype,
+      originalFilename: file.originalname,
+      body: file.buffer,
     });
   }
 
