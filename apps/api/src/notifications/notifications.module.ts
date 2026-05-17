@@ -27,6 +27,7 @@ import { DebtFullyPaidListener } from './infrastructure/listeners/debt-fully-pai
 import { SanctionCreatedListener } from './infrastructure/listeners/sanction-created.listener';
 import { PaymentApprovedNotificationListener } from './infrastructure/listeners/payment-approved-notification.listener';
 import { ProfileDniPendingReviewListener } from './infrastructure/listeners/profile-dni-pending-review.listener';
+import { ProfileRoleChangedListener } from './infrastructure/listeners/profile-role-changed.listener';
 
 /**
  * W3.4 — Módulo Notifications (clean architecture).
@@ -71,6 +72,7 @@ import { ProfileDniPendingReviewListener } from './infrastructure/listeners/prof
     SanctionCreatedListener,
     PaymentApprovedNotificationListener,
     ProfileDniPendingReviewListener,
+    ProfileRoleChangedListener,
   ],
   exports: [
     EmailService, // legacy export — no romper consumidores existentes

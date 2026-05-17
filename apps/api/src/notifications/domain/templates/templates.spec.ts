@@ -7,6 +7,7 @@ import {
   matchCancelledTemplate,
   matchRescheduledTemplate,
   paymentApprovedTemplate,
+  profileRoleChangedTemplate,
   registrationApprovedTemplate,
   registrationRejectedTemplate,
   sanctionCreatedTemplate,
@@ -137,5 +138,16 @@ describe('notification templates (RN-013/-022/-023/-025-031/-036/-057)', () => {
     });
     expect(r.subject).toContain('Usuario Test');
     expect(r.html).toContain('prof-1');
+  });
+
+  it('profileRoleChangedTemplate menciona rol anterior y nuevo', () => {
+    const r = profileRoleChangedTemplate({
+      recipientName: 'Usuario',
+      fromRole: 'player',
+      toRole: 'referee',
+    });
+    expect(r.subject).toContain('referee');
+    expect(r.html).toContain('player');
+    expect(r.html).toContain('referee');
   });
 });

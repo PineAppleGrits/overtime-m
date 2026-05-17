@@ -10,3 +10,4 @@ export * from './debt-paid.template';
 export * from './sanction-created.template';
 export * from './payment-approved.template';
 export * from './dni-pending-review.template';
+export * from './profile-role-changed.template';
