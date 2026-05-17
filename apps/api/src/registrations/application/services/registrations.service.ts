@@ -37,6 +37,7 @@ import {
   NON_FINISHED_MATCH_STATUSES,
   PLAYOFF_CUTOFF_REMAINING_MATCHES,
 } from '../../registrations.constants';
+import { RegistrationPaymentsService } from '../../../payments/application/services/registration-payments.service';
 
 @Injectable()
 export class RegistrationsService {
@@ -51,6 +52,7 @@ export class RegistrationsService {
     private readonly eligibility: RegistrationEligibilityPort,
     @Inject(REGISTRATION_EVENTS_PORT)
     private readonly events: RegistrationEventsPort,
+    private readonly registrationPayments: RegistrationPaymentsService,
   ) {}
 
   private assertNoDuplicateProfileIds(profileIds: string[]): void {
@@ -434,6 +436,11 @@ export class RegistrationsService {
       id,
       approvedBy,
     );
+
+    await this.registrationPayments.createRegistrationDebts({
+      registrationId: id,
+      createdByProfileId: approvedBy,
+    });
 
     this.logger.log(`Registration approved: ${id}`);
 

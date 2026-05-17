@@ -10,6 +10,7 @@ import {
 } from './application/ports/registration-repository.port';
 import type { RegistrationRosterContextPort } from './application/ports/registration-roster-context.port';
 import { RegistrationsService } from './application/services/registrations.service';
+import type { RegistrationPaymentsService } from '../payments/application/services/registration-payments.service';
 
 describe('RegistrationsService', () => {
   const makeUuid = (index: number): string =>
@@ -51,12 +52,24 @@ describe('RegistrationsService', () => {
       emitRejected: jest.fn(),
     });
 
+  const createRegistrationPaymentsMock =
+    (): jest.Mocked<Pick<RegistrationPaymentsService, 'createRegistrationDebts'>> =>
+      ({
+        createRegistrationDebts: jest.fn(),
+      });
+
+  const asRegistrationPaymentsService = (
+    mock: jest.Mocked<Pick<RegistrationPaymentsService, 'createRegistrationDebts'>>,
+  ): RegistrationPaymentsService =>
+    mock as unknown as RegistrationPaymentsService;
+
   it('rejects creating a registration with fewer than 8 players', async () => {
     const service = new RegistrationsService(
       createRepositoryMock(),
       createRosterContextMock(),
       createEligibilityMock(),
       createEventsMock(),
+      asRegistrationPaymentsService(createRegistrationPaymentsMock()),
     );
 
     await expect(
@@ -98,6 +111,7 @@ describe('RegistrationsService', () => {
       rosterContext,
       eligibility,
       createEventsMock(),
+      asRegistrationPaymentsService(createRegistrationPaymentsMock()),
     );
 
     await expect(
@@ -142,6 +156,7 @@ describe('RegistrationsService', () => {
       createRosterContextMock(),
       eligibility,
       createEventsMock(),
+      asRegistrationPaymentsService(createRegistrationPaymentsMock()),
     );
 
     await expect(
@@ -158,5 +173,59 @@ describe('RegistrationsService', () => {
         makeUuid(999),
       ),
     ).rejects.toThrow(BadRequestException);
+  });
+
+  it('creates registration debts when approving a pending registration', async () => {
+    const repository = createRepositoryMock();
+    const events = createEventsMock();
+    const registrationPayments = createRegistrationPaymentsMock();
+
+    repository.findDetailById.mockResolvedValue({
+      id: makeUuid(1),
+      teamId: makeUuid(2),
+      tournamentId: makeUuid(3),
+      categoryId: makeUuid(4),
+      status: 'pendiente',
+      category: {
+        id: makeUuid(4),
+        name: 'A',
+        substatus: null,
+      },
+      rosterEntries: [],
+    });
+    repository.approveRegistration.mockResolvedValue({
+      id: makeUuid(1),
+      teamId: makeUuid(2),
+      tournamentId: makeUuid(3),
+      categoryId: makeUuid(4),
+      status: 'aprobada',
+      category: {
+        id: makeUuid(4),
+        name: 'A',
+        substatus: null,
+      },
+      rosterEntries: [],
+    });
+
+    const service = new RegistrationsService(
+      repository,
+      createRosterContextMock(),
+      createEligibilityMock(),
+      events,
+      asRegistrationPaymentsService(registrationPayments),
+    );
+
+    await service.approve(makeUuid(1), makeUuid(999));
+
+    expect(registrationPayments.createRegistrationDebts).toHaveBeenCalledWith({
+      registrationId: makeUuid(1),
+      createdByProfileId: makeUuid(999),
+    });
+    expect(events.emitApproved).toHaveBeenCalledWith({
+      registrationId: makeUuid(1),
+      teamId: makeUuid(2),
+      tournamentId: makeUuid(3),
+      approvedBy: makeUuid(999),
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
 import { EligibilityModule } from '../eligibility/eligibility.module';
+import { PaymentsModule } from '../payments/payments.module';
 import {
   REGISTRATION_ELIGIBILITY_PORT,
 } from './application/ports/registration-eligibility.port';
@@ -27,7 +28,7 @@ import { RegistrationRosterContextAdapter } from './infrastructure/adapters/rost
 import { PrismaRegistrationRepository } from './infrastructure/repositories/prisma-registration.repository';
 
 @Module({
-  imports: [DatabaseModule, EligibilityModule],
+  imports: [DatabaseModule, EligibilityModule, PaymentsModule],
   controllers: [RegistrationsController],
   providers: [
     RegistrationsService,
