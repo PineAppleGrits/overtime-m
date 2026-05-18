@@ -166,17 +166,17 @@ Tareas:
 
 ---
 
-## 8. Endpoints faltantes para retirar mocks del frontend
+## 8. Integraciones pendientes del frontend contra endpoints ya existentes
 
 Detalle completo en [`frontend-mocks-debt.md`](./frontend-mocks-debt.md).
 
 Pendientes mas criticos:
-- `GET /teams/:teamId/matches?type=last|next`
-- `GET /categories/:categoryId/standings`
-- `GET /categories/:categoryId/fixture`
-- `GET /teams/:teamId/balance`
-- `GET /teams/:teamId/stats`
-- `GET /teams/:teamId/player-stats`
+- Migrar el FE a `GET /teams/:teamId/matches?type=last|next`
+- Migrar el FE a `GET /categories/:categoryId/standings`
+- Migrar el FE a `GET /categories/:categoryId/fixture`
+- Migrar el FE a `GET /teams/:teamId/balance`
+- Migrar el FE a `GET /teams/:teamId/stats`
+- Migrar el FE a `GET /teams/:teamId/player-stats`
 
 ---
 

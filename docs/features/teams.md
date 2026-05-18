@@ -15,7 +15,10 @@
 9. **Asignar capitán** — el capitán debe ser miembro activo.
 10. **Subir logo** — multipart upload, crea `MediaAsset` y actualiza `Team.logoAssetId`.
 11. **Ver estado de roster (RN-009)** — devuelve `{count, min, max, isValid}` para una modalidad.
-12. **Promover a franquicia** — solo el creador puede promover su equipo a franquicia (existente).
+12. **Ver último / próximo partido** — read model público para previews del equipo.
+13. **Ver balance del equipo** — read model agregado de deudas, pagos y suspensiones.
+14. **Ver stats agregadas del equipo y por jugador** — reemplaza mocks del FE.
+15. **Promover a franquicia** — solo el creador puede promover su equipo a franquicia (existente).
 
 ## Reglas de negocio aplicables
 
@@ -46,6 +49,10 @@ RN-039 y RN-044 se documentan en `categorization.md`; este doc se enfoca en la o
 | GET    | /api/v1/teams | public | Listar paginado |
 | GET    | /api/v1/teams/mine | user | Mis equipos |
 | GET    | /api/v1/teams/:id | public | Detalle |
+| GET    | /api/v1/teams/:id/matches?type=last\|next | public | Último / próximo partido |
+| GET    | /api/v1/teams/:id/balance | auth (admin/master, creator o captain) | Balance consolidado |
+| GET    | /api/v1/teams/:id/stats | public | Stats agregadas del equipo |
+| GET    | /api/v1/teams/:id/player-stats | public | Stats agregadas por jugador |
 | PATCH  | /api/v1/teams/:id | admin/master | Actualizar |
 | DELETE | /api/v1/teams/:id | admin/master | Soft-delete |
 | POST   | /api/v1/teams/:id/players | user | Agregar jugador |
@@ -76,6 +83,30 @@ RN-039 y RN-044 se documentan en `categorization.md`; este doc se enfoca en la o
 - Lee la strategy `SportRulesRegistry.get(sportCode, modality)` y compara contra `count = profileTeam.count(isActive=true)`.
 - `modality` debe ser uno de `BASKETBALL_MODALITIES` (`5v5`, `3v3`).
 - **Response**: `{ teamId, modality, count, min, max, isValid }`.
+
+### GET /api/v1/teams/:id/matches?type=last|next
+
+- Devuelve `{ lastMatch, nextMatch }`.
+- Sin `type`, responde ambos previews.
+- `type=last` evita consultar el próximo partido.
+- `type=next` evita consultar el último partido.
+- Incluye `tournamentSlug`, `categorySlug`, equipos, venue y score cuando el match ya terminó.
+
+### GET /api/v1/teams/:id/balance
+
+- **Auth**: `admin` / `master`, `creator` del team o `captain`.
+- Devuelve `totalDebt`, `totalPaid`, `pendingConfirmation`, `registrations[]` y `suspensions[]`.
+- Se alinea con el read model consumido por `TeamBalanceService` del FE.
+
+### GET /api/v1/teams/:id/stats
+
+- Devuelve `{ playedMatches, won, lost, pointsFor, pointsAgainst }`.
+- Se calcula desde scores finales de `Match`, no desde `MatchPlayerStat`.
+
+### GET /api/v1/teams/:id/player-stats
+
+- Suma todos los `MatchPlayerStat` del equipo y agrupa por `profileId`.
+- Ordena por puntos descendente.
 
 ### POST /api/v1/teams/:id/logo
 

@@ -10,7 +10,9 @@
 6. **Transición REGULAR_FASE → PLAYOFFS_FASE** — caso de uso interno que emite `category.playoffs.started` (consumido por feature `playoffs` para generar el bracket).
 7. **Transición a FINISHED** — emite `category.finished` con `championTeamId`, `runnerUpTeamId`, `lastTeamId` cuando el caller los conoce.
 8. **Listar categorías por torneo / detalle** — público.
-9. **Soft-delete categoría** — admin.
+9. **Ver standings públicos por categoría** — read model para tab de posiciones.
+10. **Ver fixture público por categoría** — read model agrupado por ronda.
+11. **Soft-delete categoría** — admin.
 
 ## Reglas de negocio aplicables
 
@@ -60,6 +62,8 @@ substatus:        ───> REGULAR_FASE ──(startPlayoffs)──> PLAYOFFS_
 | GET    | /api/v1/tournaments/:tournamentId/categories | public | Listar |
 | GET    | /api/v1/tournaments/:tournamentId/categories/:id | public | Detalle |
 | GET    | /api/v1/tournaments/:tournamentId/categories/:id/playoff-config | public | Config de playoffs (efectiva + default) |
+| GET    | /api/v1/categories/:categoryId/standings | public | Tabla de posiciones por zona |
+| GET    | /api/v1/categories/:categoryId/fixture | public | Fixture agrupado por ronda |
 | PATCH  | /api/v1/tournaments/:tournamentId/categories/:id | admin | Editar |
 | PATCH  | /api/v1/tournaments/:tournamentId/categories/:id/playoff-config | admin | Editar config de playoffs (validación dedicada) |
 | DELETE | /api/v1/tournaments/:tournamentId/categories/:id | admin | Soft-delete |
@@ -132,8 +136,23 @@ Mismo body que POST (todos los campos opcionales). Errores adicionales:
   | HTTP | Code | Cuándo |
   |------|------|--------|
   | 400 | VALIDATION_FAILED | Schema inválido / JSON con ronda o formato desconocido |
-  | 400 | CATEGORY_TOO_MANY_ZONES | `zonesCount > 2` |
-  | 409 | CATEGORY_PLAYOFF_FORMAT_LOCKED | Categoría ya en `PLAYOFFS_FASE` |
+| 400 | CATEGORY_TOO_MANY_ZONES | `zonesCount > 2` |
+| 409 | CATEGORY_PLAYOFF_FORMAT_LOCKED | Categoría ya en `PLAYOFFS_FASE` |
+
+### GET /api/v1/categories/:categoryId/standings
+
+- **Auth**: público.
+- Computa la tabla por zona desde matches `regular` finalizados.
+- Regla FIBA usada: victoria = 2 puntos, derrota = 1 punto.
+- Orden: `points desc`, `diff desc`, `pointsFor desc`.
+- Si el torneo todavía no está en `PLAYING`, `FINISHED` o `ARCHIVED`, devuelve `409 FIXTURE_NOT_PUBLISHED`.
+
+### GET /api/v1/categories/:categoryId/fixture
+
+- **Auth**: público.
+- Devuelve `{ rounds: [{ name, date, matches[] }] }`.
+- Mientras no exista `Match.roundNumber`, usa el día calendario como proxy de ronda y nombra `Fecha 1`, `Fecha 2`, etc.
+- Si el torneo todavía no está en `PLAYING`, `FINISHED` o `ARCHIVED`, devuelve `409 FIXTURE_NOT_PUBLISHED`.
 
 ## Casos especiales
 

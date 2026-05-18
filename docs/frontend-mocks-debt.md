@@ -1,131 +1,91 @@
-# Frontend mocks → Deuda técnica de backend
+# Frontend mocks -> Deuda tecnica de backend
 
-Mapa de los mocks que aún viven en `apps/web/mock/` y `apps/web/modules/**/mock/`. Cada entrada lista qué endpoint/datos faltan en el BE para poder eliminar el mock y consumir datos reales.
+Mapa de los mocks que aun viven en `apps/web/mock/` y `apps/web/modules/**/mock/`.
 
-**Convención**: los archivos JSON quedan en disco (no se eliminan al integrar) hasta que el endpoint real esté disponible y verificado en staging. Una vez integrado, el mock JSON se borra y el helper `getMockX(...)` también.
+**Convencion**: los JSON pueden seguir en disco hasta que la integracion real quede validada en staging, pero el backlog distingue entre:
+- endpoint faltante en backend;
+- endpoint ya existente, pendiente de migracion en frontend.
 
-**Última actualización**: 2026-05-07.
-
----
-
-## 1. Mocks con uso activo (alta prioridad)
-
-### 1.1 `team-matches.json` — Último / próximo partido por equipo
-
-**Consumido en**: `app/(page)/equipos/[id]/page.tsx` vía `getMockTeamMatches(teamId)` (`modules/common/components/MatchPreview/mock.ts`).
-
-**Shape esperado**:
-```ts
-{ lastMatch: MatchPreviewData | null, nextMatch: MatchPreviewData | null }
-```
-Donde `MatchPreviewData` incluye `id, tournamentSlug, categorySlug, date, location, matchType, team1{id,name,logoUrl}, team2{...}, team1Score?, team2Score?`.
-
-**Servicio FE existente**: `MatchService.getMatches({ ... })` — soporta filtros por `categoryId`, `zoneId`, `status`, etc. **No tiene filtro por `teamId`**.
-
-**Falta en BE**:
-- Endpoint dedicado `GET /teams/:teamId/matches?type=last|next` que devuelva los dos partidos relevantes con team info y scores ya populados.
-- Alternativa: extender `GET /matches` con filtro `?teamId=...&type=last|next` (where homeTeamId=X OR awayTeamId=X, ordenado por matchDate, devolver el último finalizado y el próximo programado).
-
-**Riesgo de migrar sin endpoint**: cargar todos los matches y filtrar en FE no escala.
+**Ultima actualizacion**: 2026-05-19.
 
 ---
 
-### 1.2 `category-fixture.json` — Fixture de la categoría agrupado por fecha
+## 1. Mocks con uso activo
 
-**Consumido en**: `modules/tournament/components/CategoryDetailContent.tsx` (tab "Fixture"), pasa los rounds al componente `<FixtureView>`.
+### 1.1 `team-matches.json`
 
-**Shape esperado**:
-```ts
-{ rounds: Array<{ name: string; date: string; matches: MatchPreviewData[] }> }
-```
+**Consumido en**: `app/(page)/equipos/[id]/page.tsx`.
 
-**Servicio FE existente**: `MatchService.getMatches({ categoryId })` — devuelve lista plana de matches.
+**Estado BE**: resuelto.
 
-**Falta en BE**:
-- Endpoint `GET /categories/:categoryId/fixture` que devuelva matches agrupados por **ronda** (Fecha 1, Fecha 2, ...). El concepto de "ronda" no es solo agrupar por `matchDate` — pueden jugarse en días distintos pero pertenecer a la misma ronda.
-- Alternativa **migrable hoy**: usar `getMatches({ categoryId })` y agrupar en FE por `matchDate` o por un campo `roundNumber` si el modelo lo expone.
+- Endpoint disponible: `GET /teams/:teamId/matches?type=last|next`.
+- Devuelve `{ lastMatch, nextMatch }` con teams, venue, category y tournament slugs.
+- Pendiente real: migrar el FE para dejar de usar el mock.
 
-**Acción recomendada**: revisar el modelo `Match` de Prisma para ver si ya hay `roundNumber`. Si sí, migrar agrupando en FE; si no, sumar el campo es trabajo de BE.
+### 1.2 `category-fixture.json`
 
----
+**Consumido en**: `modules/tournament/components/CategoryDetailContent.tsx`.
 
-### 1.3 `category-standings.json` — Tabla de posiciones por zona
+**Estado BE**: resuelto con workaround de v1.
 
-**Consumido en**: `modules/tournament/components/CategoryDetailContent.tsx` (tab "Posiciones"), componente `<StandingsTable>`.
+- Endpoint disponible: `GET /categories/:categoryId/fixture`.
+- Hoy agrupa por dia calendario y nombra rondas como `Fecha N`.
+- Devuelve `409 FIXTURE_NOT_PUBLISHED` cuando el torneo todavia no esta en `PLAYING`, `FINISHED` o `ARCHIVED`.
+- Pendiente real: si se necesita una ronda logica multi-dia, sumar `Match.roundNumber`.
 
-**Shape esperado**:
-```ts
-{ zones: Array<{ name: string; standings: Array<{ position, teamName, teamLogo, teamId, played, won, lost, pointsFor, pointsAgainst, diff, points }> }> }
-```
+### 1.3 `category-standings.json`
 
-**Servicio FE existente**: ninguno.
+**Consumido en**: `modules/tournament/components/CategoryDetailContent.tsx`.
 
-**Falta en BE**:
-- Endpoint `GET /categories/:categoryId/standings` que compute las tablas por zona (PJ, PG, PP, PF, PC, DP, puntos) según las reglas del torneo (FIBA: 2 pts ganado, 1 perdido).
+**Estado BE**: resuelto.
 
-**Bloqueado**: no migrable hasta que el BE exponga el endpoint.
+- Endpoint disponible: `GET /categories/:categoryId/standings`.
+- Computa PJ, PG, PP, PF, PC, DP y puntos por zona.
+- Devuelve `409 FIXTURE_NOT_PUBLISHED` cuando el torneo todavia no esta en `PLAYING`, `FINISHED` o `ARCHIVED`.
+- Pendiente real: migrar el FE.
 
----
+### 1.4 `team-stats.json` + `player-stats.json`
 
-### 1.4 `team-stats.json` + `player-stats.json` — Estadísticas agregadas
+**Consumido en**: `app/(page)/equipos/[id]/page.tsx`.
 
-**Consumido en**: `app/(page)/equipos/[id]/page.tsx` vía `getMockTeamStats(teamId)` y `getMockPlayerStats(teamId)` (`modules/team/mock/playerStats.mock.ts`).
+**Estado BE**: resuelto.
 
-**Shape esperado**:
-- Team: `{ playedMatches, won, lost, pointsFor, pointsAgainst }`
-- Player (por jugador): `{ played, points, pt1, pt2, pt3, fouls, steals, rebounds, assists, picture }`
+- Endpoints disponibles:
+  - `GET /teams/:teamId/stats`
+  - `GET /teams/:teamId/player-stats`
+- Pendiente real: migrar el FE y validar el shape final en staging.
 
-**Servicio FE existente**: `MatchService.getMatchPlayerStats(matchId)` — comentado como TODO, devolvería stats **por match**, no acumuladas.
+### 1.5 `team-balance.json`
 
-**Falta en BE**:
-- `GET /teams/:teamId/stats` — totales acumulados del equipo en toda la temporada.
-- `GET /teams/:teamId/player-stats` — totales acumulados por jugador del equipo.
-- Sin estos, el equipo no puede mostrar tabla de stats real.
+**Consumido en**: `app/(page)/equipos/[id]/balance/page.tsx` y `app/(page)/equipos/[id]/gestionar/page.tsx`.
 
-**Bloqueado**: necesita agregación BE (probablemente a partir de la tabla de stats por match cuando exista).
+**Estado BE**: resuelto.
 
----
-
-### 1.5 `team-balance.json` — Balance de pagos y suspensiones por equipo
-
-**Consumido en**: `app/(page)/equipos/[id]/balance/page.tsx`, `app/(page)/equipos/[id]/gestionar/page.tsx` vía `TeamBalanceService.getTeamBalance(teamId)`.
-
-**Shape esperado**:
-```ts
-{ totalDebt, totalPaid, pendingConfirmation, registrations: [...], suspensions: [...] }
-```
-
-**Servicio FE existente**: `TeamBalanceService` existe pero internamente devuelve el JSON mockeado — no llama al backend.
-
-**Falta en BE**:
-- Endpoint `GET /teams/:teamId/balance` que agregue datos de `DebtsService` + `PaymentsService` + `SanctionsService`.
-- Alternativa: el FE hace 3 llamadas (debts, payments, sanctions) y compone — más chatty pero no requiere endpoint nuevo. Riesgo: inconsistencia momentánea entre las 3 fuentes.
-
-**Recomendación**: BE expone un read model agregado (más eficiente y consistente).
+- Endpoint disponible: `GET /teams/:teamId/balance`.
+- Ya expone un read model agregado de debts, payments y suspensions.
+- Pendiente real: conectar `TeamBalanceService` del FE.
 
 ---
 
-## 2. Mocks huérfanos (sin uso activo)
-
-Quedan en disco por si el flujo se reactiva. Si dentro de un par de iteraciones no se vuelven a usar, se pueden borrar.
+## 2. Mocks huerfanos
 
 | Archivo | Origen probable | Estado |
 |---------|-----------------|--------|
-| `mock/admin-matches.json` | Listado de partidos del admin | Sin import activo. Cuando se conecte la pantalla de partidos del admin, usar `MatchService.getMatches()` con filtros. |
-| `mock/registration-payment-config.json` | Config de fees al inscribirse (cuota inscripción + seguro/jugador) | Sin import activo. Cuando se conecte, debería leer de un endpoint `/settings/registration-fees` o derivado de `siteConfigService`. |
-| `mock/registration-players.json` | Roster armado durante una inscripción | Sin import activo. Probablemente el flujo nuevo de inscripción usa `RegistrationService.getRegistrationById()` y derivados. |
-| `mock/available-players.json` | Búsqueda de jugadores externos para sumar al equipo | Sin import activo. Hoy hay `searchUsersForTeamAction` en `teamActions.ts` (devuelve `[]` si el endpoint admin-only falla). Cuando se exponga un endpoint público de búsqueda de perfiles, ese flujo se reactiva. |
+| `mock/admin-matches.json` | Listado de partidos del admin | Sin import activo. Cuando se conecte la pantalla admin, usar `MatchService.getMatches()` con filtros. |
+| `mock/registration-payment-config.json` | Config de fees al inscribirse | Sin import activo. Deberia leer de un endpoint `/settings/registration-fees` o equivalente. |
+| `mock/registration-players.json` | Roster armado durante una inscripcion | Sin import activo. Probablemente lo cubra `RegistrationService.getRegistrationById()`. |
+| `mock/available-players.json` | Busqueda de jugadores externos | Sin import activo. Cuando exista un endpoint publico de busqueda de perfiles, ese flujo se reactiva. |
 
 ---
 
-## 3. Resumen prioridades para el backend
+## 3. Prioridades reales
 
-| Prioridad | Endpoint a sumar | Desbloquea |
-|-----------|------------------|------------|
-| **ALTA** | `GET /teams/:teamId/matches?type=last|next` | Section equipos del front (page principal) |
-| **ALTA** | `GET /categories/:categoryId/standings` | Tab Posiciones |
-| **MEDIA** | `GET /categories/:categoryId/fixture` (o flag `roundNumber` en `Match`) | Tab Fixture |
-| **MEDIA** | `GET /teams/:teamId/balance` (read model) | Pantalla balance + gestionar equipo |
-| **MEDIA-BAJA** | `GET /teams/:teamId/stats` y `/teams/:teamId/player-stats` | Pantalla detalle de equipo (sección stats). Depende también de que las stats por match estén implementadas. |
-| **BAJA** | `GET /settings/registration-fees` | Cuando se reactive el flujo de inscripción nuevo |
-| **BAJA** | `GET /profiles/search?q=...` (público) | Búsqueda de jugadores externos en el wizard de equipo |
+| Prioridad | Trabajo pendiente | Desbloquea |
+|-----------|-------------------|------------|
+| ALTA | Migrar FE a `GET /teams/:teamId/matches?type=last|next` | Page principal de equipo |
+| ALTA | Migrar FE a `GET /categories/:categoryId/standings` | Tab Posiciones |
+| MEDIA | Migrar FE a `GET /categories/:categoryId/fixture` | Tab Fixture |
+| MEDIA | Migrar FE a `GET /teams/:teamId/balance` | Balance y gestionar equipo |
+| MEDIA-BAJA | Migrar FE a `GET /teams/:teamId/stats` y `/teams/:teamId/player-stats` | Seccion stats del equipo |
+| BAJA | Sumar `GET /settings/registration-fees` si el flujo nuevo vuelve a usarlo | Wizard de inscripcion |
+| BAJA | Sumar `GET /profiles/search?q=...` publico | Busqueda de jugadores externos |
