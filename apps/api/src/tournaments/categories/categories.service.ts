@@ -53,6 +53,29 @@ export class CategoriesService {
     private readonly linkCategoryLevel: LinkCategoryLevelUseCase,
   ) {}
 
+  private assertFixtureVisibleForPublic(
+    tournamentStatus: string,
+    currentUserRole?: string | null,
+  ): void {
+    const isAdmin =
+      currentUserRole === 'admin' || currentUserRole === 'master';
+    if (isAdmin) return;
+
+    if (
+      tournamentStatus === 'PLAYING' ||
+      tournamentStatus === 'FINISHED' ||
+      tournamentStatus === 'ARCHIVED'
+    ) {
+      return;
+    }
+
+    throw new BusinessError(
+      ErrorCode.FIXTURE_NOT_PUBLISHED,
+      'El fixture todavia no esta publicado',
+      HttpStatus.CONFLICT,
+    );
+  }
+
   private async generateCategorySlug(
     name: string,
     tournamentId: string,
@@ -547,15 +570,23 @@ export class CategoriesService {
    * Si no tiene zonas → `{ zones: [] }`.
    * Si una zona no tiene teams → `{ ..., standings: [] }`.
    */
-  async computeStandings(categoryId: string) {
+  async computeStandings(categoryId: string, currentUserRole?: string | null) {
     // 1) 404 si la categoría no existe (o está soft-deleted).
     const category = await this.prisma.category.findUnique({
       where: { id: categoryId, deletedAt: null },
-      select: { id: true },
+      select: {
+        id: true,
+        tournament: { select: { status: true } },
+      },
     });
     if (!category) {
       throw new NotFoundException(`Category with ID ${categoryId} not found`);
     }
+
+    this.assertFixtureVisibleForPublic(
+      category.tournament.status,
+      currentUserRole,
+    );
 
     // 2) Cargar zonas con sus teams + matches finalizados de fase regular.
     //    El filtro por `matchType: 'regular'` y `status: 'finalizado'` se aplica
@@ -691,14 +722,22 @@ export class CategoriesService {
    * (1 = más temprana). Cuando se sume `roundNumber` se reemplaza por el valor
    * real y permite tener varios días en la misma ronda.
    */
-  async getFixture(categoryId: string) {
+  async getFixture(categoryId: string, currentUserRole?: string | null) {
     const category = await this.prisma.category.findUnique({
       where: { id: categoryId, deletedAt: null },
-      select: { id: true },
+      select: {
+        id: true,
+        tournament: { select: { status: true } },
+      },
     });
     if (!category) {
       throw new NotFoundException(`Category with ID ${categoryId} not found`);
     }
+
+    this.assertFixtureVisibleForPublic(
+      category.tournament.status,
+      currentUserRole,
+    );
 
     const matches = await this.prisma.match.findMany({
       where: {

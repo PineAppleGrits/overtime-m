@@ -242,4 +242,97 @@ describe('TeamsService', () => {
       code: ErrorCode.TEAM_PLAYER_ALREADY_IN_OTHER_TEAM,
     } as Partial<BusinessError>);
   });
+
+  it('returns last and next match previews for the team', async () => {
+    const repository = createRepositoryMock();
+    repository.findTeamExists.mockResolvedValue({ id: makeUuid(1) });
+    repository.findLastMatchPreview.mockResolvedValue({
+      id: makeUuid(2),
+      matchDate: new Date('2026-05-10T20:00:00.000Z'),
+      status: 'finalizado',
+      matchType: 'regular',
+      homeScore: 77,
+      awayScore: 70,
+      homeTeam: { id: makeUuid(3), name: 'Halcones', logoUrl: null },
+      awayTeam: { id: makeUuid(4), name: 'Lobos', logoUrl: null },
+      venue: { id: makeUuid(5), name: 'Microestadio' },
+      category: {
+        id: makeUuid(6),
+        name: 'Primera',
+        slug: 'primera',
+        tournament: {
+          id: makeUuid(7),
+          name: 'Clausura',
+          slug: 'clausura',
+        },
+      },
+    });
+    repository.findNextMatchPreview.mockResolvedValue({
+      id: makeUuid(8),
+      matchDate: new Date('2026-05-24T20:00:00.000Z'),
+      status: 'programado',
+      matchType: 'playoff',
+      homeScore: 0,
+      awayScore: 0,
+      homeTeam: { id: makeUuid(3), name: 'Halcones', logoUrl: null },
+      awayTeam: { id: makeUuid(9), name: 'Pumas', logoUrl: null },
+      venue: { id: makeUuid(10), name: 'Club Centro' },
+      category: {
+        id: makeUuid(6),
+        name: 'Primera',
+        slug: 'primera',
+        tournament: {
+          id: makeUuid(7),
+          name: 'Clausura',
+          slug: 'clausura',
+        },
+      },
+    });
+
+    const service = buildService(repository);
+
+    await expect(service.findTeamMatches(makeUuid(1))).resolves.toEqual({
+      lastMatch: {
+        id: makeUuid(2),
+        tournamentSlug: 'clausura',
+        categorySlug: 'primera',
+        date: '2026-05-10T20:00:00.000Z',
+        location: 'Microestadio',
+        matchType: 'regular',
+        team1: { id: makeUuid(3), name: 'Halcones', logoUrl: null },
+        team2: { id: makeUuid(4), name: 'Lobos', logoUrl: null },
+        team1Score: 77,
+        team2Score: 70,
+      },
+      nextMatch: {
+        id: makeUuid(8),
+        tournamentSlug: 'clausura',
+        categorySlug: 'primera',
+        date: '2026-05-24T20:00:00.000Z',
+        location: 'Club Centro',
+        matchType: 'playoff',
+        team1: { id: makeUuid(3), name: 'Halcones', logoUrl: null },
+        team2: { id: makeUuid(9), name: 'Pumas', logoUrl: null },
+        team1Score: null,
+        team2Score: null,
+      },
+    });
+  });
+
+  it('does not query last match when requesting only next', async () => {
+    const repository = createRepositoryMock();
+    repository.findTeamExists.mockResolvedValue({ id: makeUuid(1) });
+    repository.findNextMatchPreview.mockResolvedValue(null);
+
+    const service = buildService(repository);
+
+    await expect(
+      service.findTeamMatches(makeUuid(1), 'next'),
+    ).resolves.toEqual({
+      lastMatch: null,
+      nextMatch: null,
+    });
+    expect(repository.findLastMatchPreview).not.toHaveBeenCalled();
+    expect(repository.findNextMatchPreview).toHaveBeenCalledWith(makeUuid(1));
+  });
 });
